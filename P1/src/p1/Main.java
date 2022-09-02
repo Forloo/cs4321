@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 
 public class Main {
@@ -17,10 +18,12 @@ public class Main {
 			int queryCount = 1;
 			while ((statement = parser.Statement()) != null) {
 				try {
-					System.out.println("Read statement: " + statement);
+					// Parse statement
 					Select select = (Select) statement;
-					System.out.println("Select body is " + select.getSelectBody());
+					PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+					System.out.println(plainSelect);
 					
+					// Write results to output file directory
 					File queryResult = new File(queriesOutput + File.separator + "query" + queryCount);
 					queryResult.createNewFile();
 				} catch (Exception e) {
