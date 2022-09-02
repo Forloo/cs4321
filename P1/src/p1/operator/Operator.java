@@ -1,4 +1,4 @@
-package p1.Operator;
+package p1.operator;
 
 public abstract class Operator {
 
