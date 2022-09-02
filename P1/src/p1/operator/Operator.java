@@ -3,12 +3,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
+import p1.Tuple;
+
 public abstract class Operator {
 	
 	/*
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
 	 */
-	public abstract p1.Tuple getNextTuple();
+	public abstract Tuple getNextTuple();
 	
 	/*
 	 * Resets the Operator to its original state 

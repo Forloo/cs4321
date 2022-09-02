@@ -2,10 +2,10 @@ package p1;
 
 public class Tuple {
 
-	String[] data;
+	String[] row;
 	
-	public Tuple(String[] data) {
-		this.data = data;
+	public Tuple(String rowStr) {
+		this.row = rowStr.split(",");
 	}
 	
 }
