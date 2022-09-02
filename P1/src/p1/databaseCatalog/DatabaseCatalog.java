@@ -12,7 +12,7 @@ public class DatabaseCatalog {
 		// write code that allows us to create only one object
 		// access the object as per our need
 		if (singleObject == null) {
-				singleObject = new DatabaseCatalog();
+			singleObject = new DatabaseCatalog();
 		}
 	
 		// returns the singleton object

@@ -1,7 +1,4 @@
-package p1.operator; 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+package p1.operator;
 
 import p1.Tuple;
 

@@ -6,11 +6,16 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.databaseCatalog.DatabaseCatalog;
 
 public class Main {
+	
 	public static void main(String[] args) {
 		String queriesFile = args[0] + File.separator + "queries.sql";
 		String queriesOutput = args[1];
+		
+		// Store table information
+		DatabaseCatalog db = DatabaseCatalog.getInstance();
 		
 		try {
 			CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
@@ -37,4 +42,5 @@ public class Main {
 			e.printStackTrace();
 		}
 	}
+	
 }
