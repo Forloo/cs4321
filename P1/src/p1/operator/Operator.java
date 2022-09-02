@@ -16,4 +16,5 @@ public abstract class Operator {
 	 * Retrieves all tuples and outputs them to stdout.
 	 */
 	public abstract void dump();
+	
 }
