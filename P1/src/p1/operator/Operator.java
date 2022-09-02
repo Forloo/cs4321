@@ -23,3 +23,4 @@ public abstract class Operator {
 	public abstract void dump();
 	
 }
+
