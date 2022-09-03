@@ -1,17 +1,19 @@
 package test;
 
-import p1.Main;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
 
 class ScanOperatorTest {
 
 	@Test
-	void test() {
+	void testGetNextTuple() {
 		fail("Not yet implemented");
-		Main.main(new String[] {"input", "output"});
+	}
+
+	@Test
+	void testReset() {
+		fail("Not yet implemented");
 	}
 
 }
