@@ -16,6 +16,6 @@ public class DatabaseCatalog {
 		      }
 	
 		       // returns the singleton object
-		       return dbObject;
+		       return singleObject;
 	   }
 }
