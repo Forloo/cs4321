@@ -59,6 +59,12 @@ public class DatabaseCatalog {
 		}
 	}
 	
+	/**
+	 * Initialize a DatabaseCatalog object
+	 * @param fileList: A list of files specifying table information
+	 * @param schema: A file specifying the structure of tables.
+	 * @return A DatabaseCatalog object
+	 */
 	public static DatabaseCatalog getInstance(File [] fileList,File schema) {
 		// write code that allows us to create only one object
 		// access the object as per our need
@@ -69,12 +75,20 @@ public class DatabaseCatalog {
 		// returns the singleton object
 		return catalogObject;       
 	}
-	
+	/**
+	 * Retrieves the table names and their paths
+	 * @return A Hashmap containing the names of the tables and their absolute 
+	 * file path
+	 */
 	public HashMap<String,String> getNames() {
 		
 		return tableNames;
 	}
 	
+	/**
+	 * Retrieves the schema for the DatabaseCatalog object
+	 * @return A HashMap containing the names of the tables and their structure.
+	 */
 	public HashMap<String,ArrayList<String>> getSchema(){
 		return schema;
 	}
