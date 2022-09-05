@@ -61,6 +61,16 @@ public class DatabaseCatalog {
 	}
 
 	/**
+	 * Return the DatabaseCatalog object
+	 *
+	 * @return A DatabaseCatalog object
+	 */
+	public static DatabaseCatalog getInstance() {
+		// returns the singleton object
+		return catalogObject;
+	}
+
+	/**
 	 * Initialize a DatabaseCatalog object
 	 *
 	 * @param fileList: A list of files specifying table information

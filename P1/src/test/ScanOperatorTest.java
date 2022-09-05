@@ -29,8 +29,8 @@ class ScanOperatorTest {
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema);
-		ScanOperator so = new ScanOperator(db, "Sailors");
+		DatabaseCatalog.getInstance(fileList, schema);
+		ScanOperator so = new ScanOperator("Sailors");
 
 		assertEquals("1,200,50", so.getNextTuple().toString());
 		assertEquals("2,200,200", so.getNextTuple().toString());
@@ -49,8 +49,8 @@ class ScanOperatorTest {
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema);
-		ScanOperator so = new ScanOperator(db, "Sailors");
+		DatabaseCatalog.getInstance(fileList, schema);
+		ScanOperator so = new ScanOperator("Sailors");
 
 		so.getNextTuple();
 		so.getNextTuple();

@@ -28,7 +28,7 @@ public class Main {
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema);
+		DatabaseCatalog.getInstance(fileList, schema);
 
 		try {
 			CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
@@ -41,7 +41,7 @@ public class Main {
 					PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
 					System.out.println(plainSelect);
 
-					ScanOperator so = new ScanOperator(db, plainSelect.getFromItem().toString());
+					ScanOperator so = new ScanOperator(plainSelect.getFromItem().toString());
 
 					// Write results to output file directory
 					String queriesOutputFile = queriesOutput + File.separator + "query" + queryCount;

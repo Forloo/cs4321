@@ -22,12 +22,12 @@ public class ScanOperator extends Operator {
 	/**
 	 * Constructor to scan rows of table fromTable.
 	 */
-	public ScanOperator(DatabaseCatalog db, String fromTable) {
-		String fileLoc = db.getNames().get(fromTable);
+	public ScanOperator(String fromTable) {
 		rows = new ArrayList<String>();
 		idx = 0;
 
 		try {
+			String fileLoc = DatabaseCatalog.getInstance().getNames().get(fromTable);
 			File file = new File(fileLoc);
 			Scanner fileReader = new Scanner(file);
 			while (fileReader.hasNextLine()) {
