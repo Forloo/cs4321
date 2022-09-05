@@ -65,7 +65,7 @@ public class DatabaseCatalog {
 		if (catalogObject == null) {
 			catalogObject = new DatabaseCatalog(fileList, schema);
 		}
-	
+
 		// returns the singleton object
 		return catalogObject;       
 	}
