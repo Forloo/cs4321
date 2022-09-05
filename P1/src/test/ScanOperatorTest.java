@@ -1,5 +1,6 @@
 package test;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -34,6 +35,11 @@ class ScanOperatorTest {
 		assertEquals("1,200,50", so.getNextTuple().toString());
 		assertEquals("2,200,200", so.getNextTuple().toString());
 		assertEquals("3,100,105", so.getNextTuple().toString());
+		assertEquals("4,100,50", so.getNextTuple().toString());
+		assertEquals("5,100,500", so.getNextTuple().toString());
+		assertEquals("6,300,400", so.getNextTuple().toString());
+		assertNull(so.getNextTuple());
+		assertNull(so.getNextTuple());
 	}
 
 	@Test

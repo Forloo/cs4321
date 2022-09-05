@@ -46,6 +46,9 @@ public class ScanOperator extends Operator {
 	 * @return the tuples representing rows in a database
 	 */
 	public Tuple getNextTuple() {
+		if (idx == rows.size()) {
+			return null;
+		}
 		return new Tuple(rows.get(idx++));
 	}
 
