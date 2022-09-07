@@ -25,7 +25,6 @@ public class ScanOperator extends Operator {
 	public ScanOperator(String fromTable) {
 		rows = new ArrayList<String>();
 		idx = 0;
-
 		try {
 			String fileLoc = DatabaseCatalog.getInstance().getNames().get(fromTable);
 			File file = new File(fileLoc);
@@ -90,5 +89,5 @@ public class ScanOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
-
+	
 }
