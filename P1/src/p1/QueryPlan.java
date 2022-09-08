@@ -1,7 +1,7 @@
 package p1;
 import p1.TreeNode;
 import p1.databaseCatalog.DatabaseCatalog;
-import p1.queryTree;
+import p1.QueryTree;
 
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -18,7 +18,7 @@ import net.sf.jsqlparser.expression.Expression;
 import java.util.List;
 public class QueryPlan {
 	// A queryTree representing the query plan.
-	private queryTree plan;
+	private QueryTree plan;
 	
 	/**
 	 * The constructor for a QueryPlan object
@@ -32,7 +32,7 @@ public class QueryPlan {
 		// Convert to plainSelect so we can get the body information
 		PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
 		// Construct tree
-		plan=new queryTree();
+		plan=new QueryTree();
 		// Set the root node of the tree.
 		TreeNode root=plan.buildTree(plainSelect, db);
 		plan.setRoot(root);

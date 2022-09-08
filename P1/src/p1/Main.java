@@ -8,7 +8,6 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.databaseCatalog.DatabaseCatalog;
-import p1.operator.ScanOperator;
 
 public class Main {
 
@@ -28,7 +27,7 @@ public class Main {
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog.getInstance(fileList, schema);
+		DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema);
 
 		try {
 			CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
@@ -41,13 +40,13 @@ public class Main {
 					PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
 					System.out.println(plainSelect);
 
-					ScanOperator so = new ScanOperator(plainSelect.getFromItem().toString());
-
-					// Write results to output file directory
+					// Create results file in output file directory
 					String queriesOutputFile = queriesOutput + File.separator + "query" + queryCount;
 					File queryResult = new File(queriesOutputFile);
 					queryResult.createNewFile();
-					so.dump(queriesOutputFile);
+
+					// Evaluate query
+					QueryPlan qp = new QueryPlan(statement, db);
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);
 					e.printStackTrace();
