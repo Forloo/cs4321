@@ -2,20 +2,11 @@ package p1;
 import p1.TreeNode;
 import p1.databaseCatalog.DatabaseCatalog;
 import p1.QueryTree;
+import p1.Tuple;
 
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectItem;
-import net.sf.jsqlparser.statement.select.AllColumns;
-import net.sf.jsqlparser.statement.select.FromItem;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
-
-import net.sf.jsqlparser.expression.Expression;
-import java.util.List;
 public class QueryPlan {
 	// A queryTree representing the query plan.
 	private QueryTree plan;
@@ -46,4 +37,5 @@ public class QueryPlan {
 		TreeNode root=plan.getRoot();
 		return plan.toString(root);
 	}
+	
 }

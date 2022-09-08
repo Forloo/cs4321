@@ -85,5 +85,4 @@ public class SelectOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
-
 }
