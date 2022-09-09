@@ -26,8 +26,8 @@ public class ProjectOperator extends Operator {
 		List selectItems = ps.getSelectItems(); // specific columns
 		for (int i = 0; i < selectItems.size(); i++) {
 			cols.add((SelectItem) selectItems.get(i));
-		}
-	}
+		} 
+	} 
 
 	/**
 	 * Retrieves the next tuples matching the selection condition. If there is no
