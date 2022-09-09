@@ -26,7 +26,6 @@ public class QueryPlanTest{
 	File[] fileList = new File[allFiles.length];
 	File schema = new File(dataDir + "schema.txt");
 	
-
 	@Test
 	void QueryPlanTesting() {
 		for (int i = 0; i < allFiles.length; i++) {
