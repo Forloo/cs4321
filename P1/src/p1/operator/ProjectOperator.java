@@ -22,12 +22,11 @@ public class ProjectOperator extends Operator {
 		} else {
 			child = new ScanOperator(fromTable);
 		}
-
 		List selectItems = ps.getSelectItems(); // specific columns
 		for (int i = 0; i < selectItems.size(); i++) {
 			cols.add((SelectItem) selectItems.get(i));
-		}
-	}
+		} 
+	} 
 
 	/**
 	 * Retrieves the next tuples matching the selection condition. If there is no
@@ -84,7 +83,7 @@ public class ProjectOperator extends Operator {
 			PrintWriter out = new PrintWriter(outputFile);
 
 			while (nextTuple != null) {
-				System.out.println(nextTuple.toString());
+				out.println(nextTuple.toString());
 				nextTuple = getNextTuple();
 			}
 			out.close();

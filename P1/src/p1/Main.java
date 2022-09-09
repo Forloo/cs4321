@@ -47,6 +47,7 @@ public class Main {
 
 					// Evaluate query
 					QueryPlan qp = new QueryPlan(statement, db);
+					qp.getOperator().dump(queriesOutputFile);
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);
 					e.printStackTrace();
