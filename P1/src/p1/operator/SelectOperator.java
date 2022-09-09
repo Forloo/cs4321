@@ -75,7 +75,7 @@ public class SelectOperator extends Operator {
 			PrintWriter out = new PrintWriter(outputFile);
 
 			while (nextTuple != null) {
-				System.out.println(nextTuple.toString());
+				out.println(nextTuple.toString());
 				nextTuple = getNextTuple();
 			}
 
