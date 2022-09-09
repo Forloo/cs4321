@@ -2,6 +2,11 @@ package p1.operator;
 
 import p1.Tuple;
 import p1.QueryPlan2;
+
+import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.Comparator;
+
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
 public class SortOperator extends Operator {
@@ -10,7 +15,19 @@ public class SortOperator extends Operator {
 	
 	public SortOperator(PlainSelect ps, String fromTable) {
 		child = QueryPlan2.getOperator();
-		
+	}
+	
+	public void sort() {
+		Collections.sort(null);
+	} 
+	
+	public class compareTuples implements Comparator<Tuple> {
+
+		@Override
+		public int compare(Tuple o1, Tuple o2) {
+			// TODO Auto-generated method stub
+			return 0;
+		}
 	}
 
 	@Override
@@ -19,22 +36,45 @@ public class SortOperator extends Operator {
 		return null;
 	}
 
-	@Override
+	/**
+	 * Tells the operator to reset its state and start returning its output again
+	 * from the beginning
+	 */
 	public void reset() {
-		// TODO Auto-generated method stub
-		
+		child.reset();
 	}
 
-	@Override
+	/**
+	 * This method repeatedly calls getNextTuple() until the next tuple is null (no
+	 * more output) and writes each tuple to System.out.
+	 */
 	public void dump() {
-		// TODO Auto-generated method stub
-		
+		Tuple nextTuple = getNextTuple();
+		while (nextTuple != null) {
+			System.out.println(nextTuple.toString());
+			nextTuple = getNextTuple();
+		}
 	}
 
-	@Override
+	/**
+	 * This method repeatedly calls getNextTuple() until the next tuple is null (no
+	 * more output) and writes each tuple to a new file.
+	 *
+	 * @param outputFile the file to write the tuples to
+	 */
 	public void dump(String outputFile) {
-		// TODO Auto-generated method stub
-		
-	} 
-}
+		Tuple nextTuple = getNextTuple();
+		try {
+			PrintWriter out = new PrintWriter(outputFile);
 
+			while (nextTuple != null) {
+				out.println(nextTuple.toString());
+				nextTuple = getNextTuple();
+			}
+			out.close();
+		} catch (Exception e) {
+			System.out.println("Exception occurred: ");
+			e.printStackTrace();
+		}
+	}
+}
