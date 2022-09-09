@@ -2,6 +2,10 @@ package test;
 
 import java.io.FileReader;
 import java.util.ArrayList;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -11,10 +15,10 @@ import net.sf.jsqlparser.statement.select.Select;
 import p1.operator.ScanOperator;
 import org.junit.jupiter.api.Test;
 import java.util.HashMap;
-import p1.QueryPlan;
 import p1.databaseCatalog.*;
+import p1.QueryPlan2;
 
-public class QueryPlanTest{
+public class QueryPlan2Test {
 	
 	String queriesFile = "input" + File.separator + "queries.sql";
 	String queriesOutput = "output";
@@ -26,9 +30,8 @@ public class QueryPlanTest{
 	File[] fileList = new File[allFiles.length];
 	File schema = new File(dataDir + "schema.txt");
 	
-
 	@Test
-	void QueryPlanTesting() {
+	public void queryTesting() {
 		for (int i = 0; i < allFiles.length; i++) {
 			File file = new File(dataDir + "data" + File.separator + allFiles[i]);
 			fileList[i] = file;
@@ -37,6 +40,8 @@ public class QueryPlanTest{
 		DatabaseCatalog.getInstance(fileList, schema);
 		
 		ArrayList<Statement> queries= new ArrayList<Statement>();
+		
+		// Parse all of the queries and put them into the arraylist.
 		
 		try {
 			CCJSqlParser parser = new CCJSqlParser(new FileReader("././input/queries.sql"));
@@ -56,18 +61,24 @@ public class QueryPlanTest{
 		catch(Exception err) {
 			System.out.println("The file you are looking for was not found");
 	}
+		
+		// Make the queryplan object
+		QueryPlan2 scanRoot= new QueryPlan2(queries.get(0),DatabaseCatalog.getInstance());
+		
+		// Check if the expected output for scan is still working as intended.q
+		assertEquals("1,200,50", scanRoot.getOperator().getNextTuple().toString());
+		assertEquals("2,200,200", scanRoot.getOperator().getNextTuple().toString());
+		assertEquals("3,100,105", scanRoot.getOperator().getNextTuple().toString());
+		assertEquals("4,100,50", scanRoot.getOperator().getNextTuple().toString());
+		assertEquals("5,100,500", scanRoot.getOperator().getNextTuple().toString());
+		assertEquals("6,300,400", scanRoot.getOperator().getNextTuple().toString());
+		assertNull(scanRoot.getOperator().getNextTuple());
+		assertNull(scanRoot.getOperator().getNextTuple());
+		
+		// Check if the reset method for scan still works.
+		scanRoot.getOperator().reset();
 
+		assertEquals("1,200,50", scanRoot.getOperator().getNextTuple().toString());
 		
-		// Cannot process all of the queries as we do not handle alias yet and retrieving 
-		// information from more than one table. 
-		// For now the expected total number of nodes is correct. Furthered testing 
-		// need when select and project are finished.
-		QueryPlan q1= new QueryPlan(queries.get(0),DatabaseCatalog.getInstance());
-		System.out.println(q1);
-		
-		QueryPlan q2= new QueryPlan(queries.get(1),DatabaseCatalog.getInstance());
-		System.out.println(q2);
-		
+	}
 }
-}
-
