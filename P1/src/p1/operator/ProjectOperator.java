@@ -1,37 +1,34 @@
 package p1.operator;
 
-import p1.Tuple;
-import net.sf.jsqlparser.statement.select.AllColumns;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import net.sf.jsqlparser.statement.select.SelectItem;
-import p1.databaseCatalog.DatabaseCatalog;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.SelectItem;
+import p1.Tuple;
+import p1.databaseCatalog.DatabaseCatalog;
 
 public class ProjectOperator extends Operator {
 	private Operator child = null;
 	private ArrayList<String> schema;
-	private boolean selectAll = false;
-	private ArrayList<SelectItem> cols = new ArrayList<String>();
+	private ArrayList<SelectItem> cols = new ArrayList<SelectItem>();
 
 	public ProjectOperator(PlainSelect ps, String fromTable) {
 		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
-		
-		if (ps.getWhere() != null) { // determine if child is selectoperator or scanoperator 
-			child = new SelectOperator(fromTable);
+
+		if (ps.getWhere() != null) { // determine if child is selectoperator or scanoperator
+			child = new SelectOperator(ps, fromTable);
 		} else {
 			child = new ScanOperator(fromTable);
 		}
-		
-		selectItems = plainSelect.getSelectItems(); //specific columns 
-		if (selectItems.get(0).toString() == "*") { //don't create projectoperator 
-			selectAll = true;
-		} else {
-			for (int i = 0; i < selectItems.size(); i++) {
-				cols.add(selectItems.get(i).toString(););
-			} 
+
+		List selectItems = ps.getSelectItems(); // specific columns
+		for (int i = 0; i < selectItems.size(); i++) {
+			cols.add((SelectItem) selectItems.get(i));
 		}
 	}
-	
+
 	/**
 	 * Retrieves the next tuples matching the selection condition. If there is no
 	 * next tuple then null is returned.
@@ -40,23 +37,19 @@ public class ProjectOperator extends Operator {
 	 */
 	public Tuple getNextTuple() {
 		Tuple nextTuple = child.getNextTuple();
-		
+
 		if (nextTuple == null) {
 			return null;
-		} else {
-			if (selectAll = true) {
-				return nextTuple;
-			}
 		}
-		
-		List<SelectItem> projection = new ArrayList<>();
-		
+
+		ArrayList<String> projection = new ArrayList<>();
+
 		for (SelectItem i : cols) {
-			ExpressionEvaluator exprObj = new ExpressionEvaluator(nextTuple, schema);
-			i.accept(exprObj);
-			projection.add(i);
-		} 
-		return new Tuple(projection.toString());
+			String[] colName = i.toString().split("\\.");
+			int idx = schema.indexOf(colName[colName.length - 1]);
+			projection.add(nextTuple.getTuple().get(idx));
+		}
+		return new Tuple(String.join(",", projection));
 	}
 
 	/**
@@ -101,4 +94,3 @@ public class ProjectOperator extends Operator {
 		}
 	}
 }
-

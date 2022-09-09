@@ -9,6 +9,7 @@ import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import p1.databaseCatalog.DatabaseCatalog;
+import p1.operator.ProjectOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 
@@ -55,7 +56,7 @@ public class QueryTree {
 		if (!(allColumns.get(0) instanceof AllColumns)) {
 			// Keep this as a scan operator for now and after the other
 			// operators are done then change them.
-			ScanOperator op = new ScanOperator(from.toString());
+			ProjectOperator op = new ProjectOperator(plainSelect, from.toString());
 			// Change the select items to be the *
 			List<SelectItem> all = new ArrayList<SelectItem>();
 			AllColumns allCols = new AllColumns();
@@ -66,7 +67,6 @@ public class QueryTree {
 			// Make the tree node for this
 			root = new TreeNode(op, null, null);
 			root.setLeftChild(root, buildTree(plainSelect, db));
-
 		}
 		// Next priority match node is selection so if there is a where clause
 		else if (where != null) {
