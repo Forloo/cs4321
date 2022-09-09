@@ -17,7 +17,7 @@ import p1.operator.SelectOperator;
 public class QueryPlan2 {
 
 	// The root operator for the queryPlan
-	private Operator rootOperator;
+	private static Operator rootOperator;
 
 	/**
 	 * Constructs a query plan object for the given query.
@@ -43,7 +43,7 @@ public class QueryPlan2 {
 		// columns and not the *
 		if (!(allColumns.get(0) instanceof AllColumns)) {
 			ProjectOperator op = new ProjectOperator(plainSelect, from.toString());
-			rootOperator = op;
+			rootOperator = op; 
 		}
 		// Check that where is not null meaning we need a select operator
 		else if (!(where == null)) {
@@ -62,7 +62,7 @@ public class QueryPlan2 {
 	 *
 	 * @return The root operator.
 	 */
-	public Operator getOperator() {
+	public static Operator getOperator() {
 		return rootOperator;
 	}
 

@@ -22,7 +22,6 @@ public class ProjectOperator extends Operator {
 		} else {
 			child = new ScanOperator(fromTable);
 		}
-
 		List selectItems = ps.getSelectItems(); // specific columns
 		for (int i = 0; i < selectItems.size(); i++) {
 			cols.add((SelectItem) selectItems.get(i));
