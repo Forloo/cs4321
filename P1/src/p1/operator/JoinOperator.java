@@ -1,12 +1,28 @@
 package p1.operator;
 
+import java.util.ArrayList;
+
+import net.sf.jsqlparser.statement.select.Join;
 import p1.Tuple;
 
 /**
  * An operator that processes queries on multiple files and conditions.
  */
 public class JoinOperator extends Operator{
+	
+	private Operator leftOperator=null;
+	private Operator rightOperator=null;
 
+	public JoinOperator(PlainSelect plainSelect, String fromTable) {
+		
+		// Using the plainselect get the table from the from section. Get the rest of the tables from the join
+		// portion of the clause.
+		// Queryplan will only enter this if we have more than one table so lets make a list of all the tables that we have
+		ArrayList<Join> tableList= new ArrayList<Join>();
+		
+		// Get the join item
+		
+	}
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
 	 *
