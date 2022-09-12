@@ -17,6 +17,8 @@ public class JoinOperatorNode {
 	private ArrayList<Tuple> table= null;
 	// Each leaf node will have an optional scan or select depending on whether they have some conditon on them
 	private Operator leafHelper=null;
+	// Give a name to the node
+	private String tableName;
 	
 	
 	public JoinOperatorNode(String tableName,JoinOperatorNode left,JoinOperatorNode right, Expression where) {
@@ -26,6 +28,7 @@ public class JoinOperatorNode {
 		
 		this.left=left;
 		this.right=right;
+		this.tableName=tableName;
 		
 		// Keep the table null it will be not null when something is returned from its two childrens
 		
@@ -41,6 +44,14 @@ public class JoinOperatorNode {
 	}
 	
 	/**
+	 * Retrieves the table/joined table
+	 * @return A string representing the tablename
+	 */
+	public String getTableName() {
+		return tableName;
+	}
+	
+	/**
 	 * Retrieves the JoinOperatorNode left child
 	 * @return the a JoinOperatorNode or null if there is no child
 	 */
@@ -49,15 +60,15 @@ public class JoinOperatorNode {
 	}
 	
 	/**
-	 * 
-	 * @param right
+	 * Updates the left child
+	 * @param left: new left child
 	 */
 	public void setLeftChild(JoinOperatorNode left){
 		this.left=left;
 	}
 	/**
-	 * 
-	 * @param right
+	 * Update the right child
+	 * @param right: new right child
 	 */
 	public void setRightChild(JoinOperatorNode right){
 		this.right=right;

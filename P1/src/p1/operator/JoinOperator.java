@@ -13,9 +13,10 @@ import p1.Tuple;
  */
 public class JoinOperator extends Operator{
 	
+	private JoinOperatorTree tree;
 	
 	public JoinOperator(PlainSelect plainSelect, String fromTable) {
-		JoinOperatorTree tree = new JoinOperatorTree(plainSelect); //make a tree
+		tree = new JoinOperatorTree(plainSelect); //make a tree
 	}
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
@@ -58,6 +59,10 @@ public class JoinOperator extends Operator{
 	public void dump(String outputFile) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public JoinOperatorTree getRoot() {
+		return tree;
 	}
 
 }
