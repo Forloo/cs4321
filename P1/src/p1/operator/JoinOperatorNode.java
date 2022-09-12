@@ -49,6 +49,21 @@ public class JoinOperatorNode {
 	}
 	
 	/**
+	 * 
+	 * @param right
+	 */
+	public void setLeftChild(JoinOperatorNode left){
+		this.left=left;
+	}
+	/**
+	 * 
+	 * @param right
+	 */
+	public void setRightChild(JoinOperatorNode right){
+		this.right=right;
+	}
+	
+	/**
 	 * Retrieves the JoinOperatorNode right child
 	 * @return the a JoinOperatorNode or null if there is no child
 	 */

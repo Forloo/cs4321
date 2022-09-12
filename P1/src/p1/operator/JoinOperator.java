@@ -15,7 +15,7 @@ public class JoinOperator extends Operator{
 	
 	
 	public JoinOperator(PlainSelect plainSelect, String fromTable) {
-		
+		JoinOperatorTree tree = new JoinOperatorTree(plainSelect); //make a tree
 	}
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
