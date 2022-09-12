@@ -1,8 +1,11 @@
 package p1.operator;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.Tuple;
 
 /**
@@ -10,17 +13,8 @@ import p1.Tuple;
  */
 public class JoinOperator extends Operator{
 	
-	private Operator leftOperator=null;
-	private Operator rightOperator=null;
-
+	
 	public JoinOperator(PlainSelect plainSelect, String fromTable) {
-		
-		// Using the plainselect get the table from the from section. Get the rest of the tables from the join
-		// portion of the clause.
-		// Queryplan will only enter this if we have more than one table so lets make a list of all the tables that we have
-		ArrayList<Join> tableList= new ArrayList<Join>();
-		
-		// Get the join item
 		
 	}
 	/**
