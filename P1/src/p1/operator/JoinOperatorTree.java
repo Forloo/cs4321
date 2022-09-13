@@ -73,7 +73,13 @@ public class JoinOperatorTree {
 			ArrayList<String> schema= db.getSchema().get(root.getTableName());
 			String str="";
 			for(int i=0;i<schema.size();i++) {
-				str=str+schema.get(i)+",";
+//				System.out.println(schema.get(i));
+				if (i==schema.size()-1) {
+					str=str+schema.get(i);
+				}
+				else {
+					str=str+schema.get(i)+",";
+				}
 			}
 			HashMap<String,ArrayList<Tuple>> tbl = new HashMap<String,ArrayList<Tuple>>();
 			tbl.put(str, ret);
@@ -116,7 +122,7 @@ public class JoinOperatorTree {
 			for(int j=0;j<rightList.size();j++) {
 				Tuple curr2=rightList.get(j);
 				// Need to merge both of the tuples into one.
-				String bothTuple=curr.toString()+curr2.toString();
+				String bothTuple=curr.toString()+","+curr2.toString();
 				Tuple element=new Tuple(bothTuple);
 				finalList.add(element);
 			}

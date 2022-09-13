@@ -1,12 +1,17 @@
 package p1.operator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+
 
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.Tuple;
+import p1.databaseCatalog.DatabaseCatalog;
+
 
 /**
  * An operator that processes queries on multiple files and conditions.
@@ -15,9 +20,28 @@ public class JoinOperator extends Operator{
 	
 	private JoinOperatorTree tree;
 	private ArrayList<Tuple> results;
+	private int idx;
+	private ArrayList<String> schema;
 	
-	public JoinOperator(PlainSelect plainSelect, String fromTable) {
-		tree = new JoinOperatorTree(plainSelect); //make a tree
+	public JoinOperator(PlainSelect plainSelect, String fromTable,DatabaseCatalog db) {
+		// Make the tree
+		tree = new JoinOperatorTree(plainSelect); 
+		
+		HashMap<String,ArrayList<Tuple>> tbl= tree.dfs(tree.getRoot(), db);
+		for(String key: tbl.keySet()) {
+			results=tbl.get(key);
+			ArrayList<String> temp= new ArrayList<String>();
+			String[] arr=key.split(",");
+			for(int i=0;i<arr.length;i++) {
+				temp.add(arr[i]);
+			}
+			schema=temp;
+		}
+		idx=0;
+	}
+	
+	public ArrayList<String> getSchema(){
+		return schema;
 	}
 	
 	/**
@@ -27,8 +51,10 @@ public class JoinOperator extends Operator{
 	 */
 	@Override
 	public Tuple getNextTuple() {
-		// TODO Auto-generated method stub
-		return null;
+		if(idx==results.size()) {
+			return null;
+		}
+		return new Tuple(results.get(idx++).toString());
 	}
 
 	/**
@@ -37,8 +63,7 @@ public class JoinOperator extends Operator{
 	 */
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
-		
+		idx=0;
 	}
 
 	/**

@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
@@ -68,21 +70,36 @@ public class JoinOperatorTest {
 		
 		Select select=(Select) fourth;
 		PlainSelect plainSelect = (PlainSelect)select.getSelectBody();
-		JoinOperator join = new JoinOperator(plainSelect,"");
-		JoinOperatorTree tree= join.getRoot();
-		tree.dfs(tree.getRoot());
-		HashMap<String,ArrayList<Tuple>> hope = tree.dfs(tree.getRoot(), DatabaseCatalog.getInstance());
+		JoinOperator join = new JoinOperator(plainSelect,"",DatabaseCatalog.getInstance());
 		
-		ArrayList<Tuple> hope2=null;
+		// Test that the final schema table is correct 
+		ArrayList<String> results= new ArrayList<String>();
+		results.add("A");
+		results.add("B");
+		results.add("C");
+		results.add("G");
+		results.add("H");
 		
-		for(String key: hope.keySet()) {
-			hope2=hope.get(key);
-		}
+		assertEquals(results,join.getSchema());
 		
-		for(int k=0;k<hope2.size();k++) {
-			System.out.println(hope2.get(k));
-		}
-		System.out.println(hope2.size());
+		// Test that the first five rows of the joined tuple is correct.
+		assertEquals("1,200,50,1,101",join.getNextTuple().toString());
+		assertEquals("1,200,50,1,102",join.getNextTuple().toString());
+		assertEquals("1,200,50,1,103",join.getNextTuple().toString());
+		assertEquals("1,200,50,2,101",join.getNextTuple().toString());
+		assertEquals("1,200,50,3,102",join.getNextTuple().toString());
+		
+		// Test that the reset works
+		join.reset();
+		
+		assertEquals("1,200,50,1,101",join.getNextTuple().toString());
+		assertEquals("1,200,50,1,102",join.getNextTuple().toString());
+		assertEquals("1,200,50,1,103",join.getNextTuple().toString());
+		assertEquals("1,200,50,2,101",join.getNextTuple().toString());
+		assertEquals("1,200,50,3,102",join.getNextTuple().toString());
+		
+		
+		
 		
 		// Three node parsing works
 //		Statement threeTable = (Select) queries.get(0);
