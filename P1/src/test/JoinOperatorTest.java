@@ -3,6 +3,7 @@ package test;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,7 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 import p1.operator.JoinOperator;
 import p1.operator.JoinOperatorTree;
@@ -69,6 +71,18 @@ public class JoinOperatorTest {
 		JoinOperator join = new JoinOperator(plainSelect,"");
 		JoinOperatorTree tree= join.getRoot();
 		tree.dfs(tree.getRoot());
+		HashMap<String,ArrayList<Tuple>> hope = tree.dfs(tree.getRoot(), DatabaseCatalog.getInstance());
+		
+		ArrayList<Tuple> hope2=null;
+		
+		for(String key: hope.keySet()) {
+			hope2=hope.get(key);
+		}
+		
+		for(int k=0;k<hope2.size();k++) {
+			System.out.println(hope2.get(k));
+		}
+		System.out.println(hope2.size());
 		
 		// Three node parsing works
 //		Statement threeTable = (Select) queries.get(0);

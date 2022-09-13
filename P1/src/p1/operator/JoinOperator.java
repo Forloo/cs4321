@@ -14,10 +14,12 @@ import p1.Tuple;
 public class JoinOperator extends Operator{
 	
 	private JoinOperatorTree tree;
+	private ArrayList<Tuple> results;
 	
 	public JoinOperator(PlainSelect plainSelect, String fromTable) {
 		tree = new JoinOperatorTree(plainSelect); //make a tree
 	}
+	
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
 	 *
