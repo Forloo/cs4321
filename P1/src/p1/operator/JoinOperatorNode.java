@@ -39,7 +39,8 @@ public class JoinOperatorNode {
 		}
 		else {
 			// Set the expression for Expression if it is not null.
-			where=null;
+			where=where;
+			
 		}
 	}
 	
