@@ -98,6 +98,7 @@ public class JoinOperatorTest {
 		assertEquals("1,200,50,2,101",join.getNextTuple().toString());
 		assertEquals("1,200,50,3,102",join.getNextTuple().toString());
 		
+		join.getRoot().dfs(join.getRoot().getRoot());
 		
 		
 		
