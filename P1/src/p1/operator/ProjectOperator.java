@@ -4,18 +4,23 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.SelectItem;
 import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
 public class ProjectOperator extends Operator {
 	private Operator child = null;
-	private ArrayList<String> schema;
-	private ArrayList<SelectItem> cols = new ArrayList<SelectItem>();
+	private ArrayList<String> schema = new ArrayList<String>();
+	private ArrayList<String> cols = new ArrayList<String>();
 
 	public ProjectOperator(PlainSelect ps, String fromTable) {
-		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
+		ArrayList<String> fromSchema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
+		String alias = ps.getFromItem().getAlias() == null ? fromTable : ps.getFromItem().getAlias();
+		for (String colName : fromSchema) {
+			schema.add(alias + "." + colName);
+		}
+		System.out.println(schema);
 
 		if (ps.getJoins() != null) { // determine if child is join, select, or scan
 			JoinOperator op = new JoinOperator(ps, fromTable);
@@ -23,7 +28,12 @@ public class ProjectOperator extends Operator {
 			for (Object join : ps.getJoins()) {
 				String[] joinTable = join.toString().split(" ");
 				String joinTableName = joinTable[0];
-				schema.addAll(DatabaseCatalog.getInstance().getSchema().get(joinTableName));
+				ArrayList<String> colSchema = DatabaseCatalog.getInstance().getSchema().get(joinTableName);
+				String j = ((Join) join).getRightItem().toString();
+				// Add alias to column name to distinguish for self joins
+				for (String colName : colSchema) {
+					schema.add(j.substring(j.lastIndexOf(" ") + 1) + "." + colName);
+				}
 			}
 		} else if (ps.getWhere() != null) {
 			child = new SelectOperator(ps, fromTable);
@@ -32,7 +42,7 @@ public class ProjectOperator extends Operator {
 		}
 		List selectItems = ps.getSelectItems(); // specific columns
 		for (int i = 0; i < selectItems.size(); i++) {
-			cols.add((SelectItem) selectItems.get(i));
+			cols.add(selectItems.get(i).toString());
 		}
 	}
 
@@ -51,12 +61,11 @@ public class ProjectOperator extends Operator {
 
 		ArrayList<String> projection = new ArrayList<>();
 
-		for (SelectItem i : cols) {
-			String[] colName = i.toString().split("\\.");
-			if (colName[colName.length - 1].equals("*")) {
+		for (String i : cols) {
+			if (i.equals("*")) {
 				projection.add(nextTuple.toString());
 			} else {
-				int idx = schema.indexOf(colName[colName.length - 1]);
+				int idx = schema.indexOf(i);
 				projection.add(nextTuple.getTuple().get(idx));
 			}
 		}

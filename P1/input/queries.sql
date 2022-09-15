@@ -9,5 +9,5 @@ SELECT * FROM Sailors ORDER BY Sailors.B;
 SELECT * FROM Sailors, Reserves WHERE Sailors.A = Reserves.G AND Sailors.A <= 1 AND Sailors.B >= 4 and Reserves.G < 5;
 SELECT * FROM Sailors, Reserves WHERE Sailors.A = 3 AND Reserves.G = 1;
 SELECT * FROM Sailors S, Reserves R, Boats B WHERE S.A <= R.G AND B.E = 2;
-SELECT * FROM Sailors S, Reserves R, Boats B, Ships H WHERE S.A <= R.G AND B.E = 2 AND H.J < 22;
-SELECT * FROM Sailors S1, Sailors S2 WHERE S1.A = S2.A;
+SELECT S.B FROM Sailors S, Reserves R, Boats B, Ships H WHERE S.A <= R.G AND B.E = 2 AND H.J < 22;
+SELECT S1.A, S2.A FROM Sailors S1, Sailors S2 WHERE S1.A = S2.A;
