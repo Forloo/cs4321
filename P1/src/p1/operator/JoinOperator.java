@@ -28,7 +28,7 @@ public class JoinOperator extends Operator {
 	// The where condition. Only used to call accept.
 	private Expression where;
 
-	public JoinOperator(PlainSelect plainSelect, String fromTable, DatabaseCatalog db) {
+	public JoinOperator(PlainSelect plainSelect, String fromTable) {
 		// Split the where expression
 		Expression whereClause = plainSelect.getWhere();
 		ExpressionParser parse = new ExpressionParser(whereClause);
@@ -49,7 +49,7 @@ public class JoinOperator extends Operator {
 
 		tree = new JoinOperatorTree(plainSelect, expressionInfo);
 
-		HashMap<String, ArrayList<Tuple>> tbl = tree.dfs(tree.getRoot(), db);
+		HashMap<String, ArrayList<Tuple>> tbl = tree.dfs(tree.getRoot(), DatabaseCatalog.getInstance());
 		for (String key : tbl.keySet()) {
 			results = tbl.get(key);
 			ArrayList<String> temp = new ArrayList<String>();

@@ -18,7 +18,7 @@ public class ProjectOperator extends Operator {
 		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
 
 		if (ps.getJoins() != null) { // determine if child is join, select, or scan
-			JoinOperator op = new JoinOperator(ps, fromTable, DatabaseCatalog.getInstance());
+			JoinOperator op = new JoinOperator(ps, fromTable);
 			child = op;
 			for (Object join : ps.getJoins()) {
 				String[] joinTable = join.toString().split(" ");

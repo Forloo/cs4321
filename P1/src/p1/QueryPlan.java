@@ -48,7 +48,7 @@ public class QueryPlan {
 			ProjectOperator op = new ProjectOperator(plainSelect, fromTable);
 			rootOperator = op;
 		} else if (plainSelect.getJoins() != null) {
-			JoinOperator op = new JoinOperator(plainSelect, fromTable, DatabaseCatalog.getInstance());
+			JoinOperator op = new JoinOperator(plainSelect, fromTable);
 			rootOperator = op;
 		} else if (!(where == null)) {
 			SelectOperator op = new SelectOperator(plainSelect, fromTable);

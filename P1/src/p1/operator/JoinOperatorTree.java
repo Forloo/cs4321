@@ -162,6 +162,10 @@ public class JoinOperatorTree {
 		HashMap<String, ArrayList<Tuple>> ret = new HashMap<String, ArrayList<Tuple>>();
 		HashMap<String, ArrayList<Tuple>> right = null;
 
+		if (root.getRightChild() != null) {
+			right = dfs(root.getRightChild(), db);
+		}
+
 		// Iterate to get the one arraylist
 		ArrayList<Tuple> leftList = null;
 		String leftName = null;
