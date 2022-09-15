@@ -44,7 +44,6 @@ public class JoinOperatorNode {
 		System.out.println("table name orig: " + tableName);
 		String[] joinTable = tableName.toString().split(" ");
 		String joinAlias = joinTable[joinTable.length - 1];
-		System.out.println("table alis: " + joinAlias);
 		this.tableName = Aliases.getTable(joinAlias);
 		if (this.tableName == null) {
 			this.tableName = tableName;

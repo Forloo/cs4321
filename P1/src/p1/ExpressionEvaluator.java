@@ -1,6 +1,8 @@
 package p1;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
@@ -44,6 +46,7 @@ import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import p1.databaseCatalog.DatabaseCatalog;
 
 public class ExpressionEvaluator implements ExpressionVisitor {
 
@@ -51,14 +54,33 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 	private Tuple row;
 	// Column names
 	private ArrayList<String> columns;
+	// Table names
+	private List<String> tables;
 	// Truth value
 	private String value;
 
+	/**
+	 * Constructor to evaluate an expression.
+	 */
 	public ExpressionEvaluator(Tuple t, ArrayList<String> schema) {
 		row = t;
 		columns = schema;
-		System.out.println(row.toString());
-		System.out.println(columns);
+		tables = null;
+	}
+
+	/**
+	 * Constructor to evaluate an expression with a self join.
+	 */
+	public ExpressionEvaluator(Tuple t, String tableNames) {
+		row = t;
+		columns = new ArrayList<String>();
+		tables = Arrays.asList(tableNames.split(","));
+		for (String name : tables) {
+			columns.addAll(DatabaseCatalog.getInstance().getSchema().get(name));
+		}
+		for (String c : columns) {
+			System.out.println("columns together: " + c);
+		}
 	}
 
 	/**
@@ -92,8 +114,16 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 	@Override
 	public void visit(Column arg0) {
 		int idx = columns.indexOf(arg0.getColumnName());
-		System.out.println(arg0.getColumnName());
 		value = row.getTuple().get(idx);
+//		if (tables != null) {
+//			int tableIdx = tables.indexOf(arg0.getTable().toString());
+//			int startIdx = 0;
+//			for (int i = 0; i < tableIdx; i++) {
+//				startIdx += columns.get(i).length();
+//			}
+//			List<String> subColumns = columns.subList(startIdx, columns.size());
+//			value = row.getTuple().get(startIdx + subColumns.indexOf(arg0.getColumnName()));
+//		}
 	}
 
 	@Override

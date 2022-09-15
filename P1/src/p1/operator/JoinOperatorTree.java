@@ -37,22 +37,14 @@ public class JoinOperatorTree {
 
 		/* create the tree */
 		String[] splitted = from.toString().split(",");
-		for (String s : splitted) {
-			System.out.println(s + " split first");
-		}
 		for (int i = 0; i < splitted.length; i++) {
 			splitted[i] = Aliases.getTable(from.toString().split(" ")[0]);
-		}
-		for (String s : splitted) {
-			System.out.println(s + " split second");
 		}
 		ArrayList<Expression> conditions = null;
 		Arrays.sort(splitted);
 
 		// Loop through the hashmap to see if there is a condition
 		for (String[] key : exprAssignment.keySet()) {
-			System.out.println(key[0] + " dkflasjflsajf");
-
 			// Make a copy of the key
 			String[] copy = key.clone();
 			Arrays.sort(copy);
@@ -68,14 +60,8 @@ public class JoinOperatorTree {
 		for (Join table : allTables) {
 			// make the expression to create JoinOperatorNode
 			String[] splitted2 = table.toString().split(",");
-			for (String s : splitted2) {
-				System.out.println(s + " split 1");
-			}
 			for (int i = 0; i < splitted2.length; i++) {
 				splitted2[i] = Aliases.getTable(splitted2[i].split(" ")[0]);
-			}
-			for (String s : splitted2) {
-				System.out.println(s + " split 2");
 			}
 			ArrayList<Expression> conditionstwo = null;
 			// Loop through the hashmap
@@ -95,15 +81,10 @@ public class JoinOperatorTree {
 				System.out.println(combinedname);
 				String[] splitted3 = combinedname.split(",");
 				for (int i = 0; i < splitted3.length; i++) {
-					System.out.println("before alias " + splitted3[i]);
 					splitted3[i] = Aliases.getTable(splitted3[i]);
-					System.out.println(splitted3[i]);
 				}
 				ArrayList<Expression> conditionsthree = null;
 				Arrays.sort(splitted3);
-				for (int i = 0; i < splitted3.length; i++) {
-					System.out.println(splitted3[i]);
-				}
 
 				for (String[] key : exprAssignment.keySet()) {
 					String[] copy = key.clone();
@@ -183,8 +164,6 @@ public class JoinOperatorTree {
 		if (root.getLeftChild() != null) {
 			left = dfs(root.getLeftChild(), db);
 		}
-		System.out.println("left Size" + left.size());
-
 		System.out.println("begin");
 		for (int i = 0; i < left.size(); i++) {
 			for (String key : left.keySet()) {
@@ -256,6 +235,7 @@ public class JoinOperatorTree {
 							System.out.println(schemaInput.get(z));
 						}
 						System.out.println(current);
+//						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, root.getTableName());
 						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, schemaInput);
 						current.accept(evaltwo);
 						allTrue = allTrue && (Boolean.parseBoolean(evaltwo.getValue()));

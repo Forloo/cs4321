@@ -2,7 +2,7 @@ SELECT * FROM Sailors;
 SELECT Sailors.A, Sailors.C FROM Sailors;
 SELECT S.A FROM Sailors S;
 SELECT * FROM Sailors S WHERE S.A < 3;
-SELECT * FROM Sailors, Reserves WHERE Sailors.A = Reserves.G;
+SELECT Sailors.A FROM Sailors, Reserves WHERE Sailors.A = Reserves.G;
 SELECT DISTINCT R.G FROM Reserves R;
 SELECT * FROM Sailors ORDER BY Sailors.B;
 SELECT * FROM Sailors WHERE Sailors.A >= 4;
