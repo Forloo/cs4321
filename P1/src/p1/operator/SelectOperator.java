@@ -15,7 +15,6 @@ public class SelectOperator extends Operator {
 	private Expression where;
 
 	public SelectOperator(PlainSelect ps, String fromTable) {
-		System.out.println(ps.getWhere());
 		where = ps.getWhere();
 		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
 		scanObj = new ScanOperator(fromTable);

@@ -10,4 +10,6 @@ SELECT * FROM Sailors, Reserves WHERE Sailors.A = Reserves.G AND Sailors.A <= 1 
 SELECT * FROM Sailors, Reserves WHERE Sailors.A = 3 AND Reserves.G = 1;
 SELECT * FROM Sailors S, Reserves R, Boats B WHERE S.A <= R.G AND B.E = 2;
 SELECT S.B FROM Sailors S, Reserves R, Boats B, Ships H WHERE S.A <= R.G AND B.E = 2 AND H.J < 22;
-SELECT * FROM Sailors S1, Sailors S2 WHERE S1.A = S2.A;
+SELECT * FROM Sailors S1, Sailors S3, Sailors S2 WHERE S2.A = S1.A;
+SELECT * FROM Sailors S1, Sailors S3, Sailors S2 WHERE S3.A = 4;
+SELECT * FROM Sailors S, Boats B, Reserves R, Ships H, Boats X WHERE R.G >= S.A AND B.E = 2 AND H.J < 22 AND X.E < 2;

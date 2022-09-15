@@ -37,14 +37,26 @@ public class JoinOperator extends Operator {
 		HashMap<String[], ArrayList<Expression>> expressionInfoAliases = parse.getTablesNeeded();
 		HashMap<String[], ArrayList<Expression>> expressionInfo = new HashMap<String[], ArrayList<Expression>>();
 
-		// Unaliase tables needed for expressions
+		// Pad tables needed for expressions
 		for (Map.Entry<String[], ArrayList<Expression>> set : expressionInfoAliases.entrySet()) {
-			String[] key = new String[set.getKey().length];
-			for (int i = 0; i < key.length; i++) {
-				key[i] = Aliases.getTable(set.getKey()[i]);
-			}
+			if (set.getKey().length > 1) {
+				ArrayList<String> key = new ArrayList<String>();
+				int idx = -1;
+				for (String s : set.getKey()) {
+					int keyIdx = Aliases.getOnlyAliases().indexOf(s);
+					if (keyIdx > idx) {
+						idx = keyIdx;
+					}
+				}
+				for (int i = 0; i <= idx; i++) {
+					String alias = Aliases.getOnlyAliases().get(i);
+					key.add(alias);
+				}
 
-			expressionInfo.put(key, set.getValue());
+				expressionInfo.put(key.toArray(new String[key.size()]), set.getValue());
+			} else {
+				expressionInfo.put(set.getKey(), set.getValue());
+			}
 		}
 
 		tree = new JoinOperatorTree(plainSelect, expressionInfo);
