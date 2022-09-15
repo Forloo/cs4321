@@ -69,7 +69,15 @@ public class SortOperator extends Operator {
 		public int compare(Tuple o1, Tuple o2) {
 			if (orderBy != null) {
 				for (int i = 0; i < orderBy.size(); i++) {
+					int o1_int = Integer.valueOf(o1.toString());
+					int o2_int = Integer.valueOf(o2.toString()); 
 					
+					if (o1_int < o2_int) {
+						return -1;
+					} 
+					else if (o1_int > o2_int) {
+						return 1;
+					}
 				}
 			}
 			

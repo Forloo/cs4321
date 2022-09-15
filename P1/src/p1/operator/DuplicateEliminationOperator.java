@@ -27,14 +27,16 @@ public class DuplicateEliminationOperator extends Operator {
 	@Override
 	public Tuple getNextTuple() {
 		Tuple next = child.getNextTuple();
+		int nextint = Integer.valueOf(next.toString());
+		int prevint = Integer.valueOf(prev.toString()); 
 		
 		if (check) {
 			if (prev != null) {
-				while (next != null && next != prev) { // need way of checking when two tuples are equal 
+				while (next != null && nextint != prevint) { // need way of checking when two tuples are equal 
 					next = child.getNextTuple();
 				}
 			}
-		}
+		} 
 		prev = next;
 		return next;
 	}
