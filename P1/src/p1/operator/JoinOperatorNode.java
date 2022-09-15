@@ -11,8 +11,8 @@ public class JoinOperatorNode {
 	private JoinOperatorNode left;
 	// Right join child
 	private JoinOperatorNode right;
-	// None leaf nodes can have a where restriction
-	private Expression where=null;
+	// Restrictions on the where condition
+	private ArrayList<Expression> where=null;
 	// From the return of two leaf nodes we need something to hold the list of tuples
 	private ArrayList<Tuple> table= null;
 	// Each leaf node will have an optional scan or select depending on whether they have some conditon on them
@@ -21,7 +21,7 @@ public class JoinOperatorNode {
 	private String tableName;
 	
 	
-	public JoinOperatorNode(String tableName,JoinOperatorNode left,JoinOperatorNode right, Expression where) {
+	public JoinOperatorNode(String tableName,JoinOperatorNode left,JoinOperatorNode right, ArrayList<Expression> where) {
 		
 		// Iterating through each of the table names we make a node. There will be a left child if prev
 		// field is none else it is null. The right child will always be a null field
@@ -36,11 +36,10 @@ public class JoinOperatorNode {
 			// Need to either make a plainselect with the right properties or 
 			// instead we pass in our own where clause for each of the operators
 			leafHelper=new ScanOperator(tableName);
+			this.where=where;
 		}
 		else {
-			// Set the expression for Expression if it is not null.
-			where=where;
-			
+			this.where=where;
 		}
 	}
 	
@@ -87,7 +86,7 @@ public class JoinOperatorNode {
 	 * Retrieves the condition for the join
 	 * @return An expression else null if there is no conditions
 	 */
-	public Expression getWhere() {
+	public ArrayList<Expression> getWhere() {
 		return where;
 	}
 	

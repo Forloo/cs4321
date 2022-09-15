@@ -8,16 +8,14 @@ import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import p1.Tuple;
+import p1.ExpressionParser;
 import p1.databaseCatalog.DatabaseCatalog;
 import p1.operator.JoinOperator;
-import p1.operator.JoinOperatorTree;
-
 
 public class JoinOperatorTest {
 
@@ -37,7 +35,6 @@ public class JoinOperatorTest {
 			File file = new File(dataDir + "data" + File.separator + allFiles[i]);
 			fileList[i] = file;
 		}
-		
 		
 		
 		DatabaseCatalog.getInstance(fileList, schema);
@@ -72,6 +69,7 @@ public class JoinOperatorTest {
 		PlainSelect plainSelect = (PlainSelect)select.getSelectBody();
 		JoinOperator join = new JoinOperator(plainSelect,"",DatabaseCatalog.getInstance());
 		
+		
 		// Test that the final schema table is correct 
 		ArrayList<String> results= new ArrayList<String>();
 		results.add("A");
@@ -98,9 +96,38 @@ public class JoinOperatorTest {
 		assertEquals("1,200,50,2,101",join.getNextTuple().toString());
 		assertEquals("1,200,50,3,102",join.getNextTuple().toString());
 		
-		join.getRoot().dfs(join.getRoot().getRoot());
+//		join.getRoot().dfs(join.getRoot().getRoot());
+		
+		Expression value=join.getWhere();
+		
+		ExpressionParser hope = new ExpressionParser(value);
+		value.accept(hope);
+//		System.out.println(hope.getList());
 		
 		
+		// Get the fourth query that requires a join
+		Statement ninth=queries.get(9);
+//		System.out.println(ninth);
+		
+		Select select2=(Select) ninth;
+		PlainSelect plainSelect2 = (PlainSelect)select2.getSelectBody();
+		JoinOperator join2 = new JoinOperator(plainSelect2,"",DatabaseCatalog.getInstance());
+		Expression value2= join2.getWhere();
+		ExpressionParser hope2 = new ExpressionParser(value2);
+		value2.accept(hope2);
+		ArrayList<Expression> valueOne= hope2.getList();
+		
+		
+//		System.out.println(hope3.size());
+//		for(String[] key: hope3.keySet()) {
+//			for(int i=0;i<key.length;i++) {
+//				System.out.print(key[i]);
+//			}
+//			System.out.println(hope3.get(key));
+//		}
+//		
+		
+//		System.out.println(value);
 		
 		// Three node parsing works
 //		Statement threeTable = (Select) queries.get(0);

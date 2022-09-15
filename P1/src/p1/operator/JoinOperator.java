@@ -5,10 +5,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import p1.ExpressionParser;
 import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
@@ -22,10 +23,17 @@ public class JoinOperator extends Operator{
 	private ArrayList<Tuple> results;
 	private int idx;
 	private ArrayList<String> schema;
+	private Expression where;
 	
 	public JoinOperator(PlainSelect plainSelect, String fromTable,DatabaseCatalog db) {
-		// Make the tree
-		tree = new JoinOperatorTree(plainSelect); 
+		// Split the where expression
+		Expression whereClause=plainSelect.getWhere();
+		ExpressionParser parse = new ExpressionParser(whereClause);
+		where=plainSelect.getWhere();
+		where.accept(parse);
+		HashMap<String[],ArrayList<Expression>> expressionInfo= parse.getTablesNeeded();
+		
+		tree = new JoinOperatorTree(plainSelect,expressionInfo); 
 		
 		HashMap<String,ArrayList<Tuple>> tbl= tree.dfs(tree.getRoot(), db);
 		for(String key: tbl.keySet()) {
@@ -38,6 +46,10 @@ public class JoinOperator extends Operator{
 			schema=temp;
 		}
 		idx=0;
+	}
+	
+	public Expression getWhere() {
+		return where;
 	}
 	
 	public ArrayList<String> getSchema(){
