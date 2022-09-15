@@ -36,20 +36,15 @@ public class JoinOperator extends Operator {
 		where.accept(parse);
 		HashMap<String[], ArrayList<Expression>> expressionInfoAliases = parse.getTablesNeeded();
 		HashMap<String[], ArrayList<Expression>> expressionInfo = new HashMap<String[], ArrayList<Expression>>();
+
+		// Unaliase tables needed for expressions
 		for (Map.Entry<String[], ArrayList<Expression>> set : expressionInfoAliases.entrySet()) {
-
-			// Printing all elements of a Map
-			System.out.println(set.getKey()[0] + " = " + set.getValue());
-
 			String[] key = new String[set.getKey().length];
 			for (int i = 0; i < key.length; i++) {
 				key[i] = Aliases.getTable(set.getKey()[i]);
 			}
 
 			expressionInfo.put(key, set.getValue());
-		}
-		for (Map.Entry<String[], ArrayList<Expression>> set : expressionInfo.entrySet()) {
-			System.out.println(set.getKey()[0] + " = " + set.getValue());
 		}
 
 		tree = new JoinOperatorTree(plainSelect, expressionInfo);
@@ -62,7 +57,6 @@ public class JoinOperator extends Operator {
 			for (int i = 0; i < arr.length; i++) {
 				temp.add(arr[i]);
 			}
-			System.out.println(temp);
 			schema = temp;
 		}
 		idx = 0;
@@ -132,7 +126,6 @@ public class JoinOperator extends Operator {
 		Tuple nextTuple = getNextTuple();
 		try {
 			PrintWriter out = new PrintWriter(outputFile);
-
 			while (nextTuple != null) {
 				out.println(nextTuple.toString());
 				nextTuple = getNextTuple();

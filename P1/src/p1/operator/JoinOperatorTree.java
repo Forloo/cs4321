@@ -29,13 +29,11 @@ public class JoinOperatorTree {
 
 		ArrayList<Join> allTables = new ArrayList<Join>();
 
-		// Add the from table
-//		allTables.add((Join)from);
 		for (int i = 0; i < joins.size(); i++) {
 			allTables.add((Join) joins.get(i));
 		}
 
-		/* create the tree */
+		// create the tree
 		String[] splitted = from.toString().split(",");
 		for (int i = 0; i < splitted.length; i++) {
 			splitted[i] = Aliases.getTable(from.toString().split(" ")[0]);
@@ -49,7 +47,6 @@ public class JoinOperatorTree {
 			String[] copy = key.clone();
 			Arrays.sort(copy);
 
-			System.out.println(copy[0]);
 			if (Arrays.equals(splitted, copy)) {
 				// Assign to this node a list of conditions
 				conditions = exprAssignment.get(key);
@@ -78,7 +75,6 @@ public class JoinOperatorTree {
 				left = node;
 			} else {
 				String combinedname = left.getTableName() + "," + node.getTableName();
-				System.out.println(combinedname);
 				String[] splitted3 = combinedname.split(",");
 				for (int i = 0; i < splitted3.length; i++) {
 					splitted3[i] = Aliases.getTable(splitted3[i]);
@@ -122,11 +118,9 @@ public class JoinOperatorTree {
 				if (conditions != null) {
 					boolean allTrue = true;
 					for (int j = 0; j < conditions.size(); j++) {
-						System.out.println("test: " + root.getTableName());
 						ExpressionEvaluator expr2 = new ExpressionEvaluator(temp,
 								db.getSchema().get(root.getTableName()));
 						Expression value = conditions.get(j);
-						System.out.println(value.toString());
 						value.accept(expr2);
 						allTrue = allTrue && (Boolean.parseBoolean(expr2.getValue()));
 					}
@@ -164,31 +158,9 @@ public class JoinOperatorTree {
 		if (root.getLeftChild() != null) {
 			left = dfs(root.getLeftChild(), db);
 		}
-		System.out.println("begin");
-		for (int i = 0; i < left.size(); i++) {
-			for (String key : left.keySet()) {
-				ArrayList<Tuple> testing = left.get(key);
-				for (int k = 0; k < testing.size(); k++) {
-					System.out.println(testing.get(k));
-				}
-			}
-		}
 
 		HashMap<String, ArrayList<Tuple>> ret = new HashMap<String, ArrayList<Tuple>>();
 		HashMap<String, ArrayList<Tuple>> right = null;
-
-		if (root.getRightChild() != null) {
-			right = dfs(root.getRightChild(), db);
-		}
-		System.out.println("Begin right testing");
-		for (int b = 0; b < right.size(); b++) {
-			for (String key2 : right.keySet()) {
-				ArrayList<Tuple> testing2 = right.get(key2);
-				for (int n = 0; n < testing2.size(); n++) {
-					System.out.println(testing2.get(n));
-				}
-			}
-		}
 
 		// Iterate to get the one arraylist
 		ArrayList<Tuple> leftList = null;
@@ -208,7 +180,7 @@ public class JoinOperatorTree {
 
 		// New name
 		String finalName = leftName + "," + rightName;
-		ArrayList finalList = new ArrayList<Tuple>();
+		ArrayList<Tuple> finalList = new ArrayList<Tuple>();
 		for (int i = 0; i < leftList.size(); i++) {
 			Tuple curr = leftList.get(i);
 			for (int j = 0; j < rightList.size(); j++) {
@@ -226,15 +198,10 @@ public class JoinOperatorTree {
 					for (int l = 0; l < splittedSchema.length; l++) {
 						schemaInput.add(splittedSchema[l]);
 					}
-					// Loop through all the conditons
+					// Loop through all the conditions
 					boolean allTrue = true;
 					for (int m = 0; m < joinedConditions.size(); m++) {
 						Expression current = joinedConditions.get(m);
-						System.out.println("another long error");
-						for (int z = 0; z < schemaInput.size(); z++) {
-							System.out.println(schemaInput.get(z));
-						}
-						System.out.println(current);
 //						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, root.getTableName());
 						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, schemaInput);
 						current.accept(evaltwo);
@@ -263,8 +230,6 @@ public class JoinOperatorTree {
 	 * @return
 	 */
 	public JoinOperatorNode dfs(JoinOperatorNode root) {
-//		System.out.println(root.getTableName());
-
 		if (root.getLeftChild() == null && root.getRightChild() == null) {
 			ArrayList<Expression> ret = root.getWhere();
 			return root;

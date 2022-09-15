@@ -41,14 +41,12 @@ public class JoinOperatorNode {
 
 		this.left = left;
 		this.right = right;
-		System.out.println("table name orig: " + tableName);
 		String[] joinTable = tableName.toString().split(" ");
 		String joinAlias = joinTable[joinTable.length - 1];
 		this.tableName = Aliases.getTable(joinAlias);
 		if (this.tableName == null) {
 			this.tableName = tableName;
 		}
-		System.out.println("table name: " + this.tableName);
 
 		// Keep the table null it will be not null when something is returned from its
 		// two childrens
