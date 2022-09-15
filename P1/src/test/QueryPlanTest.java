@@ -16,9 +16,9 @@ import p1.operator.ScanOperator;
 import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import p1.databaseCatalog.*;
-import p1.QueryPlan2;
+import p1.QueryPlan;
 
-public class QueryPlan2Test {
+public class QueryPlanTest {
 	
 	String queriesFile = "input" + File.separator + "queries.sql";
 	String queriesOutput = "output";
@@ -63,7 +63,7 @@ public class QueryPlan2Test {
 	}
 		
 		// Make the queryplan object
-		QueryPlan2 scanRoot= new QueryPlan2(queries.get(0),DatabaseCatalog.getInstance());
+		QueryPlan scanRoot= new QueryPlan(queries.get(0),DatabaseCatalog.getInstance());
 		
 		// Check if the expected output for scan is still working as intended.q
 		assertEquals("1,200,50", scanRoot.getOperator().getNextTuple().toString());

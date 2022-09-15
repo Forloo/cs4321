@@ -18,6 +18,7 @@ public class Main {
 
 		// Get the file list containing all file inputs
 		File inputDir = new File(dataDir + "data");
+		System.out.println(args[0] + "/data");
 		String[] allFiles = inputDir.list();
 		File[] fileList = new File[allFiles.length];
 		File schema = new File(dataDir + "schema.txt");

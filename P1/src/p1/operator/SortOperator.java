@@ -1,7 +1,7 @@
 package p1.operator;
 
 import p1.Tuple;
-import p1.QueryPlan2;
+import p1.QueryPlan;
 
 import java.io.PrintWriter;
 import java.util.Collections;
@@ -14,7 +14,8 @@ public class SortOperator extends Operator {
 	private Operator child;
 	
 	public SortOperator(PlainSelect ps, String fromTable) {
-		child = QueryPlan2.getOperator();
+		// The field of queryplan is not static and should not be
+//		child = QueryPlan.getOperator();
 	}
 	
 	public void sort() {

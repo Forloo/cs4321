@@ -1,12 +1,74 @@
 package p1.operator;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.statement.select.FromItem;
+import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import p1.ExpressionParser;
 import p1.Tuple;
+import p1.databaseCatalog.DatabaseCatalog;
+
 
 /**
  * An operator that processes queries on multiple files and conditions.
  */
 public class JoinOperator extends Operator{
-
+	
+	// Tree representing the join operator
+	private JoinOperatorTree tree;
+	// A list of tuples containing the final results.
+	private ArrayList<Tuple> results;
+	// Index for which tuple we are on
+	private int idx;
+	// The schema for the results query table
+	private ArrayList<String> schema;
+	// The where condition. Only used to call accept.
+	private Expression where;
+	
+	public JoinOperator(PlainSelect plainSelect, String fromTable,DatabaseCatalog db) {
+		// Split the where expression
+		Expression whereClause=plainSelect.getWhere();
+		ExpressionParser parse = new ExpressionParser(whereClause);
+		where=plainSelect.getWhere();
+		where.accept(parse);
+		HashMap<String[],ArrayList<Expression>> expressionInfo= parse.getTablesNeeded();
+		
+		tree = new JoinOperatorTree(plainSelect,expressionInfo); 
+		
+		HashMap<String,ArrayList<Tuple>> tbl= tree.dfs(tree.getRoot(), db);
+		for(String key: tbl.keySet()) {
+			results=tbl.get(key);
+			ArrayList<String> temp= new ArrayList<String>();
+			String[] arr=key.split(",");
+			for(int i=0;i<arr.length;i++) {
+				temp.add(arr[i]);
+			}
+			schema=temp;
+		}
+		idx=0;
+	}
+	
+	/**
+	 * Retrieves the where condition.
+	 * @return An expression or null.
+	 */
+	public Expression getWhere() {
+		return where;
+	}
+	
+	/**
+	 * Retrieves the schema information.
+	 * @return An arraylist representing the schema.
+	 */
+	public ArrayList<String> getSchema(){
+		return schema;
+	}
+	
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
 	 *
@@ -14,8 +76,10 @@ public class JoinOperator extends Operator{
 	 */
 	@Override
 	public Tuple getNextTuple() {
-		// TODO Auto-generated method stub
-		return null;
+		if(idx==results.size()) {
+			return null;
+		}
+		return new Tuple(results.get(idx++).toString());
 	}
 
 	/**
@@ -24,8 +88,7 @@ public class JoinOperator extends Operator{
 	 */
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
-		
+		idx=0;
 	}
 
 	/**
@@ -34,8 +97,11 @@ public class JoinOperator extends Operator{
 	 */
 	@Override
 	public void dump() {
-		// TODO Auto-generated method stub
-		
+		Tuple temp= this.getNextTuple();
+		while (temp!=null) {
+			System.out.println(temp);
+			temp=this.getNextTuple();
+		}
 	}
 
 	/**
@@ -48,6 +114,10 @@ public class JoinOperator extends Operator{
 	public void dump(String outputFile) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public JoinOperatorTree getRoot() {
+		return tree;
 	}
 
 }

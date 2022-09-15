@@ -1,7 +1,7 @@
 package p1.operator; 
 
 import p1.Tuple;
-import p1.QueryPlan2;
+import p1.QueryPlan;
 import java.io.PrintWriter;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -11,7 +11,8 @@ public class DuplicateEliminationOperator extends Operator {
 	private Operator child;
 	
 	public DuplicateEliminationOperator (PlainSelect ps, String fromTable) {
-		child = QueryPlan2.getOperator();
+		// Cannot make Operator static it will be the same across all objects
+		//child = QueryPlan.getOperator();
 	}
 
 	@Override
