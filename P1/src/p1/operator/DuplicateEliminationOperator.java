@@ -9,15 +9,34 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 public class DuplicateEliminationOperator extends Operator {
 	
 	private Operator child;
+	private Tuple prev;
+	boolean check;
 	
 	public DuplicateEliminationOperator (PlainSelect ps, String fromTable) {
-		// Cannot make Operator static it will be the same across all objects
-		//child = QueryPlan.getOperator();
+		if (ps.getOrderByElements() == null) {
+			child = new SortOperator(ps, fromTable);
+		}
+		
+		if (ps.getDistinct() != null) {
+			check = true;
+		} else {
+			check = false;
+		}
 	}
 
 	@Override
 	public Tuple getNextTuple() {
-		return null;
+		Tuple next = child.getNextTuple();
+		
+		if (check) {
+			if (prev != null) {
+				while (next != null && next != prev) { // need way of checking when two tuples are equal 
+					next = child.getNextTuple();
+				}
+			}
+		}
+		prev = next;
+		return next;
 	}
 
 	/**

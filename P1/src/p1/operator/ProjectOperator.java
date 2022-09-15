@@ -1,6 +1,7 @@
 package p1.operator;
 
 import java.io.PrintWriter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ public class ProjectOperator extends Operator {
 	private Operator child = null;
 	private ArrayList<String> schema = new ArrayList<String>();
 	private ArrayList<String> cols = new ArrayList<String>();
+	int idx = 0;
 
 	public ProjectOperator(PlainSelect ps, String fromTable) {
 		ArrayList<String> fromSchema = DatabaseCatalog.getInstance().getSchema().get(fromTable);

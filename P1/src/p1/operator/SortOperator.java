@@ -1,40 +1,90 @@
 package p1.operator;
 
 import p1.Tuple;
-import p1.QueryPlan;
+import p1.databaseCatalog.DatabaseCatalog;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
 public class SortOperator extends Operator {
 	
-	private Operator child;
+	private Operator child = null;
+	private ArrayList<String> schema = new ArrayList<String>();
+	List<OrderByElement> orderBy = new ArrayList<>(); 
+	int idx = 0;
+	List<Tuple> tupleData;
+	private ArrayList<Column> cols = new ArrayList<Column>();
+
 	
 	public SortOperator(PlainSelect ps, String fromTable) {
-		// The field of queryplan is not static and should not be
-//		child = QueryPlan.getOperator();
+		if (ps.getJoins() != null) { // determine if child is join, select, or scan
+			JoinOperator op = new JoinOperator(ps, fromTable);
+			child = op;
+			for (Object join : ps.getJoins()) {
+				String[] joinTable = join.toString().split(" ");
+				String joinTableName = joinTable[0];
+				ArrayList<String> colSchema = DatabaseCatalog.getInstance().getSchema().get(joinTableName);
+				String j = ((Join) join).getRightItem().toString();
+				// Add alias to column name to distinguish for self joins
+				for (String colName : colSchema) {
+					schema.add(j.substring(j.lastIndexOf(" ") + 1) + "." + colName);
+				}
+			}
+			
+		} else if (ps.getWhere() != null) {
+			child = new SelectOperator(ps, fromTable);
+		} else {
+			child = new ScanOperator(fromTable);
+		}
+		
+		orderBy = ps.getOrderByElements();
+		
+		for (OrderByElement ob : orderBy) {
+			Column col = (Column) ob.getExpression();
+			cols.add(col);
+		}
+		
+		tupleData = new ArrayList<Tuple>(); 
+		Tuple currTuple = child.getNextTuple();
+		
+		while (currTuple != null) {
+			tupleData.add(currTuple);
+			currTuple = child.getNextTuple();
+		}
+		Collections.sort(tupleData, new compareTuples());
 	}
-	
-	public void sort() {
-		Collections.sort(null);
-	} 
+
 	
 	public class compareTuples implements Comparator<Tuple> {
-
+		
 		@Override
 		public int compare(Tuple o1, Tuple o2) {
-			// TODO Auto-generated method stub
+			if (orderBy != null) {
+				for (int i = 0; i < orderBy.size(); i++) {
+					
+				}
+			}
+			
 			return 0;
 		}
 	}
 
 	@Override
 	public Tuple getNextTuple() {
-		// TODO Auto-generated method stub
-		return null;
+		Tuple currTuple = null;
+		if (idx < tupleData.size()) {
+			currTuple = tupleData.get(idx);
+			idx++;
+		}
+		return currTuple;
 	}
 
 	/**
@@ -42,6 +92,7 @@ public class SortOperator extends Operator {
 	 * from the beginning
 	 */
 	public void reset() {
+		idx = 0;
 		child.reset();
 	}
 
