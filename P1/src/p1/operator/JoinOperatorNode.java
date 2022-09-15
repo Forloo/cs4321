@@ -20,7 +20,13 @@ public class JoinOperatorNode {
 	// Give a name to the node
 	private String tableName;
 	
-	
+	/**
+	 * Constructor to create a joinOperatorNode
+	 * @param tableName A tablename for the node to reference the required tables for expressions later
+	 * @param left The left child
+	 * @param right The right child
+	 * @param where The where condition for this node if any.
+	 */
 	public JoinOperatorNode(String tableName,JoinOperatorNode left,JoinOperatorNode right, ArrayList<Expression> where) {
 		
 		// Iterating through each of the table names we make a node. There will be a left child if prev

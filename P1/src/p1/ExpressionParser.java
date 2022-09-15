@@ -52,21 +52,38 @@ import p1.databaseCatalog.DatabaseCatalog;
 
 public class ExpressionParser implements ExpressionVisitor {
 	
+	// Keeps track of all the expression 
 	private ArrayList<Expression> allExpr;
+	// A temp field so that we can call accept commands
 	private Expression expr;
+	// String array key tells us what tables are needed. Expression list
+	// is the list of expression associated with these two tables.
 	private HashMap<String[], ArrayList<Expression>> tablesNeeded;
 
 	
+	/**
+	 * Constructor for expressionParser class
+	 * @param expr The expression to break down.
+	 */
 	public ExpressionParser(Expression expr) {
 		this.expr=expr;
 		allExpr=new ArrayList<Expression>();
 		tablesNeeded= new HashMap<String[],ArrayList<Expression>>();
 	}
 	
+	/**
+	 * Retrieves the list of expressions
+	 * @return A list of expressions
+	 */
 	public ArrayList<Expression> getList(){
 		return allExpr;
 	}
 	
+	/**
+	 * A recursive method to get all subexpressions.
+	 * @param arg0 The and statement to break into smaller pieces.
+	 * @return A list of expressions
+	 */
 	private ArrayList<Expression> getAllExpr(AndExpression arg0) {
 		
 		Expression left=arg0.getLeftExpression();
@@ -82,10 +99,8 @@ public class ExpressionParser implements ExpressionVisitor {
 		
 		HashMap<String[],ArrayList<Expression>> leftTables= leftParser.getTablesNeeded();
 		
-//		System.out.println(leftTables);
-//		System.out.println(this.getTablesNeeded());
 		for(String[] key: leftTables.keySet()) {
-//			System.out.println("hereeee");
+		
 			// Loop through our current table. Check if there are any overlapping keys
 			boolean found=false;
 			for(String[] key2:this.getTablesNeeded().keySet()) {
@@ -107,10 +122,6 @@ public class ExpressionParser implements ExpressionVisitor {
 		
 		HashMap<String[],ArrayList<Expression>> rightTables = rightParser.getTablesNeeded();
 		
-//		System.out.println(rightTables);
-//		System.out.println(this.getTablesNeeded());
-//		System.out.println("here");
-		
 		for(String[] key: rightTables.keySet()) {
 			// Loop through our current table. Check if there any overlapping keys
 			boolean found=false;
@@ -130,10 +141,19 @@ public class ExpressionParser implements ExpressionVisitor {
 		return allExpr;
 	}
 	
+	/**
+	 * A method to retrieve the list of tables and their associated expressions.
+	 * @return
+	 */
 	public HashMap<String[],ArrayList<Expression>> getTablesNeeded(){
 		return tablesNeeded;
 	}
 	
+	/**
+	 * Retrieves the table needed for a binaryexpressions
+	 * @param arg0 The binary expression 
+	 * @return The table or tables needed to computer the binary expression.
+	 */
 	private String[] getTables(BinaryExpression arg0) {
 		String tblNeed="";
 		if (arg0.getLeftExpression().toString().contains(".")) {
@@ -237,7 +257,9 @@ public class ExpressionParser implements ExpressionVisitor {
 		// TODO Auto-generated method stub
 		
 	}
-
+	/**
+	 * Recursivley call the and expression to get smaller expressions
+	 */
 	@Override
 	public void visit(AndExpression arg0) {
 		ArrayList<Expression> ret= this.getAllExpr(arg0);
@@ -255,19 +277,21 @@ public class ExpressionParser implements ExpressionVisitor {
 		// TODO Auto-generated method stub
 		
 	}
-
+	
+	/**
+	 * One of the base cases: Add this expression to our list of expressions.
+	 */
 	@Override
 	public void visit(EqualsTo arg0) {
 		String [] arr =this.getTables(arg0);
-//		System.out.println(arg0);
-//		for(int i=0;i<arr.length;i++) {
-//			System.out.println(arr[i]);
-//		}
 		this.getTablesNeeded().put(arr,allExpr);
 		allExpr.add(arg0);
 		
 	}
-
+	
+	/**
+	 * One of the base cases: Add this expression to our list of expressions.
+	 */
 	@Override
 	public void visit(GreaterThan arg0) {
 		String [] arr = this.getTables(arg0);
@@ -276,6 +300,9 @@ public class ExpressionParser implements ExpressionVisitor {
 		
 	}
 
+	/**
+	 * One of the base cases: Add this expression to our list of expressions.
+	 */
 	@Override
 	public void visit(GreaterThanEquals arg0) {
 		String [] arr = this.getTables(arg0);
@@ -302,6 +329,9 @@ public class ExpressionParser implements ExpressionVisitor {
 		
 	}
 
+	/**
+	 * One of the base cases. Add this case to our list of base cases.
+	 */
 	@Override
 	public void visit(MinorThan arg0) {
 		String [] arr = this.getTables(arg0);
@@ -310,6 +340,9 @@ public class ExpressionParser implements ExpressionVisitor {
 		
 	}
 
+	/**
+	 * One of the base cases. Add this case to our list of bases cases.
+	 */
 	@Override
 	public void visit(MinorThanEquals arg0) {
 		String [] arr = this.getTables(arg0);
@@ -317,6 +350,9 @@ public class ExpressionParser implements ExpressionVisitor {
 		allExpr.add(arg0);
 	}
 
+	/**
+	 * One of the base cases. Add this case to our list of base cases.
+	 */
 	@Override
 	public void visit(NotEqualsTo arg0) {
 		String [] arr = this.getTables(arg0);

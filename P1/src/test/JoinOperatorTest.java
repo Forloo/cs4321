@@ -14,6 +14,7 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.ExpressionParser;
+import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 import p1.operator.JoinOperator;
 
@@ -70,7 +71,7 @@ public class JoinOperatorTest {
 		JoinOperator join = new JoinOperator(plainSelect,"",DatabaseCatalog.getInstance());
 		
 		
-		// Test that the final schema table is correct 
+		// Test that the final schema table is correct (Test again after since we are renaming the tables)
 		ArrayList<String> results= new ArrayList<String>();
 		results.add("A");
 		results.add("B");
@@ -79,35 +80,14 @@ public class JoinOperatorTest {
 		results.add("H");
 		
 		assertEquals(results,join.getSchema());
-		
-		// Test that the first five rows of the joined tuple is correct.
-		assertEquals("1,200,50,1,101",join.getNextTuple().toString());
-		assertEquals("1,200,50,1,102",join.getNextTuple().toString());
-		assertEquals("1,200,50,1,103",join.getNextTuple().toString());
-		assertEquals("1,200,50,2,101",join.getNextTuple().toString());
-		assertEquals("1,200,50,3,102",join.getNextTuple().toString());
-		
-		// Test that the reset works
-		join.reset();
-		
-		assertEquals("1,200,50,1,101",join.getNextTuple().toString());
-		assertEquals("1,200,50,1,102",join.getNextTuple().toString());
-		assertEquals("1,200,50,1,103",join.getNextTuple().toString());
-		assertEquals("1,200,50,2,101",join.getNextTuple().toString());
-		assertEquals("1,200,50,3,102",join.getNextTuple().toString());
-		
-//		join.getRoot().dfs(join.getRoot().getRoot());
-		
+		join.dump();	
 		Expression value=join.getWhere();
 		
 		ExpressionParser hope = new ExpressionParser(value);
 		value.accept(hope);
-//		System.out.println(hope.getList());
-		
 		
 		// Get the fourth query that requires a join
 		Statement ninth=queries.get(9);
-//		System.out.println(ninth);
 		
 		Select select2=(Select) ninth;
 		PlainSelect plainSelect2 = (PlainSelect)select2.getSelectBody();
@@ -116,6 +96,16 @@ public class JoinOperatorTest {
 		ExpressionParser hope2 = new ExpressionParser(value2);
 		value2.accept(hope2);
 		ArrayList<Expression> valueOne= hope2.getList();
+		
+		// Grab the tenth query
+		Statement ten= queries.get(10);
+		Select select3= (Select)ten;
+		PlainSelect plainSelect3= (PlainSelect) select3.getSelectBody();
+		JoinOperator join3= new JoinOperator(plainSelect3,"",DatabaseCatalog.getInstance());
+		
+		// Want to see the expected values from the leaf nodes
+		
+		
 		
 		
 //		System.out.println(hope3.size());

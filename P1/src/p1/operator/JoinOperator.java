@@ -19,10 +19,15 @@ import p1.databaseCatalog.DatabaseCatalog;
  */
 public class JoinOperator extends Operator{
 	
+	// Tree representing the join operator
 	private JoinOperatorTree tree;
+	// A list of tuples containing the final results.
 	private ArrayList<Tuple> results;
+	// Index for which tuple we are on
 	private int idx;
+	// The schema for the results query table
 	private ArrayList<String> schema;
+	// The where condition. Only used to call accept.
 	private Expression where;
 	
 	public JoinOperator(PlainSelect plainSelect, String fromTable,DatabaseCatalog db) {
@@ -48,10 +53,18 @@ public class JoinOperator extends Operator{
 		idx=0;
 	}
 	
+	/**
+	 * Retrieves the where condition.
+	 * @return An expression or null.
+	 */
 	public Expression getWhere() {
 		return where;
 	}
 	
+	/**
+	 * Retrieves the schema information.
+	 * @return An arraylist representing the schema.
+	 */
 	public ArrayList<String> getSchema(){
 		return schema;
 	}
@@ -84,8 +97,11 @@ public class JoinOperator extends Operator{
 	 */
 	@Override
 	public void dump() {
-		// TODO Auto-generated method stub
-		
+		Tuple temp= this.getNextTuple();
+		while (temp!=null) {
+			System.out.println(temp);
+			temp=this.getNextTuple();
+		}
 	}
 
 	/**

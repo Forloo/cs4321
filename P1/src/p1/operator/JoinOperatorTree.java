@@ -39,29 +39,21 @@ public class JoinOperatorTree {
 		ArrayList<Expression> conditions=null;
 		Arrays.sort(splitted);
 		
-//		for(int j=0;j<splitted.length;j++) {
-//			System.out.println(splitted[j]);
-//			System.out.println(splitted[j].length());
-//		}
 		
 		// Loop through the hashmap to see if there is a condition
 		for(String[] key: exprAssignment.keySet()) {
-//			for(int n=0;n<key.length;n++) {
-//				System.out.println(key[n]);
-//				System.out.println(key[n].length());
-//			}
+		
 			// Make a copy of the key
 			String[] copy = key.clone();
 			Arrays.sort(copy);
-//			System.out.println(Arrays.equals(splitted, copy));
+			
 			if (Arrays.equals(splitted, copy)) {
 				// Assign to this node a list of conditions
 				conditions=exprAssignment.get(key);
 			}
 		}
 		
-//		System.out.println("possible solution here");
-//		System.out.println(conditions);
+		
 		JoinOperatorNode left = new JoinOperatorNode(from.toString(),null,null,conditions);
 		for (Join table : allTables) {
 			// make the expression to create JoinOperatorNode
@@ -87,8 +79,7 @@ public class JoinOperatorTree {
 				for(int i=0;i<splitted3.length;i++) {
 					System.out.println(splitted3[i]);
 				}
-//				System.out.println("endfor");
-				//Loop through the hashmap
+				
 				for(String[] key: exprAssignment.keySet()) {
 					String[] copy=key.clone();
 					Arrays.sort(copy);
@@ -100,7 +91,7 @@ public class JoinOperatorTree {
 				left=parentNode;
 			}
 		}
-//		System.out.println("==================");
+		
 		root = left;
 	}
 	
@@ -114,53 +105,46 @@ public class JoinOperatorTree {
 	
 	public HashMap<String,ArrayList<Tuple>> dfs(JoinOperatorNode root,DatabaseCatalog db){
 		
-		//Step one: Fix the prefix situation for all of the nodes
-		// Step two: Introduce the where clause first for only leaf nodes
-		// Step three: Have the where clause for the non-leaf nodes too
-		
-		
 		if(root.getLeftChild()==null && root.getRightChild()==null) {
 			ArrayList<Tuple> ret = new ArrayList<Tuple>();
 			Tuple temp=null;
 			temp=root.getLeafHelper().getNextTuple();
 			ArrayList<Expression> conditions= root.getWhere();
 			
-			// If there are conditions then this becomes a select
-			if (conditions!=null) {
-				while(temp!=null) {
-					boolean allValid=true;
-					for(int i=0;i<conditions.size();i++) {
-						ExpressionEvaluator exprtwo = new ExpressionEvaluator(temp,db.getSchema().get(root.getTableName()));
-						Expression curr= conditions.get(i);
-						curr.accept(exprtwo);
-						allValid=allValid && (Boolean.parseBoolean(exprtwo.getValue()));
+			
+			while(temp!=null) {
+				if (conditions!=null) {
+					boolean allTrue=true;
+					for(int j=0;j<conditions.size();j++) {
+						ExpressionEvaluator expr2= new ExpressionEvaluator(temp,db.getSchema().get(root.getTableName()));
+						Expression value=conditions.get(j);
+						value.accept(expr2);
+						allTrue=allTrue && (Boolean.parseBoolean(expr2.getValue()));
 					}
-					if (allValid) {
+					if(allTrue) {
 						ret.add(temp);
-						temp=root.getLeafHelper().getNextTuple();
 					}
-					
+					temp=root.getLeafHelper().getNextTuple();
 				}
-			}
-			else {
-				while(temp!=null) {
+				else {
 					ret.add(temp);
 					temp=root.getLeafHelper().getNextTuple();
 				}
 			}
+			
 			// Always reset the idx
 			root.getLeafHelper().reset();
 			// Get the string representation of this tuple
 			ArrayList<String> schema= db.getSchema().get(root.getTableName());
+			String prefix="";
 			String str="";
 			for(int i=0;i<schema.size();i++) {
-				//I need to add the tablename Prefix for each of these tables otherwise we cant do the comparisons.
-//				System.out.println(schema.get(i));
+				
 				if (i==schema.size()-1) {
-					str=str+schema.get(i);
+					str=str+prefix+schema.get(i);
 				}
 				else {
-					str=str+schema.get(i)+",";
+					str=str+prefix+schema.get(i)+",";
 				}
 			}
 			HashMap<String,ArrayList<Tuple>> tbl = new HashMap<String,ArrayList<Tuple>>();
@@ -173,11 +157,31 @@ public class JoinOperatorTree {
 		if(root.getLeftChild()!=null) {
 			left=dfs(root.getLeftChild(),db);
 		}
+		
+		System.out.println("begin");
+		for(int i=0;i<left.size();i++) {
+			for(String key: left.keySet()) {
+				ArrayList<Tuple> testing= left.get(key);
+				for(int k=0;k<testing.size();k++) {
+					System.out.println(testing.get(k));
+				}
+			}
+		}
+		
 		HashMap<String,ArrayList<Tuple>> ret= new HashMap<String,ArrayList<Tuple>>();
 		HashMap<String,ArrayList<Tuple>> right =null;
 		
 		if (root.getRightChild()!=null) {
 			right=dfs(root.getRightChild(),db);
+		}
+		System.out.println("Begin right testing");
+		for(int b=0;b<right.size();b++) {
+			for(String key2: right.keySet()) {
+				ArrayList<Tuple> testing2= right.get(key2);
+				for(int n=0;n<testing2.size();n++) {
+					System.out.println(testing2.get(n));
+				}
+			}
 		}
 		
 		// Iterate to get the one arraylist
@@ -206,7 +210,36 @@ public class JoinOperatorTree {
 				// Need to merge both of the tuples into one.
 				String bothTuple=curr.toString()+","+curr2.toString();
 				Tuple element=new Tuple(bothTuple);
-				finalList.add(element);
+				// After merging the two new tuples into one check where conditions if they exist
+				ArrayList<Expression> joinedConditions= root.getWhere();
+				// Get the new schema from our string
+				if (joinedConditions!=null) {
+					ArrayList<String> schemaInput= new ArrayList<String>();
+					String[] splittedSchema=finalName.split(",");
+					for(int l=0;l<splittedSchema.length;l++) {
+						schemaInput.add(splittedSchema[l]);
+					}
+					// Loop through all the conditons
+					boolean allTrue=true;
+					for(int m=0;m<joinedConditions.size();m++) {
+						Expression current= joinedConditions.get(m);
+						System.out.println("another long error");
+						for(int z=0;z<schemaInput.size();z++) {
+							System.out.println(schemaInput.get(z));
+						}
+						System.out.println(current);
+						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element,schemaInput);
+						current.accept(evaltwo);
+						allTrue=allTrue && (Boolean.parseBoolean(evaltwo.getValue()));
+					}
+					if (allTrue) {
+						finalList.add(element);
+					}
+				}
+				else {
+					finalList.add(element);	
+				}
+				
 			}
 		}
 		
