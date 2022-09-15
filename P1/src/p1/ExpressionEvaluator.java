@@ -1,7 +1,6 @@
 package p1;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
@@ -58,6 +57,8 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 	public ExpressionEvaluator(Tuple t, ArrayList<String> schema) {
 		row = t;
 		columns = schema;
+		System.out.println(row.toString());
+		System.out.println(columns);
 	}
 
 	/**
@@ -91,6 +92,7 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 	@Override
 	public void visit(Column arg0) {
 		int idx = columns.indexOf(arg0.getColumnName());
+		System.out.println(arg0.getColumnName());
 		value = row.getTuple().get(idx);
 	}
 
@@ -140,7 +142,6 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 		String[] values = leftRightVals(arg0);
 		value = String.valueOf(Integer.parseInt(values[0]) <= Integer.parseInt(values[1]));
 	}
-	
 
 	// USELESS METHODS FOR THIS PROJECT
 

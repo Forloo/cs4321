@@ -89,5 +89,5 @@ public class ScanOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
-	
+
 }

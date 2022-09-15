@@ -25,8 +25,8 @@ public class ProjectOperator extends Operator {
 		List selectItems = ps.getSelectItems(); // specific columns
 		for (int i = 0; i < selectItems.size(); i++) {
 			cols.add((SelectItem) selectItems.get(i));
-		} 
-	} 
+		}
+	}
 
 	/**
 	 * Retrieves the next tuples matching the selection condition. If there is no
@@ -45,8 +45,12 @@ public class ProjectOperator extends Operator {
 
 		for (SelectItem i : cols) {
 			String[] colName = i.toString().split("\\.");
-			int idx = schema.indexOf(colName[colName.length - 1]);
-			projection.add(nextTuple.getTuple().get(idx));
+			if (colName[colName.length - 1].equals("*")) {
+				projection.add(nextTuple.toString());
+			} else {
+				int idx = schema.indexOf(colName[colName.length - 1]);
+				projection.add(nextTuple.getTuple().get(idx));
+			}
 		}
 		return new Tuple(String.join(",", projection));
 	}
