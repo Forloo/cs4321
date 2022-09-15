@@ -206,8 +206,8 @@ public class JoinOperatorTree {
 					boolean allTrue = true;
 					for (int m = 0; m < joinedConditions.size(); m++) {
 						Expression current = joinedConditions.get(m);
-//						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, root.getTableName());
-						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, schemaInput);
+//						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, schemaInput);
+						ExpressionEvaluator evaltwo = new ExpressionEvaluator(element, root.getTableName());
 						current.accept(evaltwo);
 						allTrue = allTrue && (Boolean.parseBoolean(evaltwo.getValue()));
 					}

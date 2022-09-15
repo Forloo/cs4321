@@ -1,5 +1,6 @@
 package p1;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,6 +15,8 @@ public class Aliases {
 	private static Aliases aliases;
 	// The map of aliases and table names.
 	private static HashMap<String, String> aliasMap;
+	// List of all aliases.
+	private static ArrayList<String> aliasList;
 
 	/*
 	 * Constructor for an Aliases: An object that gives us access to aliases and
@@ -22,6 +25,9 @@ public class Aliases {
 	private Aliases(PlainSelect ps) {
 		aliasMap = new HashMap<String, String>();
 		FromItem from = ps.getFromItem();
+		aliasList = new ArrayList<String>();
+		aliasList.add(from.toString());
+
 		String fromTable = from.toString().split(" ")[0];
 		aliasMap.put(from.getAlias() == null ? fromTable : from.getAlias(), fromTable);
 		aliasMap.put(fromTable, fromTable);
@@ -31,6 +37,7 @@ public class Aliases {
 				String[] joinTable = c.toString().split(" ");
 				String joinTableName = joinTable[0];
 				String joinAlias = joinTable[joinTable.length - 1];
+				aliasList.add(c.toString());
 				aliasMap.put(joinAlias, joinTableName);
 				aliasMap.put(joinTableName, joinTableName);
 			}
@@ -69,5 +76,14 @@ public class Aliases {
 	 */
 	public static String getTable(String alias) {
 		return aliasMap.get(alias);
+	}
+
+	/**
+	 * Gets a list of all aliases
+	 *
+	 * @return all aliases with table names
+	 */
+	public static ArrayList<String> getAliasList() {
+		return aliasList;
 	}
 }

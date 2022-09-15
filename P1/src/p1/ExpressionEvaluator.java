@@ -78,9 +78,6 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 		for (String name : tables) {
 			columns.addAll(DatabaseCatalog.getInstance().getSchema().get(name));
 		}
-		for (String c : columns) {
-			System.out.println("columns together: " + c);
-		}
 	}
 
 	/**
@@ -102,8 +99,15 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 	private String[] leftRightVals(BinaryExpression arg0) {
 		Expression left = arg0.getLeftExpression();
 		Expression right = arg0.getRightExpression();
-		ExpressionEvaluator leftEval = new ExpressionEvaluator(row, columns);
-		ExpressionEvaluator rightEval = new ExpressionEvaluator(row, columns);
+		ExpressionEvaluator leftEval;
+		ExpressionEvaluator rightEval;
+		if (tables != null) {
+			leftEval = new ExpressionEvaluator(row, String.join(",", tables));
+			rightEval = new ExpressionEvaluator(row, String.join(",", tables));
+		} else {
+			leftEval = new ExpressionEvaluator(row, columns);
+			rightEval = new ExpressionEvaluator(row, columns);
+		}
 		left.accept(leftEval);
 		right.accept(rightEval);
 		String leftValue = leftEval.getValue();
@@ -113,17 +117,28 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 
 	@Override
 	public void visit(Column arg0) {
-		int idx = columns.indexOf(arg0.getColumnName());
-		value = row.getTuple().get(idx);
-//		if (tables != null) {
-//			int tableIdx = tables.indexOf(arg0.getTable().toString());
-//			int startIdx = 0;
-//			for (int i = 0; i < tableIdx; i++) {
-//				startIdx += columns.get(i).length();
-//			}
-//			List<String> subColumns = columns.subList(startIdx, columns.size());
-//			value = row.getTuple().get(startIdx + subColumns.indexOf(arg0.getColumnName()));
-//		}
+		String table = arg0.getTable().getName();
+
+		int tableIdx = 0;
+
+		for (String fullTable : Aliases.getAliasList()) {
+			if (fullTable.substring((fullTable.lastIndexOf(" ") + 1)).equals(table)) {
+				break;
+			}
+			tableIdx++;
+		}
+
+		if (tables != null) {
+			int startIdx = 0;
+			for (int i = 0; i < tableIdx; i++) {
+				startIdx += columns.get(i).length();
+			}
+			List<String> subColumns = columns.subList(startIdx, columns.size());
+			value = row.getTuple().get(startIdx + subColumns.indexOf(arg0.getColumnName()));
+		} else {
+			int idx = columns.indexOf(arg0.getColumnName());
+			value = row.getTuple().get(idx);
+		}
 	}
 
 	@Override

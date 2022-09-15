@@ -20,7 +20,6 @@ public class ProjectOperator extends Operator {
 		for (String colName : fromSchema) {
 			schema.add(alias + "." + colName);
 		}
-		System.out.println(schema);
 
 		if (ps.getJoins() != null) { // determine if child is join, select, or scan
 			JoinOperator op = new JoinOperator(ps, fromTable);
