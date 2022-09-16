@@ -15,8 +15,7 @@ public class DuplicateEliminationOperator extends Operator {
 	public DuplicateEliminationOperator (PlainSelect ps, String fromTable) {
 		if (ps.getOrderByElements() == null) {
 			child = new SortOperator(ps, fromTable);
-		}
-		
+		} 
 		if (ps.getDistinct() != null) {
 			check = true;
 		} else {
@@ -32,7 +31,7 @@ public class DuplicateEliminationOperator extends Operator {
 		
 		if (check) {
 			if (prev != null) {
-				while (next != null && nextint != prevint) { // need way of checking when two tuples are equal 
+				while (next != null && nextint != prevint) { 
 					next = child.getNextTuple();
 				}
 			}
