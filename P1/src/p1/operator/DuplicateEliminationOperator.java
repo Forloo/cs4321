@@ -1,41 +1,35 @@
-package p1.operator; 
+package p1.operator;
 
-import p1.Tuple;
-import p1.QueryPlan;
 import java.io.PrintWriter;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import p1.Tuple;
 
 public class DuplicateEliminationOperator extends Operator {
-	
-	private Operator child;
+
+	private SortOperator child;
 	private Tuple prev;
 	boolean check;
-	
-	public DuplicateEliminationOperator (PlainSelect ps, String fromTable) {
-		if (ps.getOrderByElements() == null) {
-			child = new SortOperator(ps, fromTable);
-		} 
-		if (ps.getDistinct() != null) {
-			check = true;
-		} else {
-			check = false;
-		}
+
+	public DuplicateEliminationOperator(PlainSelect ps, String fromTable) {
+		child = new SortOperator(ps, fromTable);
 	}
 
 	@Override
 	public Tuple getNextTuple() {
 		Tuple next = child.getNextTuple();
-		int nextint = Integer.valueOf(next.toString());
-		int prevint = Integer.valueOf(prev.toString()); 
-		
-		if (check) {
-			if (prev != null) {
-				while (next != null && nextint != prevint) { 
-					next = child.getNextTuple();
-				}
-			}
-		} 
+		System.out.println(prev + " " + next);
+		if (next == null) {
+			return null;
+		}
+		if (prev == null) {
+			prev = next;
+			return next;
+		}
+
+		if (next.toString().equals(prev.toString())) {
+			return getNextTuple();
+		}
 		prev = next;
 		return next;
 	}
@@ -82,4 +76,3 @@ public class DuplicateEliminationOperator extends Operator {
 		}
 	}
 }
-

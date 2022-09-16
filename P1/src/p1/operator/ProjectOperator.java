@@ -75,12 +75,8 @@ public class ProjectOperator extends Operator {
 		ArrayList<String> projection = new ArrayList<>();
 
 		for (String i : cols) {
-			if (i.equals("*")) {
-				projection.add(nextTuple.toString());
-			} else {
-				int idx = schema.indexOf(i);
-				projection.add(nextTuple.getTuple().get(idx));
-			}
+			int idx = schema.indexOf(i);
+			projection.add(nextTuple.getTuple().get(idx));
 		}
 		return new Tuple(String.join(",", projection));
 	}
