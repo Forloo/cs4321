@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * A singleton class that stores the file location of tables and their column
+ * names.
+ */
 public class DatabaseCatalog {
 	/*
 	 * NOTES: Delete notes after implementation is finished 1. The database catalog

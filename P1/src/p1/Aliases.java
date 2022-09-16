@@ -15,8 +15,10 @@ public class Aliases {
 	private static Aliases aliases;
 	// The map of aliases and table names.
 	private static HashMap<String, String> aliasMap;
-	// List of all aliases.
+	// List of all aliases with tables.
 	private static ArrayList<String> aliasList;
+	// List of only aliases.
+	private static ArrayList<String> onlyAliases;
 
 	/*
 	 * Constructor for an Aliases: An object that gives us access to aliases and
@@ -31,6 +33,9 @@ public class Aliases {
 		String fromTable = from.toString().split(" ")[0];
 		aliasMap.put(from.getAlias() == null ? fromTable : from.getAlias(), fromTable);
 		aliasMap.put(fromTable, fromTable);
+		onlyAliases = new ArrayList<String>();
+		onlyAliases.add(from.getAlias() == null ? fromTable : from.getAlias());
+
 		List joins = ps.getJoins();
 		if (joins != null) {
 			for (Object c : ps.getJoins()) {
@@ -40,6 +45,7 @@ public class Aliases {
 				aliasList.add(c.toString());
 				aliasMap.put(joinAlias, joinTableName);
 				aliasMap.put(joinTableName, joinTableName);
+				onlyAliases.add(joinAlias);
 			}
 		}
 	}
@@ -79,11 +85,20 @@ public class Aliases {
 	}
 
 	/**
-	 * Gets a list of all aliases
+	 * Gets a list of all aliases with table names.
 	 *
 	 * @return all aliases with table names
 	 */
 	public static ArrayList<String> getAliasList() {
 		return aliasList;
+	}
+
+	/**
+	 * Gets a list of only aliases.
+	 *
+	 * @return aliases without table names
+	 */
+	public static ArrayList<String> getOnlyAliases() {
+		return onlyAliases;
 	}
 }

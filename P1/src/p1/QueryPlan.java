@@ -9,12 +9,17 @@ import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.databaseCatalog.DatabaseCatalog;
+import p1.operator.DuplicateEliminationOperator;
 import p1.operator.JoinOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
+import p1.operator.SortOperator;
 
+/**
+ * A class that evaluates what operator to use as the root for a query.
+ */
 public class QueryPlan {
 
 	// The root operator for the queryPlan
@@ -44,7 +49,13 @@ public class QueryPlan {
 			fromTable = Aliases.getTable(from.getAlias());
 		}
 
-		if (!(allColumns.get(0) instanceof AllColumns)) {
+		if (plainSelect.getDistinct() != null) {
+			DuplicateEliminationOperator op = new DuplicateEliminationOperator(plainSelect, fromTable);
+			rootOperator = op;
+		} else if (plainSelect.getOrderByElements() != null) {
+			SortOperator op = new SortOperator(plainSelect, fromTable);
+			rootOperator = op;
+		} else if (!(allColumns.get(0) instanceof AllColumns)) {
 			ProjectOperator op = new ProjectOperator(plainSelect, fromTable);
 			rootOperator = op;
 		} else if (plainSelect.getJoins() != null) {

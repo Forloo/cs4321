@@ -14,7 +14,13 @@ import p1.ExpressionEvaluator;
 import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
+/**
+ * A join tree determines which tables should be joined together. This is a
+ * left-heavy tree, with the leftmost node being the first table to parse, and
+ * the rightmost node being the last table to join.
+ */
 public class JoinOperatorTree {
+	// The root of the tree represents all tables joined together.
 	private JoinOperatorNode root;
 
 	/**
@@ -36,11 +42,11 @@ public class JoinOperatorTree {
 		// create the tree
 		String[] splitted = from.toString().split(",");
 		for (int i = 0; i < splitted.length; i++) {
-			splitted[i] = Aliases.getTable(from.toString().split(" ")[0]);
+			String[] tableSplit = from.toString().split(" ");
+			splitted[i] = tableSplit[tableSplit.length - 1];
 		}
 		ArrayList<Expression> conditions = null;
 		Arrays.sort(splitted);
-
 		// Loop through the hashmap to see if there is a condition
 		for (String[] key : exprAssignment.keySet()) {
 			// Make a copy of the key
@@ -52,13 +58,14 @@ public class JoinOperatorTree {
 				conditions = exprAssignment.get(key);
 			}
 		}
-
 		JoinOperatorNode left = new JoinOperatorNode(from.toString(), null, null, conditions);
+
 		for (Join table : allTables) {
 			// make the expression to create JoinOperatorNode
 			String[] splitted2 = table.toString().split(",");
 			for (int i = 0; i < splitted2.length; i++) {
-				splitted2[i] = Aliases.getTable(splitted2[i].split(" ")[0]);
+				String[] tableSplit = table.toString().split(" ");
+				splitted2[i] = tableSplit[tableSplit.length - 1];
 			}
 			ArrayList<Expression> conditionstwo = null;
 			// Loop through the hashmap
@@ -69,16 +76,18 @@ public class JoinOperatorTree {
 					conditionstwo = exprAssignment.get(key);
 				}
 			}
+			JoinOperatorNode right = new JoinOperatorNode(table.toString(), null, null, conditionstwo);
 
-			JoinOperatorNode node = new JoinOperatorNode(table.toString(), null, null, conditionstwo);
+			// is this condition ever True?
 			if (left == null) {
-				left = node;
+				left = right;
 			} else {
-				String combinedname = left.getTableName() + "," + node.getTableName();
+				String combinedname = left.getTableName() + "," + right.getTableName();
 				String[] splitted3 = combinedname.split(",");
 				for (int i = 0; i < splitted3.length; i++) {
-					splitted3[i] = Aliases.getTable(splitted3[i]);
+					splitted3[i] = Aliases.getOnlyAliases().get(i);
 				}
+
 				ArrayList<Expression> conditionsthree = null;
 				Arrays.sort(splitted3);
 
@@ -89,11 +98,10 @@ public class JoinOperatorTree {
 						conditionsthree = exprAssignment.get(key);
 					}
 				}
-				JoinOperatorNode parentNode = new JoinOperatorNode(combinedname, left, node, conditionsthree);
+				JoinOperatorNode parentNode = new JoinOperatorNode(combinedname, left, right, conditionsthree);
 				left = parentNode;
 			}
 		}
-
 		root = left;
 	}
 
@@ -106,6 +114,12 @@ public class JoinOperatorTree {
 		return root;
 	}
 
+	/**
+	 * Iterate through the node using a depth first search model.
+	 *
+	 * @param root
+	 * @return a node representing the table
+	 */
 	public HashMap<String, ArrayList<Tuple>> dfs(JoinOperatorNode root, DatabaseCatalog db) {
 
 		if (root.getLeftChild() == null && root.getRightChild() == null) {
@@ -231,7 +245,7 @@ public class JoinOperatorTree {
 	 * Iterate through the node using a depth first search model.
 	 *
 	 * @param root
-	 * @return
+	 * @return a node representing the table
 	 */
 	public JoinOperatorNode dfs(JoinOperatorNode root) {
 		if (root.getLeftChild() == null && root.getRightChild() == null) {

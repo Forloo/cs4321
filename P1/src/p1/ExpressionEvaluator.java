@@ -48,6 +48,9 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import p1.databaseCatalog.DatabaseCatalog;
 
+/**
+ * A class that evaluates where conditions on a row.
+ */
 public class ExpressionEvaluator implements ExpressionVisitor {
 
 	// The row with values to evaluate
@@ -117,21 +120,20 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 
 	@Override
 	public void visit(Column arg0) {
-		String table = arg0.getTable().getName();
-
-		int tableIdx = 0;
-
-		for (String fullTable : Aliases.getAliasList()) {
-			if (fullTable.substring((fullTable.lastIndexOf(" ") + 1)).equals(table)) {
-				break;
-			}
-			tableIdx++;
-		}
-
 		if (tables != null) {
+			String table = arg0.getTable().getName();
+			int tableIdx = 0;
+
+			for (String fullTable : Aliases.getAliasList()) {
+				if (fullTable.substring((fullTable.lastIndexOf(" ") + 1)).equals(table)) {
+					break;
+				}
+				tableIdx++;
+			}
+
 			int startIdx = 0;
 			for (int i = 0; i < tableIdx; i++) {
-				startIdx += columns.get(i).length();
+				startIdx += DatabaseCatalog.getInstance().getSchema().get(tables.get(i)).size();
 			}
 			List<String> subColumns = columns.subList(startIdx, columns.size());
 			value = row.getTuple().get(startIdx + subColumns.indexOf(arg0.getColumnName()));
