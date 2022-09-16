@@ -9,11 +9,23 @@ import p1.ExpressionEvaluator;
 import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
+/**
+ * This operator selects rows based on a where condition.
+ */
 public class SelectOperator extends Operator {
+	// The child operator, scanning all rows.
 	private ScanOperator scanObj;
+	// The column names.
 	private ArrayList<String> schema;
+	// The expression to check rows on.
 	private Expression where;
 
+	/**
+	 * Determines selection conditions and rows.
+	 *
+	 * @param ps        the query.
+	 * @param fromTable the table to select from.
+	 */
 	public SelectOperator(PlainSelect ps, String fromTable) {
 		where = ps.getWhere();
 		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);

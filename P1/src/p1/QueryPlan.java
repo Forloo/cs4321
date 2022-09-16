@@ -17,6 +17,9 @@ import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.operator.SortOperator;
 
+/**
+ * A class that evaluates what operator to use as the root for a query.
+ */
 public class QueryPlan {
 
 	// The root operator for the queryPlan

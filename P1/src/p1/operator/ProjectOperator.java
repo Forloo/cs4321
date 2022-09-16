@@ -1,7 +1,6 @@
 package p1.operator;
 
 import java.io.PrintWriter;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +9,25 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
+/**
+ * An operator that returns selected columns based on projection requirements.
+ */
 public class ProjectOperator extends Operator {
+	// The child operator.
 	private Operator child = null;
+	// The column names.
 	private ArrayList<String> schema = new ArrayList<String>();
+	// The columns of the rows to return.
 	private ArrayList<String> cols = new ArrayList<String>();
+	// The index of the row we are currently checking/returning.
 	int idx = 0;
 
+	/**
+	 * Initializes the variables above.
+	 *
+	 * @param ps        the query
+	 * @param fromTable the initial table to retrieve rows from
+	 */
 	public ProjectOperator(PlainSelect ps, String fromTable) {
 		ArrayList<String> fromSchema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
 		String alias = ps.getFromItem().getAlias() == null ? fromTable : ps.getFromItem().getAlias();
@@ -41,7 +53,7 @@ public class ProjectOperator extends Operator {
 		} else {
 			child = new ScanOperator(fromTable);
 		}
-		List selectItems = ps.getSelectItems(); // specific columns
+		List selectItems = ps.getSelectItems(); // get specific select columns
 		for (int i = 0; i < selectItems.size(); i++) {
 			cols.add(selectItems.get(i).toString());
 		}

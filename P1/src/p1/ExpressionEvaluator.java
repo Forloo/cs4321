@@ -48,6 +48,9 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import p1.databaseCatalog.DatabaseCatalog;
 
+/**
+ * A class that evaluates where conditions on a row.
+ */
 public class ExpressionEvaluator implements ExpressionVisitor {
 
 	// The row with values to evaluate

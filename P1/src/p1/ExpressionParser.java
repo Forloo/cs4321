@@ -47,6 +47,10 @@ import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+/**
+ * A class that parses expressions and stores what tables are used in each
+ * expression.
+ */
 public class ExpressionParser implements ExpressionVisitor {
 
 	// Keeps track of all the expression

@@ -6,6 +6,9 @@ import net.sf.jsqlparser.expression.Expression;
 import p1.Aliases;
 import p1.Tuple;
 
+/**
+ * A node represents a parsed single table.
+ */
 public class JoinOperatorNode {
 
 	// Left join child

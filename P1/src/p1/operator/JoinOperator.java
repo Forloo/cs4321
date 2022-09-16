@@ -28,6 +28,12 @@ public class JoinOperator extends Operator {
 	// The where condition. Only used to call accept.
 	private Expression where;
 
+	/**
+	 * Creates a JoinOperatorTree.
+	 *
+	 * @param plainSelect the query.
+	 * @param fromTable   the root table to join to.
+	 */
 	public JoinOperator(PlainSelect plainSelect, String fromTable) {
 		// Split the where expression
 		Expression whereClause = plainSelect.getWhere();
@@ -149,6 +155,11 @@ public class JoinOperator extends Operator {
 		}
 	}
 
+	/**
+	 * Returns the root of the JoinOperatorTree.
+	 *
+	 * @return A tree representing the order of joins.
+	 */
 	public JoinOperatorTree getRoot() {
 		return tree;
 	}

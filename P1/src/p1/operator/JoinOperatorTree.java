@@ -14,7 +14,13 @@ import p1.ExpressionEvaluator;
 import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
+/**
+ * A join tree determines which tables should be joined together. This is a
+ * left-heavy tree, with the leftmost node being the first table to parse, and
+ * the rightmost node being the last table to join.
+ */
 public class JoinOperatorTree {
+	// The root of the tree represents all tables joined together.
 	private JoinOperatorNode root;
 
 	/**
@@ -108,6 +114,12 @@ public class JoinOperatorTree {
 		return root;
 	}
 
+	/**
+	 * Iterate through the node using a depth first search model.
+	 *
+	 * @param root
+	 * @return a node representing the table
+	 */
 	public HashMap<String, ArrayList<Tuple>> dfs(JoinOperatorNode root, DatabaseCatalog db) {
 
 		if (root.getLeftChild() == null && root.getRightChild() == null) {
@@ -233,7 +245,7 @@ public class JoinOperatorTree {
 	 * Iterate through the node using a depth first search model.
 	 *
 	 * @param root
-	 * @return
+	 * @return a node representing the table
 	 */
 	public JoinOperatorNode dfs(JoinOperatorNode root) {
 		if (root.getLeftChild() == null && root.getRightChild() == null) {
