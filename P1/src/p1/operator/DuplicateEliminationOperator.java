@@ -6,12 +6,19 @@ import java.io.PrintWriter;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
+/**
+ * This operator reads tuples from its child and only outputs non-duplicates.
+ */
 public class DuplicateEliminationOperator extends Operator {
 	
 	private Operator child;
 	private Tuple prev;
 	boolean check;
 	
+	/**
+	 * This operator reads tuples from its child and only outputs non-duplicates.
+	 * 
+	 */
 	public DuplicateEliminationOperator (PlainSelect ps, String fromTable) {
 		if (ps.getOrderByElements() == null) {
 			child = new SortOperator(ps, fromTable);
@@ -23,6 +30,12 @@ public class DuplicateEliminationOperator extends Operator {
 		}
 	}
 
+	/**
+	 * Retrieves the next tuple that is not a duplicate. If there is no
+	 * next tuple then null is returned.
+	 *
+	 * @return the selected tuples representing rows in a database
+	 */
 	@Override
 	public Tuple getNextTuple() {
 		Tuple next = child.getNextTuple();
@@ -30,7 +43,7 @@ public class DuplicateEliminationOperator extends Operator {
 		int prevint = Integer.valueOf(prev.toString()); 
 		
 		if (check) {
-			if (prev != null) {
+			if (prev != null) { 
 				while (next != null && nextint != prevint) { 
 					next = child.getNextTuple();
 				}

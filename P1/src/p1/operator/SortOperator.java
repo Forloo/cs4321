@@ -13,6 +13,9 @@ import java.util.List;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
+/**
+ * This operator sorts tuples according to order by conditions.
+ */
 public class SortOperator extends Operator {
 	
 	private Operator child = null;
@@ -21,8 +24,13 @@ public class SortOperator extends Operator {
 	int idx = 0;
 	List<Tuple> tupleData = new ArrayList<Tuple>();
 	private ArrayList<String> cols = new ArrayList<String>();
-
 	
+	/**
+	 * Determines child and the order by which to sort elements.  
+	 *
+	 * @param ps        the query.
+	 * @param fromTable the table to sort. 
+	 */ 
 	public SortOperator(PlainSelect ps, String fromTable) {
 		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
 
@@ -66,15 +74,18 @@ public class SortOperator extends Operator {
 		} 
 				
 		Collections.sort(tupleData, new compareTuples());
-	}
+	} 
 	
+	/**
+	 * Compares elements in order specified by orderby, followed by remaining columns. 
+	 */
 	public class compareTuples implements Comparator<Tuple> {
 	
 		@Override
 		public int compare(Tuple o1, Tuple o2) {
 
 			if (orderBy != null) {
-				for (int i=0; i< orderBy.size(); i++) { 
+				for (int i=0; i < orderBy.size(); i++) { 
 					int col = Integer.valueOf(orderBy.get(i).toString());
 					
 					int o1_int = Integer.valueOf(o1.getTuple().get(col));
@@ -107,6 +118,12 @@ public class SortOperator extends Operator {
 		}
 	}
 
+	/**
+	 * Retrieves the next tuples matching the selection condition. If there is no
+	 * next tuple then null is returned.
+	 *
+	 * @return the selected tuples representing rows in a database
+	 */
 	@Override
 	public Tuple getNextTuple() {
 		Tuple currTuple = null;
