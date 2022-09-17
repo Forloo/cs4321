@@ -14,3 +14,4 @@ SELECT * FROM Sailors S, Boats B, Reserves R, Ships H, Boats X WHERE R.G >= S.A 
 SELECT DISTINCT R.G FROM Reserves R;
 SELECT * FROM Sailors ORDER BY Sailors.B, Sailors.C;
 SELECT DISTINCT S1.A, S2.A FROM Sailors S1, Sailors S2 WHERE S1.A > S2.A;
+SELECT B.A FROM Boats B

@@ -10,7 +10,8 @@ import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
 /**
- * An operator that opens a file scan on the appropriate data file.
+ * An operator that opens a file scan on the appropriate data file to return all
+ * rows in that table.
  */
 public class ScanOperator extends Operator {
 

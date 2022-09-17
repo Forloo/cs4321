@@ -73,7 +73,7 @@ public class QueryPlan {
 	}
 
 	/**
-	 * Retrieves the root operator .
+	 * Retrieves the root operator.
 	 *
 	 * @return The root operator.
 	 */

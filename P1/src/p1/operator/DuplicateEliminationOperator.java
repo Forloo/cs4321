@@ -1,55 +1,53 @@
-package p1.operator; 
+package p1.operator;
 
-import p1.Tuple;
 import java.io.PrintWriter;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import p1.Tuple;
 
 /**
- * This operator reads tuples from its child and only outputs non-duplicates.
+ * This operator removes duplicate rows by sorting all rows and calling
+ * getNextTuple() repeatedly until the next tuple is not the same as the
+ * previous tuple.
  */
 public class DuplicateEliminationOperator extends Operator {
-	
-	private Operator child;
+
+	// The child operator; if there is no ORDER BY, we order by the original column
+	// order and join order.
+	private SortOperator child;
+	// The previous tuple returned to output.
 	private Tuple prev;
-	boolean check;
-	
+
 	/**
-	 * Determines child and whether or not the query requires duplicate elimination  
+	 * Creates the child sort operator.
 	 *
-	 * @param ps        the query.
-	 * @param fromTable the table to eliminate duplicates from. 
-	 */ 
-	public DuplicateEliminationOperator (PlainSelect ps, String fromTable) {
-		if (ps.getOrderByElements() == null) {
-			child = new SortOperator(ps, fromTable);
-		} 
-		if (ps.getDistinct() != null) {
-			check = true;
-		} else {
-			check = false;
-		}
+	 * @param ps        the query
+	 * @param fromTable the first table to select from
+	 */
+	public DuplicateEliminationOperator(PlainSelect ps, String fromTable) {
+		child = new SortOperator(ps, fromTable);
 	}
 
 	/**
-	 * Retrieves the next tuple that is not a duplicate. If there is no
-	 * next tuple then null is returned.
+	 * Retrieves the next distinct tuples by checking if the current tuple is equal
+	 * to the previous tuple. If there is no next tuple then null is returned.
 	 *
 	 * @return the selected tuples representing rows in a database
 	 */
 	@Override
 	public Tuple getNextTuple() {
 		Tuple next = child.getNextTuple();
-		int nextint = Integer.valueOf(next.toString());
-		int prevint = Integer.valueOf(prev.toString()); 
-		
-		if (check) {
-			if (prev != null) { 
-				while (next != null && nextint != prevint) { 
-					next = child.getNextTuple();
-				}
-			}
-		} 
+		if (next == null) {
+			return null;
+		}
+		if (prev == null) {
+			prev = next;
+			return next;
+		}
+
+		if (next.toString().equals(prev.toString())) {
+			return getNextTuple();
+		}
 		prev = next;
 		return next;
 	}
@@ -96,4 +94,3 @@ public class DuplicateEliminationOperator extends Operator {
 		}
 	}
 }
-

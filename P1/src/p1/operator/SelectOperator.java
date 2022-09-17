@@ -10,7 +10,9 @@ import p1.Tuple;
 import p1.databaseCatalog.DatabaseCatalog;
 
 /**
- * This operator selects rows based on a where condition.
+ * This operator selects rows based on a where condition. Add the tuple to the
+ * output if ExpressionVisitor determines that the condition is true, and skip
+ * the tuple if not.
  */
 public class SelectOperator extends Operator {
 	// The child operator, scanning all rows.

@@ -40,8 +40,8 @@ public class Aliases {
 		if (joins != null) {
 			for (Object c : ps.getJoins()) {
 				String[] joinTable = c.toString().split(" ");
-				String joinTableName = joinTable[0];
-				String joinAlias = joinTable[joinTable.length - 1];
+				String joinTableName = joinTable[0]; // The actual table name
+				String joinAlias = joinTable[joinTable.length - 1]; // The alias
 				aliasList.add(c.toString());
 				aliasMap.put(joinAlias, joinTableName);
 				aliasMap.put(joinTableName, joinTableName);
