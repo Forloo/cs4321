@@ -9,10 +9,10 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
-import p1.Aliases;
-import p1.ExpressionEvaluator;
-import p1.Tuple;
-import p1.databaseCatalog.DatabaseCatalog;
+import p1.util.Aliases;
+import p1.util.DatabaseCatalog;
+import p1.util.ExpressionEvaluator;
+import p1.util.Tuple;
 
 /**
  * A join tree determines which tables should be joined together. This is a

@@ -1,9 +1,8 @@
 package p1.operator;
 
-import java.io.PrintWriter;
-
 import net.sf.jsqlparser.statement.select.PlainSelect;
-import p1.Tuple;
+import p1.io.BinaryTupleWriter;
+import p1.util.Tuple;
 
 /**
  * This operator removes duplicate rows by sorting all rows and calling
@@ -81,10 +80,9 @@ public class DuplicateEliminationOperator extends Operator {
 	public void dump(String outputFile) {
 		Tuple nextTuple = getNextTuple();
 		try {
-			PrintWriter out = new PrintWriter(outputFile);
-
+			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
 			while (nextTuple != null) {
-				out.println(nextTuple.toString());
+				out.writeTuple(nextTuple);
 				nextTuple = getNextTuple();
 			}
 			out.close();

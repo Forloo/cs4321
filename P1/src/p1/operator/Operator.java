@@ -1,6 +1,6 @@
 package p1.operator;
 
-import p1.Tuple;
+import p1.util.Tuple;
 
 /**
  * An abstract class used to implement all relational operators with an iterator

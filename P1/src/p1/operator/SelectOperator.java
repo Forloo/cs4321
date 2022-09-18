@@ -1,13 +1,13 @@
 package p1.operator;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.PlainSelect;
-import p1.ExpressionEvaluator;
-import p1.Tuple;
-import p1.databaseCatalog.DatabaseCatalog;
+import p1.io.BinaryTupleWriter;
+import p1.util.DatabaseCatalog;
+import p1.util.ExpressionEvaluator;
+import p1.util.Tuple;
 
 /**
  * This operator selects rows based on a where condition. Add the tuple to the
@@ -85,13 +85,11 @@ public class SelectOperator extends Operator {
 	public void dump(String outputFile) {
 		Tuple nextTuple = getNextTuple();
 		try {
-			PrintWriter out = new PrintWriter(outputFile);
-
+			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
 			while (nextTuple != null) {
-				out.println(nextTuple.toString());
+				out.writeTuple(nextTuple);
 				nextTuple = getNextTuple();
 			}
-
 			out.close();
 		} catch (Exception e) {
 			System.out.println("Exception occurred: ");

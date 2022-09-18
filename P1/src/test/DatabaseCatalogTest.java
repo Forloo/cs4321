@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 import org.junit.jupiter.api.Test;
 
-import p1.databaseCatalog.DatabaseCatalog;
+import p1.util.DatabaseCatalog;
 
 class DatabaseCatalogTest {
 

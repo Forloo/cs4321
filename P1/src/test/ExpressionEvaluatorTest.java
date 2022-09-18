@@ -11,8 +11,8 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import p1.ExpressionEvaluator;
-import p1.Tuple;
+import p1.util.ExpressionEvaluator;
+import p1.util.Tuple;
 
 class ExpressionEvaluatorTest {
 

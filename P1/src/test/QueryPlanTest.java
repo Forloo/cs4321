@@ -13,10 +13,10 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.operator.ScanOperator;
+import p1.util.*;
+
 import org.junit.jupiter.api.Test;
 import java.util.HashMap;
-import p1.databaseCatalog.*;
-import p1.QueryPlan;
 
 public class QueryPlanTest {
 	

@@ -1,6 +1,5 @@
 package p1.operator;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -9,8 +8,9 @@ import java.util.List;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
-import p1.Tuple;
-import p1.databaseCatalog.DatabaseCatalog;
+import p1.io.BinaryTupleWriter;
+import p1.util.DatabaseCatalog;
+import p1.util.Tuple;
 
 /**
  * An operator that sorts rows based on the ORDER BY clause by using a custom
@@ -180,10 +180,9 @@ public class SortOperator extends Operator {
 	public void dump(String outputFile) {
 		Tuple nextTuple = getNextTuple();
 		try {
-			PrintWriter out = new PrintWriter(outputFile);
-
+			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
 			while (nextTuple != null) {
-				out.println(nextTuple.toString());
+				out.writeTuple(nextTuple);
 				nextTuple = getNextTuple();
 			}
 			out.close();

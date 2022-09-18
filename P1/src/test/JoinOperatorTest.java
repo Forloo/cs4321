@@ -13,9 +13,9 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import p1.ExpressionParser;
-import p1.databaseCatalog.DatabaseCatalog;
 import p1.operator.JoinOperator;
+import p1.util.DatabaseCatalog;
+import p1.util.ExpressionParser;
 
 public class JoinOperatorTest {
 

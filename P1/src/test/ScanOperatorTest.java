@@ -7,8 +7,8 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
-import p1.databaseCatalog.DatabaseCatalog;
 import p1.operator.ScanOperator;
+import p1.util.DatabaseCatalog;
 
 class ScanOperatorTest {
 

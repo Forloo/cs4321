@@ -7,7 +7,9 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import p1.databaseCatalog.DatabaseCatalog;
+import p1.io.FileConverter;
+import p1.util.DatabaseCatalog;
+import p1.util.QueryPlan;
 
 public class Main {
 
@@ -15,6 +17,7 @@ public class Main {
 		String queriesFile = args[0] + File.separator + "queries.sql";
 		String queriesOutput = args[1];
 		String dataDir = args[0] + File.separator + "db" + File.separator;
+		String tempDir = args[2];
 
 		// Get the file list containing all file inputs
 		File inputDir = new File(dataDir + "data");
@@ -34,6 +37,24 @@ public class Main {
 			CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
 			Statement statement;
 			int queryCount = 1;
+
+			// =============================== TEST IO ===============================
+//			BinaryTupleWriter btw = new BinaryTupleWriter(queriesOutput + File.separator + "testbin");
+//			RandomDataGenerator rdg = new RandomDataGenerator(3, 10000);
+//			PrintWriter out = new PrintWriter(queriesOutput + File.separator + "testnormal");
+//			for (Tuple t : rdg.generate()) {
+//				out.println(t.toString());
+//				btw.writeTuple(t);
+//			}
+//			out.close();
+//			btw.close();
+//			BinaryTupleReader btr = new BinaryTupleReader(queriesOutput + File.separator + "testbin");
+//			for (int i = 0; i < 10000; i++) {
+//				System.out.println(btr.nextTuple().toString());
+//			}
+//			btr.close();
+			// =============================== TEST IO ===============================
+
 			while ((statement = parser.Statement()) != null) {
 				try {
 					// Parse statement
@@ -48,7 +69,13 @@ public class Main {
 
 					// Evaluate query
 					QueryPlan qp = new QueryPlan(statement, db);
+					long startMillis = System.currentTimeMillis();
 					qp.getOperator().dump(queriesOutputFile);
+					long elapsedMillis = System.currentTimeMillis() - startMillis;
+					System.out.println("Number of milliseconds taken to evaluate query: " + elapsedMillis);
+
+					// Check output for testing
+					FileConverter.convertBinToHuman(queriesOutputFile, queriesOutputFile + "_humanreadable");
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);
 					e.printStackTrace();

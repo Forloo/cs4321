@@ -3,8 +3,8 @@ package p1.operator;
 import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
-import p1.Aliases;
-import p1.Tuple;
+import p1.util.Aliases;
+import p1.util.Tuple;
 
 /**
  * A node represents a parsed single table.

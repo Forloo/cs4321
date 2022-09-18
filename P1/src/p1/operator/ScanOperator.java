@@ -1,13 +1,9 @@
 package p1.operator;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Scanner;
-
-import p1.Tuple;
-import p1.databaseCatalog.DatabaseCatalog;
+import p1.io.BinaryTupleReader;
+import p1.io.BinaryTupleWriter;
+import p1.util.DatabaseCatalog;
+import p1.util.Tuple;
 
 /**
  * An operator that opens a file scan on the appropriate data file to return all
@@ -15,29 +11,28 @@ import p1.databaseCatalog.DatabaseCatalog;
  */
 public class ScanOperator extends Operator {
 
-	// rows of the table
-	private ArrayList<String> rows;
-	// index of next item/tuple
-	private int idx;
+	// Binary file reader.
+	BinaryTupleReader reader;
 
 	/**
 	 * Constructor to scan rows of table fromTable.
 	 */
 	public ScanOperator(String fromTable) {
-		rows = new ArrayList<String>();
-		idx = 0;
-		try {
-			String fileLoc = DatabaseCatalog.getInstance().getNames().get(fromTable);
-			File file = new File(fileLoc);
-			Scanner fileReader = new Scanner(file);
-			while (fileReader.hasNextLine()) {
-				rows.add(fileReader.nextLine());
-			}
-			fileReader.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
+//		rows = new ArrayList<String>();
+//		idx = 0;
+//		try {
+//			String fileLoc = DatabaseCatalog.getInstance().getNames().get(fromTable);
+//			File file = new File(fileLoc);
+//			Scanner fileReader = new Scanner(file);
+//			while (fileReader.hasNextLine()) {
+//				rows.add(fileReader.nextLine());
+//			}
+//			fileReader.close();
+//		} catch (FileNotFoundException e) {
+//			System.out.println("An error occurred.");
+//			e.printStackTrace();
+//		}
+		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(fromTable));
 	}
 
 	/**
@@ -46,10 +41,7 @@ public class ScanOperator extends Operator {
 	 * @return the tuples representing rows in a database
 	 */
 	public Tuple getNextTuple() {
-		if (idx == rows.size()) {
-			return null;
-		}
-		return new Tuple(rows.get(idx++));
+		return reader.nextTuple();
 	}
 
 	/**
@@ -57,7 +49,7 @@ public class ScanOperator extends Operator {
 	 * from the beginning
 	 */
 	public void reset() {
-		idx = 0;
+		reader.reset();
 	}
 
 	/**
@@ -65,8 +57,9 @@ public class ScanOperator extends Operator {
 	 * more output) and writes each tuple to System.out.
 	 */
 	public void dump() {
-		while (idx < rows.size()) {
-			System.out.println(getNextTuple().toString());
+		Tuple next = getNextTuple();
+		while (next != null) {
+			System.out.println(next.toString());
 		}
 	}
 
@@ -77,13 +70,13 @@ public class ScanOperator extends Operator {
 	 * @param outputFile the file to write the tuples to
 	 */
 	public void dump(String outputFile) {
+		Tuple nextTuple = getNextTuple();
 		try {
-			PrintWriter out = new PrintWriter(outputFile);
-
-			while (idx < rows.size()) {
-				out.println(getNextTuple().toString());
+			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
+			while (nextTuple != null) {
+				out.writeTuple(nextTuple);
+				nextTuple = getNextTuple();
 			}
-
 			out.close();
 		} catch (Exception e) {
 			System.out.println("Exception occurred: ");
