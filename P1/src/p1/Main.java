@@ -10,6 +10,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
 import p1.util.QueryPlan;
+import p1.util.SortFile;
 
 public class Main {
 
@@ -76,6 +77,8 @@ public class Main {
 
 					// Check output for testing
 					FileConverter.convertBinToHuman(queriesOutputFile, queriesOutputFile + "_humanreadable");
+					SortFile sort = new SortFile(queriesOutputFile, true);
+					sort.sortHuman();
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);
 					e.printStackTrace();
