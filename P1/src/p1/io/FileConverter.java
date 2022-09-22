@@ -10,7 +10,7 @@ import p1.util.Tuple;
 public class FileConverter {
 
 	/**
-	 * Reads lines from a binary file and writes those lines to a huamn-readable
+	 * Reads lines from a binary file and writes those lines to a human-readable
 	 * file.
 	 *
 	 * @param binPath   the binary file path.
@@ -30,10 +30,10 @@ public class FileConverter {
 	}
 
 	/**
-	 * Reads lines from a huamn-readable file and writes those lines to a binary
+	 * Reads lines from a human-readable file and writes those lines to a binary
 	 * file.
 	 *
-	 * @param humanPath the huamn-readable file path.
+	 * @param humanPath the human-readable file path.
 	 * @param binPath   the binary file path.
 	 * @throws IOException
 	 */
