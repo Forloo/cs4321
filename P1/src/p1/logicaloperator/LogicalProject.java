@@ -11,6 +11,8 @@ public class LogicalProject extends LogicalOperator {
 	// The table that we are performing the project
 	private String tableName;
 	
+	private ArrayList<String> project = new ArrayList<String>();
+	
 	/**
 	 * The constructor for the logical project
 	 * @param plainselect The plainselect containing the information for our logical project
@@ -19,6 +21,8 @@ public class LogicalProject extends LogicalOperator {
 	public LogicalProject(PlainSelect plainselect,String fromTable) {
 		this.plainSelect=plainselect;
 		this.tableName=fromTable;
+		
+		project = plainselect.getSelectItems();
 	}
 	
 	/**
