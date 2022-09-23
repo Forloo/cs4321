@@ -1,6 +1,7 @@
 package p1.logicaloperator;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
@@ -11,7 +12,7 @@ public class LogicalProject extends LogicalOperator {
 	// The table that we are performing the project
 	private String tableName;
 	
-	private ArrayList<String> project = new ArrayList<String>();
+	List project;
 	
 	/**
 	 * The constructor for the logical project
