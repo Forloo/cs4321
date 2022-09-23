@@ -27,6 +27,5 @@ public class LogicalPlan {
 		
 		PlainSelect plainSelect= (PlainSelect) query;
 		
-		
 	}
 }

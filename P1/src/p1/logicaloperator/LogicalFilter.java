@@ -15,7 +15,7 @@ public class LogicalFilter extends LogicalOperator {
 	 * @param tableName The table we are filtering on
 	 * @param plainSelect Query containing the information
 	 */
-	public LogicalFilter(String tableName, PlainSelect plainSelect) {
+	public LogicalFilter(PlainSelect plainSelect, String fromTable) {
 		this.tableName=tableName;
 		this.plainSelect=plainSelect;
 	}

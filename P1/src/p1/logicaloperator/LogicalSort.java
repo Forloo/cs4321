@@ -2,7 +2,7 @@ package p1.logicaloperator;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
-public class LogicalSort {
+public class LogicalSort extends LogicalOperator {
 	
 	// The query containing the information for our logical sort
 	private PlainSelect plainSelect;

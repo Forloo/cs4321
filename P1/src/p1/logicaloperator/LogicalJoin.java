@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
-public class LogicalJoin {
+public class LogicalJoin extends LogicalOperator{
 	
 	// The query containing the information for our join
 	private PlainSelect plainSelect;
