@@ -106,9 +106,33 @@ public class LogicalTree {
 			return root;
 		}
 		
-		
-		
 		return null;
+	}
+	
+	public void setRoot(LogicalNode root) {
+		this.root=root;
+	}
+	
+	public LogicalNode getRoot() {
+		return root;
+	}
+	
+	public void dfs(LogicalNode root) {
+		
+		if (root.leftChild()==null && root.rightChild()==null) {
+			System.out.println(root);
+			return;
+		}
+		
+		if (root.leftChild()!=null) {
+			dfs(root.leftChild());
+		}
+		
+		if (root.rightChild()!=null) {
+			dfs(root.rightChild());
+		}
+		
+		System.out.println(root);
 	}
 
 }
