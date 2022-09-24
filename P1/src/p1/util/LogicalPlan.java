@@ -6,6 +6,7 @@ import java.util.List;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Distinct;
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
 import p1.logicaloperator.LogicalOperator;
 
 public class LogicalPlan {
@@ -20,11 +21,17 @@ public class LogicalPlan {
 	// 5. Selection
 	// 6. Scan operator
 	
+	// The logicaltree representing the logical plan
 	private LogicalTree plan;
 	
+	/**
+	 * The constructor for our logicalplan
+	 * @param query The input query
+	 */
 	public LogicalPlan(Statement query) {
 		
-		PlainSelect plainSelect= (PlainSelect) query;
+		Select select = (Select) query;
+		PlainSelect plainSelect= (PlainSelect) select.getSelectBody();
 		LogicalTree tree = new LogicalTree();
 		LogicalNode root=tree.buildTree(plainSelect);
 		tree.setRoot(root);
@@ -32,6 +39,11 @@ public class LogicalPlan {
 		plan=tree;
 	}
 	
+	/**
+	 * A method that retrieves all of the operators in the tree.
+	 * @param root The root node for our tree.
+	 * @return An arraylist containng all of our nodes in a postorder traversal.
+	 */
 	public ArrayList<LogicalNode> getOperators(LogicalNode root){
 		
 		if (root.leftChild()==null && root.rightChild()==null) {
@@ -49,5 +61,9 @@ public class LogicalPlan {
 		
 		return ret;
 		
+	}
+	
+	public LogicalNode getRoot() {
+		return plan.getRoot();
 	}
 }

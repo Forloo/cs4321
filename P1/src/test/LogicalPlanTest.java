@@ -12,6 +12,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalNode;
+import p1.util.LogicalPlan;
 import p1.util.LogicalTree;
 
 public class LogicalPlanTest {
@@ -142,12 +143,12 @@ public class LogicalPlanTest {
 		Statement fourteenth = queries.get(14);
 		Select select14= (Select) fourteenth;
 		PlainSelect plainselect14 = (PlainSelect) select14.getSelectBody();
-		LogicalTree tree14= new LogicalTree();
-		LogicalNode root14 = tree14.buildTree(plainselect14);
-		tree14.setRoot(root14);
+		LogicalPlan plan = new LogicalPlan(fourteenth);
 		
-		// There should be a distinct node, a sort node, then two join nodes.
-		tree14.dfs(root14);
+		ArrayList<LogicalNode> allNodes= plan.getOperators(plan.getRoot());
+		for(int i=0;i<allNodes.size();i++) {
+			System.out.println(allNodes.get(i));
+		}
 		
 		
 	}
