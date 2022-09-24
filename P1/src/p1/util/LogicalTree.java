@@ -48,6 +48,7 @@ public class LogicalTree {
 		// and not multiple nested types of joins
 		
 		// Base case is either the select or scan operator
+//		System.out.println(allColumns.get(0));
 		if (where==null && ((allColumns.get(0)) instanceof AllColumns) && distinct==null && orderElement==null && joinElement==null) {
 			LogicalScan op = new LogicalScan(plainSelect,from.toString());
 			// Make it into a node
@@ -64,9 +65,41 @@ public class LogicalTree {
 		
 		// Join is a base case
 		if (((allColumns.get(0)) instanceof AllColumns) && distinct ==null && orderElement==null && joinElement!=null) {
-			LogicalJoin op = new LogicalJoin(plainSelect,from.toString());
-			LogicalNode leaf= new LogicalNode(op,null,null);
-			return leaf;
+			// Join can be made by going through our list of tables and making those nodes.
+			
+			// Make the join sequential so that we know we need a join node but then we do not need a right child
+			// for our query plan
+			
+			LogicalNode prev= null;
+			Boolean used= false;
+			LogicalNode last= null;
+			for(int i=0;i<joinElement.size();i++) {
+				if(!used) {
+					String firstTable= from.toString();
+					String otherTable= joinElement.get(i).toString();
+					String combinedName=firstTable+","+otherTable;
+					LogicalJoin curr= new LogicalJoin(plainSelect,combinedName);
+					used=true;
+					// Make the new node object
+					LogicalNode node = new LogicalNode(curr,null,null);
+					prev=node;
+				}
+				else {
+					// The prev is not null so that is our left list value
+					String firstTable = prev.getLogicalOperator().getName();
+					String otherTable= joinElement.get(i).toString();
+					String combinedName= firstTable+","+otherTable;
+					LogicalJoin curr= new LogicalJoin(plainSelect,combinedName);
+					// Make the new node object
+					LogicalNode node= new LogicalNode(curr,prev,null);
+					// Update the prev object
+					prev=node;
+					
+				}
+			}
+			
+			// The previous node will always have our last value
+			return prev;
 		}
 		
 		// If it is none of the top three then it must be either distinct, sort or a projection that we need.
@@ -120,7 +153,7 @@ public class LogicalTree {
 	public void dfs(LogicalNode root) {
 		
 		if (root.leftChild()==null && root.rightChild()==null) {
-			System.out.println(root);
+			System.out.println(root.toString());
 			return;
 		}
 		

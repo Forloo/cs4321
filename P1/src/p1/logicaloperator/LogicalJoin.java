@@ -38,4 +38,9 @@ public class LogicalJoin extends LogicalOperator{
 		return tableName;
 	}
 	
+	// This is for testing only.
+	public String toString() {
+		return "This is a join node";
+	}
+	
 }

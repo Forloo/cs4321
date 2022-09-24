@@ -37,4 +37,9 @@ public class LogicalProject extends LogicalOperator {
 	public String getName() {
 		return tableName;
 	}
+	
+	// This is for debugging purposes only.
+	public String toString() {
+		return "This is a logcical project";
+	}
 }

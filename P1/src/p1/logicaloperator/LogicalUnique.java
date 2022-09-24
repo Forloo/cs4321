@@ -20,4 +20,10 @@ public class LogicalUnique extends LogicalOperator {
 	public String getName() {
 		return tableName;
 	}
+	
+	
+	// This is for testing only.
+	public String toString() {
+		return "Thisis a sort unique operator";
+	}
 }

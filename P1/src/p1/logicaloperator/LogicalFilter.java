@@ -24,7 +24,7 @@ public class LogicalFilter extends LogicalOperator {
 	 * Retrieves the table we are performing filter on
 	 * @return The name of the table that we are filtering on
 	 */
-	public String getTable() {
+	public String getName() {
 		return tableName;
 	}
 	
@@ -34,5 +34,10 @@ public class LogicalFilter extends LogicalOperator {
 	 */
 	public PlainSelect getInfo() {
 		return plainSelect;
+	}
+	
+	// This is just for testing and knowing that we have the right node placement.
+	public String toString() {
+		return "This is a LogicalFilterNode";
 	}
 }

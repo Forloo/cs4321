@@ -1,5 +1,6 @@
 package p1.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.sf.jsqlparser.statement.Statement;
@@ -19,13 +20,34 @@ public class LogicalPlan {
 	// 5. Selection
 	// 6. Scan operator
 	
-	private Statement query;
-	
-	private LogicalOperator rootOperator;
+	private LogicalTree plan;
 	
 	public LogicalPlan(Statement query) {
 		
 		PlainSelect plainSelect= (PlainSelect) query;
+		LogicalTree tree = new LogicalTree();
+		LogicalNode root=tree.buildTree(plainSelect);
+		tree.setRoot(root);
+		
+		plan=tree;
+	}
+	
+	public ArrayList<LogicalNode> getOperators(LogicalNode root){
+		
+		if (root.leftChild()==null && root.rightChild()==null) {
+			ArrayList<LogicalNode> ret = new ArrayList<LogicalNode>();
+			ret.add(root);
+			return ret;
+		}
+		
+		ArrayList<LogicalNode> ret=null;
+		if (root.leftChild()!=null) {
+			ret=getOperators(root.leftChild());
+		}
+		
+		ret.add(root);
+		
+		return ret;
 		
 	}
 }

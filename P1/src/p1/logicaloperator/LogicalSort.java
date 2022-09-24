@@ -35,4 +35,9 @@ public class LogicalSort extends LogicalOperator {
 		return tableName;
 	}
 	
+	// This is for testing only.
+	public String toString() {
+		return "This is a logical sort";
+	}
+	
 }
