@@ -66,4 +66,8 @@ public class LogicalPlan {
 	public LogicalNode getRoot() {
 		return plan.getRoot();
 	}
+	
+	public void accept(PhysicalPlanBuilder pb) {
+		pb.visit(this);
+	}
 }

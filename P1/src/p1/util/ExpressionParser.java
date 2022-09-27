@@ -174,97 +174,6 @@ public class ExpressionParser implements ExpressionVisitor {
 		return arr;
 
 	}
-
-	@Override
-	public void visit(NullValue arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(Function arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(InverseExpression arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(JdbcParameter arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(DoubleValue arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(LongValue arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(DateValue arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(TimeValue arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(TimestampValue arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(Parenthesis arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(StringValue arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(Addition arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(Division arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(Multiplication arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(Subtraction arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
 	/**
 	 * Recursivley call the and expression to get smaller expressions
 	 */
@@ -272,18 +181,6 @@ public class ExpressionParser implements ExpressionVisitor {
 	public void visit(AndExpression arg0) {
 		ArrayList<Expression> ret = this.getAllExpr(arg0);
 		allExpr = ret;
-	}
-
-	@Override
-	public void visit(OrExpression arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(Between arg0) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/**
@@ -316,24 +213,6 @@ public class ExpressionParser implements ExpressionVisitor {
 		String[] arr = this.getTables(arg0);
 		this.getTablesNeeded().put(arr, allExpr);
 		allExpr.add(arg0);
-
-	}
-
-	@Override
-	public void visit(InExpression arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(IsNullExpression arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visit(LikeExpression arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -440,5 +319,126 @@ public class ExpressionParser implements ExpressionVisitor {
 		// TODO Auto-generated method stub
 
 	}
+	
+	@Override
+	public void visit(NullValue arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(Function arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(InverseExpression arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(JdbcParameter arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(DoubleValue arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(LongValue arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(DateValue arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(TimeValue arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(TimestampValue arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(Parenthesis arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(StringValue arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(Addition arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(Division arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(Multiplication arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(Subtraction arg0) {
+		// TODO Auto-generated method stub
+
+	}
+	
+	@Override
+	public void visit(OrExpression arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(Between arg0) {
+		// TODO Auto-generated method stub
+
+	}
+	
+	@Override
+	public void visit(InExpression arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(IsNullExpression arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(LikeExpression arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
 
 }
