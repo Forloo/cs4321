@@ -63,6 +63,9 @@ public class LogicalNode {
 		this.right=right;
 	}
 	
+	/**
+	 * Return a string of the logical node
+	 */
 	public String toString() {
 		return this.getLogicalOperator().toString();
 	}
