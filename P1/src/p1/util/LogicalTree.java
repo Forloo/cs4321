@@ -16,155 +16,165 @@ import p1.logicaloperator.LogicalSort;
 import p1.logicaloperator.LogicalUnique;
 
 public class LogicalTree {
-	
+
 	private LogicalNode root;
-	
+
 	public LogicalTree() {
-		root=null;
+		root = null;
 	}
-	
+
 	// If there is a distinct then there is a sort operator that comes with it
-	// If there is a sort then we make the sort node and then we can have the childs as whatever
+	// If there is a sort then we make the sort node and then we can have the childs
+	// as whatever
 	// is actually left.
-	
+
 	public LogicalNode buildTree(PlainSelect plainSelect) {
-		
-		// The base case will be when we either hit a scan node or when we hit a 
+
+		// The base case will be when we either hit a scan node or when we hit a
 		// select node
-		
+
 		List allColumns = plainSelect.getSelectItems();
-		
+
 		FromItem from = plainSelect.getFromItem();
-		
-		Expression where=plainSelect.getWhere();
-		
+		// Extract aliases
+		Aliases.getInstance(plainSelect);
+		String fromTable = from.toString();
+		if (from.getAlias() != null) {
+			fromTable = Aliases.getTable(from.getAlias());
+		}
+
+		Expression where = plainSelect.getWhere();
+
 		Distinct distinct = plainSelect.getDistinct();
-		
-		List orderElement= plainSelect.getOrderByElements();
-		
-		List joinElement= plainSelect.getJoins();
-		
-		// I will make the plan assuming that for any given query only one of the joins will be used
+
+		List orderElement = plainSelect.getOrderByElements();
+
+		List joinElement = plainSelect.getJoins();
+
+		// I will make the plan assuming that for any given query only one of the joins
+		// will be used
 		// and not multiple nested types of joins
-		
+
 		// Base case is either the select or scan operator
 //		System.out.println(allColumns.get(0));
-		if (where==null && ((allColumns.get(0)) instanceof AllColumns) && distinct==null && orderElement==null && joinElement==null) {
-			LogicalScan op = new LogicalScan(plainSelect,from.toString());
+		if (where == null && ((allColumns.get(0)) instanceof AllColumns) && distinct == null && orderElement == null
+				&& joinElement == null) {
+			LogicalScan op = new LogicalScan(plainSelect, fromTable);
 			// Make it into a node
-			LogicalNode leaf= new LogicalNode(op,null,null);
+			LogicalNode leaf = new LogicalNode(op, null, null);
 			return leaf;
 		}
-		
-		// Other base case 
-		if (((allColumns.get(0)) instanceof AllColumns) && distinct ==null && orderElement==null && joinElement==null && where!=null) {
-			LogicalFilter op = new LogicalFilter(plainSelect,from.toString());
-			LogicalNode leaf = new LogicalNode(op,null,null);
+
+		// Other base case
+		if (((allColumns.get(0)) instanceof AllColumns) && distinct == null && orderElement == null
+				&& joinElement == null && where != null) {
+			LogicalFilter op = new LogicalFilter(plainSelect, fromTable);
+			LogicalNode leaf = new LogicalNode(op, null, null);
 			return leaf;
 		}
-		
+
 		// Join is a base case
-		if (((allColumns.get(0)) instanceof AllColumns) && distinct ==null && orderElement==null && joinElement!=null) {
+		if (((allColumns.get(0)) instanceof AllColumns) && distinct == null && orderElement == null
+				&& joinElement != null) {
 			// Join can be made by going through our list of tables and making those nodes.
-			
-			// Make the join sequential so that we know we need a join node but then we do not need a right child
+
+			// Make the join sequential so that we know we need a join node but then we do
+			// not need a right child
 			// for our query plan
-			
-			LogicalNode prev= null;
-			Boolean used= false;
-			LogicalNode last= null;
-			for(int i=0;i<joinElement.size();i++) {
-				if(!used) {
-					String firstTable= from.toString();
-					String otherTable= joinElement.get(i).toString();
-					String combinedName=firstTable+","+otherTable;
-					LogicalJoin curr= new LogicalJoin(plainSelect,combinedName);
-					used=true;
+
+			LogicalNode prev = null;
+			Boolean used = false;
+			LogicalNode last = null;
+			for (int i = 0; i < joinElement.size(); i++) {
+				if (!used) {
+					String firstTable = fromTable;
+					String otherTable = joinElement.get(i).toString();
+					String combinedName = firstTable + "," + otherTable;
+					LogicalJoin curr = new LogicalJoin(plainSelect, combinedName);
+					used = true;
 					// Make the new node object
-					LogicalNode node = new LogicalNode(curr,null,null);
-					prev=node;
-				}
-				else {
+					LogicalNode node = new LogicalNode(curr, null, null);
+					prev = node;
+				} else {
 					// The prev is not null so that is our left list value
 					String firstTable = prev.getLogicalOperator().getName();
-					String otherTable= joinElement.get(i).toString();
-					String combinedName= firstTable+","+otherTable;
-					LogicalJoin curr= new LogicalJoin(plainSelect,combinedName);
+					String otherTable = joinElement.get(i).toString();
+					String combinedName = firstTable + "," + otherTable;
+					LogicalJoin curr = new LogicalJoin(plainSelect, combinedName);
 					// Make the new node object
-					LogicalNode node= new LogicalNode(curr,prev,null);
+					LogicalNode node = new LogicalNode(curr, prev, null);
 					// Update the prev object
-					prev=node;
-					
+					prev = node;
+
 				}
 			}
-			
+
 			// The previous node will always have our last value
 			return prev;
 		}
-		
-		// If it is none of the top three then it must be either distinct, sort or a projection that we need.
-		if(distinct!=null) {
-			LogicalUnique op= new LogicalUnique(plainSelect,from.toString());
-			LogicalNode root= new LogicalNode(op,null,null);
+
+		// If it is none of the top three then it must be either distinct, sort or a
+		// projection that we need.
+		if (distinct != null) {
+			LogicalUnique op = new LogicalUnique(plainSelect, fromTable);
+			LogicalNode root = new LogicalNode(op, null, null);
 			// Insert the recursive call here
-			
+
 			// Trying to modify the plainSelect that we are given
 			plainSelect.setDistinct(null);
 			root.setLeftChild(this.buildTree(plainSelect));
-			
+
 			return root;
-		}
-		else if( orderElement!=null) {
-			LogicalSort op= new LogicalSort(plainSelect,from.toString());
-			LogicalNode root=new LogicalNode (op,null,null);
+		} else if (orderElement != null) {
+			LogicalSort op = new LogicalSort(plainSelect, fromTable);
+			LogicalNode root = new LogicalNode(op, null, null);
 			// Insert the recursive call here
-			
+
 			// Trying to modify the plainSelect that we are given
 			plainSelect.setOrderByElements(null);
 			root.setLeftChild(this.buildTree(plainSelect));
 			return root;
-		}
-		else if(!((allColumns.get(0)) instanceof AllColumns)) {
-			LogicalProject op= new LogicalProject(plainSelect,from.toString());
-			LogicalNode root= new LogicalNode(op,null,null);
+		} else if (!((allColumns.get(0)) instanceof AllColumns)) {
+			LogicalProject op = new LogicalProject(plainSelect, fromTable);
+			LogicalNode root = new LogicalNode(op, null, null);
 			// Insert the recursive call here
-			
+
 			// Trying to modify the plainSelect that we are given
-			AllColumns colValue= new AllColumns();
-			List items= new ArrayList<Object>();
+			AllColumns colValue = new AllColumns();
+			List items = new ArrayList<Object>();
 			items.add(colValue);
 			plainSelect.setSelectItems(items);
 			root.setLeftChild(this.buildTree(plainSelect));
-			
+
 			return root;
 		}
-		
+
 		return null;
 	}
-	
+
 	public void setRoot(LogicalNode root) {
-		this.root=root;
+		this.root = root;
 	}
-	
+
 	public LogicalNode getRoot() {
 		return root;
 	}
-	
+
 	public void dfs(LogicalNode root) {
-		
-		if (root.leftChild()==null && root.rightChild()==null) {
+
+		if (root.leftChild() == null && root.rightChild() == null) {
 			System.out.println(root.toString());
 			return;
 		}
-		
-		if (root.leftChild()!=null) {
+
+		if (root.leftChild() != null) {
 			dfs(root.leftChild());
 		}
-		
-		if (root.rightChild()!=null) {
+
+		if (root.rightChild() != null) {
 			dfs(root.rightChild());
 		}
-		
+
 		System.out.println(root);
 	}
 

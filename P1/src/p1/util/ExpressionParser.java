@@ -267,7 +267,7 @@ public class ExpressionParser implements ExpressionVisitor {
 	}
 
 	@Override
-	public void visit(WhenClause arg0) {
+	public void visit(WhenClause arg0) { 
 		// TODO Auto-generated method stub
 
 	}
