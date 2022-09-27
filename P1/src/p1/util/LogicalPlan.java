@@ -62,11 +62,24 @@ public class LogicalPlan {
 		return ret;
 		
 	}
-	
+	/**
+	 * Retrieves the plan in the form of a tree
+	 * @return A logical Tree.
+	 */
+	public LogicalTree getTree() {
+		return plan;
+	}
+	/**
+	 * Retrieves the root for the tree
+	 * @return A logicalnode
+	 */
 	public LogicalNode getRoot() {
 		return plan.getRoot();
 	}
-	
+	/**
+	 * Accepts a physicalplanbuilder object and then uses it to build the physical tree.
+	 * @param pb
+	 */
 	public void accept(PhysicalPlanBuilder pb) {
 		pb.visit(this);
 	}

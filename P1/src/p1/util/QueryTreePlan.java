@@ -34,11 +34,11 @@ public class QueryTreePlan {
 	}
 	
 	/**
-	 * Retrieves the operator node
-	 * @return
+	 * Retrieves the query in the form of a tree
+	 * @return A queryTree 
 	 */
-	public QueryNode getOperatorNode() {
-		return null;
+	public QueryTree getTree() {
+		return tree;
 	}
 	
 	
