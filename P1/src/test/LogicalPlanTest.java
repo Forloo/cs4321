@@ -145,10 +145,6 @@ public class LogicalPlanTest {
 		PlainSelect plainselect14 = (PlainSelect) select14.getSelectBody();
 		LogicalPlan plan = new LogicalPlan(fourteenth);
 		
-		ArrayList<LogicalNode> allNodes= plan.getOperators(plan.getRoot());
-		for(int i=0;i<allNodes.size();i++) {
-			System.out.println(allNodes.get(i));
-		}
 		
 		
 	}

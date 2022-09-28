@@ -70,6 +70,14 @@ public class QueryPlan {
 			rootOperator = op;
 		}
 	}
+	
+	/**
+	 * Constructor for mapping the logical plan to the physical plan.
+	 * @param rootOperator
+	 */
+	public QueryPlan(Operator rootOperator) {
+		this.rootOperator=rootOperator;
+	}
 
 	/**
 	 * Retrieves the root operator.
