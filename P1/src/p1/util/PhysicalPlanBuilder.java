@@ -41,6 +41,7 @@ import net.sf.jsqlparser.expression.operators.relational.MinorThan;
 import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import p1.logicaloperator.LogicalFilter;
@@ -63,7 +64,7 @@ import p1.operator.SortOperator;
 public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 	// The physicalplan object
-	private QueryTreePlan physicalPlan;
+	private QueryPlan physicalPlan;
 	// The plainselect containing the query information
 	private PlainSelect plainSelect;
 
@@ -91,87 +92,57 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	 *
 	 * @return A querytree containing the
 	 */
-	public QueryTreePlan getPlan() {
+	public QueryPlan getPlan() {
 		return physicalPlan;
+	}
+	
+	private void setPlan(QueryPlan plan) {
+		physicalPlan=plan;
 	}
 
 	public void visit(LogicalPlan lp) {
-		// Get the list of all nodes that are in the logical plan.
-		ArrayList<LogicalNode> allOps = lp.getOperators(lp.getRoot());
-
-		QueryNode prev = null;
+		// Get the root operator and then match that with the root operator for the 
+		LogicalOperator op = lp.getOperator();
+		
 		// Extract aliases
 		Aliases.getInstance(plainSelect);
-		String fromTable = this.getQuery().getFromItem().toString();
-		if (this.getQuery().getFromItem().getAlias() != null) {
-			fromTable = Aliases.getTable(this.getQuery().getFromItem().getAlias());
+		FromItem from = this.getQuery().getFromItem();
+		String fromTable = from.toString();
+		if (from.getAlias() != null) {
+			fromTable = Aliases.getTable(from.getAlias());
 		}
-
-		for (int i = 0; i < allOps.size(); i++) {
-			LogicalNode curr = allOps.get(i);
-			LogicalOperator opValue = curr.getLogicalOperator();
-
-			if (opValue instanceof LogicalUnique) {
-				DuplicateEliminationOperator dup = new DuplicateEliminationOperator(this.getQuery(), fromTable);
-				QueryNode node = new QueryNode(dup, null, null);
-				if (prev == null) {
-					prev = node;
-				} else {
-					node.setLefttChild(prev);
-					prev = node;
-				}
-			} else if (opValue instanceof LogicalSort) {
-				SortOperator sort = new SortOperator(this.getQuery(), fromTable);
-				QueryNode node = new QueryNode(sort, null, null);
-				if (prev == null) {
-					prev = node;
-				} else {
-					node.setLefttChild(prev);
-					prev = node;
-				}
-			} else if (opValue instanceof LogicalProject) {
-				ProjectOperator project = new ProjectOperator(this.getQuery(), fromTable);
-				QueryNode node = new QueryNode(project, null, null);
-				if (prev == null) {
-					prev = node;
-				} else {
-					node.setLefttChild(prev);
-					prev = node;
-				}
-			} else if (opValue instanceof LogicalJoin) {
-				JoinOperator join = new JoinOperator(this.getQuery(), fromTable);
-				QueryNode node = new QueryNode(join, null, null);
-				if (prev == null) {
-					prev = node;
-				} else {
-					node.setLefttChild(prev);
-					prev = node;
-				}
-			} else if (opValue instanceof LogicalFilter) {
-				SelectOperator select = new SelectOperator(this.getQuery(), fromTable);
-				QueryNode node = new QueryNode(select, null, null);
-				if (prev == null) {
-					prev = node;
-				} else {
-					node.setLefttChild(prev);
-					prev = node;
-				}
-			} else if (opValue instanceof LogicalScan) {
-				ScanOperator scan = new ScanOperator(fromTable);
-				QueryNode node = new QueryNode(scan, null, null);
-
-				if (prev == null) {
-					prev = node;
-				} else {
-					node.setLefttChild(prev);
-					prev = node;
-				}
-			}
+		
+		if (op instanceof LogicalUnique) {
+			DuplicateEliminationOperator dup= new DuplicateEliminationOperator(this.getQuery(),fromTable);
+			QueryPlan plan = new QueryPlan(dup);
+			this.setPlan(plan);
 		}
-		QueryTree converted = new QueryTree();
-		converted.setRoot(prev);
-		QueryTreePlan updatedPlan = new QueryTreePlan(converted);
-		physicalPlan = updatedPlan;
+		else if (op instanceof LogicalSort) {
+			SortOperator sort= new SortOperator(this.getQuery(),fromTable);
+			QueryPlan plan = new QueryPlan(sort);
+			this.setPlan(plan);
+		}
+		else if (op instanceof LogicalProject) {
+			ProjectOperator project = new ProjectOperator(this.getQuery(),fromTable);
+			QueryPlan plan = new QueryPlan(project);
+			this.setPlan(plan);
+		}
+		else if(op instanceof LogicalJoin) {
+			JoinOperator join = new JoinOperator(this.getQuery(),fromTable);
+			QueryPlan plan = new QueryPlan(join);
+			this.setPlan(plan);
+		}
+		else if (op instanceof LogicalFilter) {
+			SelectOperator select = new SelectOperator(this.getQuery(),fromTable);
+			QueryPlan plan= new QueryPlan(select);
+			this.setPlan(plan);
+		}
+		else {
+			ScanOperator scan = new ScanOperator(fromTable);
+			QueryPlan plan = new QueryPlan(scan);
+			this.setPlan(plan);
+		}
+		
 	}
 
 	@Override

@@ -5,14 +5,22 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertTrue;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.operator.DuplicateEliminationOperator;
+import p1.operator.JoinOperator;
+import p1.operator.ProjectOperator;
+import p1.operator.ScanOperator;
+import p1.operator.SelectOperator;
+import p1.operator.SortOperator;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
+import p1.util.QueryPlan;
 import p1.util.QueryTree;
 import p1.util.QueryTreePlan;
 
@@ -61,68 +69,80 @@ public class PhysicalPlanTest {
 			System.out.println("The file you are looking for was not found");
 	}
 		
-		Statement first = queries.get(0);
-		Select firstSelect= (Select) first;
-		PlainSelect plainSelect = (PlainSelect) firstSelect.getSelectBody();
-		LogicalPlan firstlp= new LogicalPlan(first);
-		PhysicalPlanBuilder firstpp= new PhysicalPlanBuilder(plainSelect);
-		firstlp.accept(firstpp);
-		QueryTreePlan firstQTP = firstpp.getPlan();
-		QueryTree firstQT= firstQTP.getTree();
-		String nodeOrdering=firstQT.toString(firstQT.getRoot());
-		// There should be only the scan node and that is correct
-//		System.out.println(nodeOrdering);
+		// Grab the first query 
+		 Statement first = queries.get(0);
+		 LogicalPlan firstlp = new LogicalPlan(first);
+		 Select firstselect = (Select) first;
+		 PlainSelect plainSelect = (PlainSelect) firstselect.getSelectBody();
+		 PhysicalPlanBuilder firstpb= new PhysicalPlanBuilder(plainSelect);
+		 firstlp.accept(firstpb);
+		 QueryPlan firstPlan= firstpb.getPlan();
+		 assertTrue(firstPlan.getOperator() instanceof ScanOperator);
+		 
+		 // Grab the second query
+		 Statement second = queries.get(1);
+		 LogicalPlan secondlp= new LogicalPlan(second);
+		 Select secondselect = (Select) second;
+		 PlainSelect plainSelect2= (PlainSelect) secondselect.getSelectBody();
+		 PhysicalPlanBuilder secondpb= new PhysicalPlanBuilder(plainSelect2);
+		 secondlp.accept(secondpb);
+		 QueryPlan secondPlan= secondpb.getPlan();
+		 assertTrue(secondPlan.getOperator() instanceof ProjectOperator);
+		 
+		 // Grab the fourth query
+		 Statement fourth = queries.get(4);
+		 LogicalPlan fourthlp= new LogicalPlan(fourth);
+		 Select fourthselect = (Select) fourth;
+		 PlainSelect plainSelect4 = (PlainSelect) fourthselect.getSelectBody();
+		 PhysicalPlanBuilder fourthpb= new PhysicalPlanBuilder(plainSelect4);
+		 fourthlp.accept(fourthpb);
+		 QueryPlan fourthPlan = fourthpb.getPlan();
+		 assertTrue(fourthPlan.getOperator() instanceof SelectOperator);
+		 
+		 // Grab the fifth query it should be a project
+		 Statement fifth= queries.get(5);
+		 LogicalPlan fifthlp= new LogicalPlan(fifth);
+		 Select fifthselect = (Select) fifth;
+		 PlainSelect plainSelect5= (PlainSelect) fifthselect.getSelectBody();
+		 PhysicalPlanBuilder fifthpb= new PhysicalPlanBuilder(plainSelect5);
+		 fifthlp.accept(fifthpb);
+		 QueryPlan fifthPlan= fifthpb.getPlan();
+		 assertTrue(fifthPlan.getOperator() instanceof ProjectOperator);
+		 
+		 // Grab the seventh query it should be a join
+		 Statement seventh = queries.get(7);
+		 LogicalPlan seventhlp = new LogicalPlan(seventh);
+		 Select seventhselect = (Select) seventh;
+		 PlainSelect plainSelect7= (PlainSelect) seventhselect.getSelectBody();
+		 PhysicalPlanBuilder seventhpb= new PhysicalPlanBuilder(plainSelect7);
+		 seventhlp.accept(seventhpb);
+		 QueryPlan seventhPlan= seventhpb.getPlan();
+		 assertTrue(seventhPlan.getOperator() instanceof JoinOperator);
 		
-		
-		Statement second = queries.get(1);
-		Select secondSelect= (Select) second;
-		PlainSelect plainSelect2 = (PlainSelect) secondSelect.getSelectBody();
-		LogicalPlan secondlp= new LogicalPlan(second);
-		PhysicalPlanBuilder secondpp= new PhysicalPlanBuilder(plainSelect2);
-		secondlp.accept(secondpp);
-		QueryTreePlan secondQTP = secondpp.getPlan();
-		QueryTree secondQT= secondQTP.getTree();
-		String secondnodeOrdering=secondQT.toString(secondQT.getRoot());
-		// The expected result for this is the project operator then followed by the scan.
-//		System.out.println(secondnodeOrdering);
-		
-		Statement fifth= queries.get(4);
-		Select fifthSelect= (Select) fifth;
-		PlainSelect plainSelect5= (PlainSelect) fifthSelect.getSelectBody();
-		LogicalPlan fifthlp= new LogicalPlan(fifth);
-		PhysicalPlanBuilder fifthpp = new PhysicalPlanBuilder(plainSelect5);
-		fifthlp.accept(fifthpp);
-		QueryTreePlan fifthQTP = fifthpp.getPlan();
-		QueryTree fifthQT = fifthQTP.getTree();
-		String fifthnodeOrdering= fifthQT.toString(fifthQT.getRoot());
-		// The result that is expected is a select. 
-		//I set select to be a leaf. We can change that if needed after doing refactoring
-		//System.out.println(fifthnodeOrdering);
-		
-		Statement sixth= queries.get(5);
-		Select sixthSelect= (Select) sixth;
-		PlainSelect plainSelect6= (PlainSelect) sixthSelect.getSelectBody();
-		LogicalPlan sixthlp= new LogicalPlan(sixth);
-		PhysicalPlanBuilder sixthpp = new PhysicalPlanBuilder(plainSelect6);
-		sixthlp.accept(sixthpp);
-		QueryTreePlan sixthQTP = sixthpp.getPlan();
-		QueryTree sixthQT = sixthQTP.getTree();
-		String sixthordering= sixthQT.toString(sixthQT.getRoot());
-		// The result should be a project followed by a select.
-//		System.out.println(sixthordering);
-		
-		Statement seventh= queries.get(7);
-		Select seventhSelect =(Select) seventh;
-		PlainSelect plainSelect7= (PlainSelect) seventhSelect.getSelectBody();
-		LogicalPlan seventhlp=new LogicalPlan(seventh);
-		PhysicalPlanBuilder seventhpp= new PhysicalPlanBuilder(plainSelect7);
-		seventhlp.accept(seventhpp);
-		QueryTreePlan seventhQTP= seventhpp.getPlan();
-		QueryTree seventhQT =seventhQTP.getTree();
-		String seventhOrdering= seventhQT.toString(seventhQT.getRoot());
-		// The result should be a projection and then we should have two joins right after that.
-		System.out.println(seventhOrdering);
-		
+		 // Grab the tenth element it should be a distinct
+		 Statement tenth = queries.get(10);
+		 LogicalPlan tenthlp = new LogicalPlan(tenth);
+		 Select tenthselect= (Select) tenth;
+		 PlainSelect plainSelect10 = (PlainSelect) tenthselect.getSelectBody();
+		 PhysicalPlanBuilder tenthpb= new PhysicalPlanBuilder(plainSelect10);
+		 tenthlp.accept(tenthpb);
+		 QueryPlan tenthPlan = tenthpb.getPlan();
+		 assertTrue(tenthPlan.getOperator() instanceof DuplicateEliminationOperator);
+		 
+		 // Grab the thirteenth element it should be distinct
+		 Statement thirteenth = queries.get(13);
+		 LogicalPlan thirteenthlp = new LogicalPlan(thirteenth);
+		 Select thirteenthselect= (Select) thirteenth;
+		 PlainSelect plainSelect13 = (PlainSelect) thirteenthselect.getSelectBody();
+		 PhysicalPlanBuilder thirteenthpb= new PhysicalPlanBuilder(plainSelect13);
+		 
+		 QueryPlan example = new QueryPlan(thirteenth,DatabaseCatalog.getInstance());
+		 
+		 thirteenthlp.accept(thirteenthpb);
+		 QueryPlan thirteenthplan = thirteenthpb.getPlan();
+		 assertTrue(thirteenthplan.getOperator() instanceof SortOperator);
+		 
+		 
 		
 	}
 	

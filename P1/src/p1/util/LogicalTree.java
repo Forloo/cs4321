@@ -23,11 +23,6 @@ public class LogicalTree {
 		root = null;
 	}
 
-	// If there is a distinct then there is a sort operator that comes with it
-	// If there is a sort then we make the sort node and then we can have the childs
-	// as whatever
-	// is actually left.
-
 	public LogicalNode buildTree(PlainSelect plainSelect) {
 
 		// The base case will be when we either hit a scan node or when we hit a
