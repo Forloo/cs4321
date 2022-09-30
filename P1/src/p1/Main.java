@@ -10,7 +10,6 @@ import net.sf.jsqlparser.statement.select.Select;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
 import p1.util.QueryPlan;
-import p1.util.SortFile;
 
 public class Main {
 
@@ -18,7 +17,7 @@ public class Main {
 		String queriesFile = args[0] + File.separator + "queries.sql";
 		String queriesOutput = args[1];
 		String dataDir = args[0] + File.separator + "db" + File.separator;
-		String tempDir = args[2];
+//		String tempDir = args[2];
 
 		// Get the file list containing all file inputs
 		File inputDir = new File(dataDir + "data");
@@ -77,8 +76,8 @@ public class Main {
 
 					// Check output for testing
 					FileConverter.convertBinToHuman(queriesOutputFile, queriesOutputFile + "_humanreadable");
-					SortFile sort = new SortFile(queriesOutputFile, true);
-					sort.sortHuman();
+//					SortFile sort = new SortFile(queriesOutputFile, true);
+//					sort.sortHuman();
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);
 					e.printStackTrace();
