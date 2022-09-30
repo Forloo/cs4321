@@ -1,46 +1,58 @@
 package p1.logicaloperator;
 
-import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.expression.Expression;
 
 public class LogicalJoin extends LogicalOperator {
 
-	// The query containing the information for our join
-	private PlainSelect plainSelect;
-	// The table that we are performing the join. Null if the tables do not exist.
-	private String tableName;
+	// The left child operator
+	private LogicalOperator left;
+	// The right child operator
+	private LogicalOperator right;
+	// The expression to filter by
+	private Expression exp;
 
 	/**
-	 * The constructor for our logicalJoin
+	 * The constructor for the logical filter operator
 	 *
-	 * @param plainSelect: The plainSelect containing the information for our query
-	 * @param tableName
+	 * @param left  The left child operator
+	 * @param right The right child operator
+	 * @param ex    Expression containing the information
 	 */
-	public LogicalJoin(PlainSelect plainSelect, String tableName) {
-		this.plainSelect = plainSelect;
-		this.tableName = tableName;
+	public LogicalJoin(LogicalOperator left, LogicalOperator right, Expression ex) {
+		this.left = left;
+		this.right = right;
+		this.exp = ex;
 	}
 
 	/**
-	 * Retrieves the query information
+	 * Retrieves the left child operator.
 	 *
-	 * @return A plainSelect
+	 * @return The left child operator used to get tuples.
 	 */
-	public PlainSelect getInfo() {
-		return plainSelect;
+	public LogicalOperator getLeftChild() {
+		return left;
 	}
 
 	/**
-	 * Retrieves the tableName
+	 * Retrieves the left child operator.
 	 *
-	 * @return A string representing the tableName.
+	 * @return The left child operator used to get tuples.
 	 */
-	public String getName() {
-		return tableName;
+	public LogicalOperator getRightChild() {
+		return right;
 	}
 
-	// This is for testing only.
+	/**
+	 * Retrieves the expression containing the conditions that we are filtering on
+	 *
+	 * @return An Expression object containing the condition information.
+	 */
+	public Expression getExpression() {
+		return exp;
+	}
+
+	// This is just for testing and knowing that we have the right node placement.
 	public String toString() {
-		return "This is a join node";
+		return "This is a logical join node";
 	}
-
 }

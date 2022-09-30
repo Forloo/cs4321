@@ -27,6 +27,13 @@ public class Tuple {
 	}
 
 	/**
+	 * Constructor to convert an ArrayList<String> into a Tuple.
+	 */
+	public Tuple(ArrayList<String> rowArr) {
+		tuple = rowArr;
+	}
+
+	/**
 	 * Get the row tuple.
 	 *
 	 * @return the ArrayList representation of a row.

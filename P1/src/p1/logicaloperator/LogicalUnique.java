@@ -1,27 +1,46 @@
 package p1.logicaloperator;
 
-import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Distinct;
+import p1.operator.Operator;
 
 public class LogicalUnique extends LogicalOperator {
 
-	private String tableName;
-	private PlainSelect plainSelect;
+	// The child operator
+	private Operator child;
+	// The expression to filter by
+	private Distinct distinct;
 
-	public LogicalUnique(PlainSelect plainSelect, String fromTable) {
-		this.plainSelect = plainSelect;
-		this.tableName = fromTable;
+	/**
+	 * The constructor for the logical filter operator
+	 *
+	 * @param op The child operator
+	 * @param d  Whether or not we want distinct tuples
+	 */
+	public LogicalUnique(Operator op, Distinct d) {
+		this.child = op;
+		this.distinct = d;
 	}
 
-	public PlainSelect getInfo() {
-		return plainSelect;
+	/**
+	 * Retrieves the child operator.
+	 *
+	 * @return The child operator used to get tuples.
+	 */
+	public Operator getChild() {
+		return child;
 	}
 
-	public String getName() {
-		return tableName;
+	/**
+	 * Retrieves whether or not we want distinct tuples
+	 *
+	 * @return A Distinct object that determines if we want distinct tuples.
+	 */
+	public Distinct getDistinct() {
+		return distinct;
 	}
 
-	// This is for testing only.
+	// This is just for testing and knowing that we have the right node placement.
 	public String toString() {
-		return "Thisis a sort unique operator";
+		return "This is a logical unique node";
 	}
 }

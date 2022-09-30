@@ -5,10 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.io.BinaryTupleWriter;
 import p1.util.Aliases;
-import p1.util.DatabaseCatalog;
+import p1.util.ExpressionEvaluator;
 import p1.util.ExpressionParser;
 import p1.util.Tuple;
 
@@ -17,6 +16,10 @@ import p1.util.Tuple;
  */
 public class JoinOperator extends Operator {
 
+	// Left child operator
+	private Operator left;
+	// Right child operator
+	private Operator right;
 	// Tree representing the join operator
 	private JoinOperatorTree tree;
 	// A list of tuples containing the final results.
@@ -27,23 +30,31 @@ public class JoinOperator extends Operator {
 	private ArrayList<String> schema;
 	// The where condition. Only used to call accept.
 	private Expression where;
+	// The left tuple to join with.
+	private Tuple leftTuple;
 
 	/**
 	 * Creates a JoinOperatorTree.
 	 *
-	 * @param plainSelect the query.
-	 * @param fromTable   the root table to join to.
+	 * @param left  the left child operator
+	 * @param right the right child operator
+	 * @param exp   the expression to join the two operators on
 	 */
-	public JoinOperator(PlainSelect plainSelect, String fromTable) {
+	public JoinOperator(Operator left, Operator right, Expression exp) {
+		this.left = left;
+		this.right = right;
+
 		// Split the where expression
-		Expression whereClause = plainSelect.getWhere();
+		// DO WE STILL NEED THIS?
+		Expression whereClause = exp;
 		ExpressionParser parse = new ExpressionParser(whereClause);
-		where = plainSelect.getWhere();
+		where = exp;
 		where.accept(parse);
 		HashMap<String[], ArrayList<Expression>> expressionInfoAliases = parse.getTablesNeeded();
 		HashMap<String[], ArrayList<Expression>> expressionInfo = new HashMap<String[], ArrayList<Expression>>();
 
-		// Pad tables needed for expressions
+		// Pad tables needed for expressions: if join A, B, C and expression is A.C1 =
+		// C.C2, key will be [A, B, C] not [A, C]
 		for (Map.Entry<String[], ArrayList<Expression>> set : expressionInfoAliases.entrySet()) {
 			if (set.getKey().length > 1) {
 				ArrayList<String> key = new ArrayList<String>();
@@ -67,17 +78,20 @@ public class JoinOperator extends Operator {
 
 		tree = new JoinOperatorTree(plainSelect, expressionInfo);
 
-		HashMap<String, ArrayList<Tuple>> tbl = tree.dfs(tree.getRoot(), DatabaseCatalog.getInstance());
-		for (String key : tbl.keySet()) {
-			results = tbl.get(key);
-			ArrayList<String> temp = new ArrayList<String>();
-			String[] arr = key.split(",");
-			for (int i = 0; i < arr.length; i++) {
-				temp.add(arr[i]);
-			}
-			schema = temp;
-		}
+//		HashMap<String, ArrayList<Tuple>> tbl = tree.dfs(tree.getRoot(), DatabaseCatalog.getInstance());
+//		for (String key : tbl.keySet()) {
+//			results = tbl.get(key);
+//			ArrayList<String> temp = new ArrayList<String>();
+//			String[] arr = key.split(",");
+//			for (int i = 0; i < arr.length; i++) {
+//				temp.add(arr[i]);
+//			}
+//			schema = temp;
+//		}
+		schema = left.getSchema();
+		schema.addAll(right.getSchema());
 		idx = 0;
+		leftTuple = left.getNextTuple();
 	}
 
 	/**
@@ -105,10 +119,36 @@ public class JoinOperator extends Operator {
 	 */
 	@Override
 	public Tuple getNextTuple() {
-		if (idx == results.size()) {
+//		if (idx == results.size()) {
+//			return null;
+//		}
+//		return new Tuple(results.get(idx++).toString());
+		if (leftTuple == null) { // no more tuples to join
 			return null;
 		}
-		return new Tuple(results.get(idx++).toString());
+		Tuple rightTuple = right.getNextTuple();
+		if (rightTuple == null) {
+			right.reset();
+			rightTuple = right.getNextTuple();
+			leftTuple = left.getNextTuple();
+		}
+		if (leftTuple == null) { // no more tuples to join
+			return null;
+		}
+		ArrayList<String> together = leftTuple.getTuple();
+		together.addAll(rightTuple.getTuple());
+		Tuple joinedTuple = new Tuple(together);
+		if (where == null) {
+			return joinedTuple;
+		} else {
+			ExpressionEvaluator eval = new ExpressionEvaluator(joinedTuple, schema);
+			where.accept(eval);
+			if (Boolean.parseBoolean(eval.getValue())) {
+				return joinedTuple;
+			} else {
+				return getNextTuple();
+			}
+		}
 	}
 
 	/**

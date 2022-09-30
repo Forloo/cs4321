@@ -1,6 +1,7 @@
 package p1.operator;
 
-import net.sf.jsqlparser.statement.select.PlainSelect;
+import java.util.ArrayList;
+
 import p1.io.BinaryTupleWriter;
 import p1.util.Tuple;
 
@@ -20,11 +21,10 @@ public class DuplicateEliminationOperator extends Operator {
 	/**
 	 * Creates the child sort operator.
 	 *
-	 * @param ps        the query
-	 * @param fromTable the first table to select from
+	 * @param op the child sort operator
 	 */
-	public DuplicateEliminationOperator(PlainSelect ps, String fromTable) {
-		child = new SortOperator(ps, fromTable);
+	public DuplicateEliminationOperator(SortOperator op) {
+		child = op;
 	}
 
 	/**
@@ -57,6 +57,15 @@ public class DuplicateEliminationOperator extends Operator {
 	 */
 	public void reset() {
 		child.reset();
+	}
+
+	/**
+	 * Gets the column names corresponding to the tuples.
+	 *
+	 * @return a list of all column names for the scan table.
+	 */
+	public ArrayList<String> getSchema() {
+		return child.getSchema();
 	}
 
 	/**

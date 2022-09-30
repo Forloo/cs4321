@@ -1,45 +1,30 @@
 package p1.logicaloperator;
 
-import net.sf.jsqlparser.statement.select.PlainSelect;
-
 public class LogicalScan extends LogicalOperator {
 
-	// The tablename for our table
-	private String tableName;
-	// The query containing the information
-	private PlainSelect plainSelect;
+	// The name of the table (aliased) to scan
+	private String table;
 
 	/**
-	 * A constructor for the logicalscan
+	 * The constructor for the logical scan operator
 	 *
-	 * @param plainSelect The query containing the information that we need
-	 * @param fromTable   The table name
+	 * @param fromTable The name of the table (aliased) to scan
 	 */
-	public LogicalScan(PlainSelect plainSelect, String fromTable) {
-		this.plainSelect = plainSelect;
-		this.tableName = fromTable;
+	public LogicalScan(String fromTable) {
+		this.table = fromTable;
 	}
 
 	/**
-	 * Retrieves the query containing our information
+	 * Retrieves the table to scan
 	 *
-	 * @return A plainselect containing the query information that we need.
+	 * @return The name of the table (alias name if using aliases)
 	 */
-	public PlainSelect getInfo() {
-		return plainSelect;
+	public String getFromTable() {
+		return table;
 	}
 
-	/**
-	 * Retrieves the name of the table
-	 *
-	 * @return A string representing the name of the table
-	 */
-	public String getName() {
-		return tableName;
-	}
-
-	// Using this for testing purporses only.
+	// This is just for testing and knowing that we have the right node placement.
 	public String toString() {
-		return "This is a logical scan";
+		return "This is a logical scan node";
 	}
 }

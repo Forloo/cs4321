@@ -1,47 +1,47 @@
 package p1.logicaloperator;
 
-import net.sf.jsqlparser.statement.select.PlainSelect;
+import java.util.List;
+
+import p1.operator.Operator;
 
 public class LogicalProject extends LogicalOperator {
 
-	// The query containing the information for the logical project
-	private PlainSelect plainSelect;
-	// The table that we are performing the project
-	private String tableName;
+	// The child operator
+	private Operator child;
+	// The columns to select
+	private List selects;
 
 	/**
-	 * The constructor for the logical project
+	 * The constructor for the logical filter operator
 	 *
-	 * @param plainselect The plainselect containing the information for our logical
-	 *                    project
-	 * @param fromTable   The table we are performing the project on
+	 * @param op      The child operator
+	 * @param selects The list of columns to select
 	 */
-	public LogicalProject(PlainSelect plainselect, String fromTable) {
-		this.plainSelect = plainselect;
-		this.tableName = fromTable;
+	public LogicalProject(Operator op, List selects) {
+		this.child = op;
+		this.selects = selects;
 	}
 
 	/**
-	 * Retrieves the query containing the information for logical project
+	 * Retrieves the child operator.
 	 *
-	 * @return A plainselect that contains the information we need for the logical
-	 *         project
+	 * @return The child operator used to get tuples.
 	 */
-	public PlainSelect getInfo() {
-		return plainSelect;
+	public Operator getChild() {
+		return child;
 	}
 
 	/**
-	 * Retrieves the table name.
+	 * Retrieves the select items for columns to return.
 	 *
-	 * @return A string representation of the table.
+	 * @return A SelectItem list containing the column information.
 	 */
-	public String getName() {
-		return tableName;
+	public List getSelects() {
+		return selects;
 	}
 
-	// This is for debugging purposes only.
+	// This is just for testing and knowing that we have the right node placement.
 	public String toString() {
-		return "This is a logcical project";
+		return "This is a logical project node";
 	}
 }
