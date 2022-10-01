@@ -48,8 +48,7 @@ public class QueryTree {
 		if (root==null) {
 			return "";
 		}
-//		System.out.println("hereee");
-//		System.out.println(root.getOperator().getClass());
+		
 		ret=ret+root.getOperator().toString();
 		ret=ret+toString(root.leftChild());
 		ret=ret+toString(root.rightChild());

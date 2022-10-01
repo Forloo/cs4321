@@ -53,7 +53,10 @@ public class ProjectOperator extends Operator {
 		ArrayList<String> projection = new ArrayList<>();
 
 		for (String i : cols) {
+			System.out.println(i);
+			System.out.println(schema);
 			int idx = schema.indexOf(i);
+			System.out.println(idx);
 			projection.add(nextTuple.getTuple().get(idx));
 		}
 		return new Tuple(projection);

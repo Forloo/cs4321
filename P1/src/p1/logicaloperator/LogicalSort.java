@@ -6,8 +6,8 @@ import p1.operator.Operator;
 
 public class LogicalSort extends LogicalOperator {
 
-	// The child operator
-	private Operator child;
+	// The child operator for this should be some logical operator
+	private LogicalOperator child;
 	// The expression to filter by
 	private List orderBy;
 
@@ -17,7 +17,7 @@ public class LogicalSort extends LogicalOperator {
 	 * @param op     the child operator
 	 * @param orders the columns to order by
 	 */
-	public LogicalSort(Operator op, List orders) {
+	public LogicalSort(LogicalOperator op, List orders) {
 		this.child = op;
 		this.orderBy = orders;
 	}
@@ -27,7 +27,7 @@ public class LogicalSort extends LogicalOperator {
 	 *
 	 * @return The child operator used to get tuples.
 	 */
-	public Operator getChild() {
+	public LogicalOperator getChild() {
 		return child;
 	}
 

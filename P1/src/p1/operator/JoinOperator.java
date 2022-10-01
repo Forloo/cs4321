@@ -38,56 +38,12 @@ public class JoinOperator extends Operator {
 	 *
 	 * @param left  the left child operator
 	 * @param right the right child operator
-	 * @param exp   the expression to join the two operators on
+	 * @param exp The where expression will be passed in by the query plan.
 	 */
 	public JoinOperator(Operator left, Operator right, Expression exp) {
 		this.left = left;
 		this.right = right;
-
-		// Split the where expression
-		// DO WE STILL NEED THIS?
-		Expression whereClause = exp;
-		ExpressionParser parse = new ExpressionParser(whereClause);
-		where = exp;
-		where.accept(parse);
-		HashMap<String[], ArrayList<Expression>> expressionInfoAliases = parse.getTablesNeeded();
-		HashMap<String[], ArrayList<Expression>> expressionInfo = new HashMap<String[], ArrayList<Expression>>();
-
-		// Pad tables needed for expressions: if join A, B, C and expression is A.C1 =
-		// C.C2, key will be [A, B, C] not [A, C]
-		for (Map.Entry<String[], ArrayList<Expression>> set : expressionInfoAliases.entrySet()) {
-			if (set.getKey().length > 1) {
-				ArrayList<String> key = new ArrayList<String>();
-				int idx = -1;
-				for (String s : set.getKey()) {
-					int keyIdx = Aliases.getOnlyAliases().indexOf(s);
-					if (keyIdx > idx) {
-						idx = keyIdx;
-					}
-				}
-				for (int i = 0; i <= idx; i++) {
-					String alias = Aliases.getOnlyAliases().get(i);
-					key.add(alias);
-				}
-
-				expressionInfo.put(key.toArray(new String[key.size()]), set.getValue());
-			} else {
-				expressionInfo.put(set.getKey(), set.getValue());
-			}
-		}
-
-		tree = new JoinOperatorTree(plainSelect, expressionInfo);
-
-//		HashMap<String, ArrayList<Tuple>> tbl = tree.dfs(tree.getRoot(), DatabaseCatalog.getInstance());
-//		for (String key : tbl.keySet()) {
-//			results = tbl.get(key);
-//			ArrayList<String> temp = new ArrayList<String>();
-//			String[] arr = key.split(",");
-//			for (int i = 0; i < arr.length; i++) {
-//				temp.add(arr[i]);
-//			}
-//			schema = temp;
-//		}
+		
 		schema = left.getSchema();
 		schema.addAll(right.getSchema());
 		idx = 0;

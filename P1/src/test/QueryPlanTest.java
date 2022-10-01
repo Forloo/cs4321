@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,7 +14,10 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.operator.Operator;
+import p1.operator.ProjectOperator;
 import p1.operator.ScanOperator;
+import p1.operator.SelectOperator;
 import p1.util.*;
 
 import org.junit.jupiter.api.Test;
@@ -62,23 +67,67 @@ public class QueryPlanTest {
 			System.out.println("The file you are looking for was not found");
 	}
 		
-		// Make the queryplan object
-		QueryPlan scanRoot= new QueryPlan(queries.get(0),DatabaseCatalog.getInstance());
+		Statement queryZero = queries.get(0);
+		QueryPlan first= new QueryPlan(queryZero,DatabaseCatalog.getInstance());
 		
-		// Check if the expected output for scan is still working as intended.q
-		assertEquals("1,200,50", scanRoot.getOperator().getNextTuple().toString());
-		assertEquals("2,200,200", scanRoot.getOperator().getNextTuple().toString());
-		assertEquals("3,100,105", scanRoot.getOperator().getNextTuple().toString());
-		assertEquals("4,100,50", scanRoot.getOperator().getNextTuple().toString());
-		assertEquals("5,100,500", scanRoot.getOperator().getNextTuple().toString());
-		assertEquals("6,300,400", scanRoot.getOperator().getNextTuple().toString());
-		assertNull(scanRoot.getOperator().getNextTuple());
-		assertNull(scanRoot.getOperator().getNextTuple());
+		// Check if the refactored scan is working.
+		assertTrue(first.getOperator() instanceof ScanOperator);
+		Operator scanTesting= first.getOperator();
 		
-		// Check if the reset method for scan still works.
-		scanRoot.getOperator().reset();
+		assertEquals(scanTesting.getNextTuple().toString(),"64,113,139");
+		assertEquals(scanTesting.getNextTuple().toString(),"181,128,129");
+		assertEquals(scanTesting.getNextTuple().toString(),"147,45,118");
+		assertEquals(scanTesting.getNextTuple().toString(),"81,1,195");
+		assertEquals(scanTesting.getNextTuple().toString(),"75,191,192");
+		
+		// Check if the reset method works by confirming that the first tuple is now the first tuple in the table
+		scanTesting.reset();
+		assertEquals(scanTesting.getNextTuple().toString(),"64,113,139");
+		
+		// Testing if the refactored select is working
+		Statement queryFour = queries.get(4);
+		QueryPlan fourth= new QueryPlan(queryFour,DatabaseCatalog.getInstance());
+		
+		Operator selectTesting= fourth.getOperator();
+		assertTrue(selectTesting instanceof SelectOperator);
+		
+		assertEquals(selectTesting.getNextTuple().toString(),"133,197,18");
+		assertEquals(selectTesting.getNextTuple().toString(),"157,148,100");
+		assertEquals(selectTesting.getNextTuple().toString(),"118,72,25");
+		assertEquals(selectTesting.getNextTuple().toString(),"5,119,15");
+		assertEquals(selectTesting.getNextTuple().toString(),"173,194,157");
+		
+		// Check if the rest method for this works
+		selectTesting.reset();
+		
+		assertEquals(selectTesting.getNextTuple().toString(),"133,197,18");
+		
+		// Test if the project works with only a scan child
+		Statement queryOne = queries.get(1);
+		QueryPlan projectionOne = new QueryPlan(queryOne,DatabaseCatalog.getInstance());
+		
+		// Check if the root operator is the project 
+		Operator projectionTestingOne = projectionOne.getOperator();
+		assertTrue( projectionTestingOne instanceof ProjectOperator);
+		
+//		assertEquals(projectionTestingOne.getNextTuple().toString(),"64");
+//		assertEquals(projectionTestingOne.getNextTuple().toString(),"181");
+//		assertEquals(projectionTestingOne.getNextTuple().toString(),"147");
+//		assertEquals(projectionTestingOne.getNextTuple().toString(),"81");
+//		assertEquals(projectionTestingOne.getNextTuple().toString(),"75");
 
-		assertEquals("1,200,50", scanRoot.getOperator().getNextTuple().toString());
+		
+
+
+		
+
+		
+		
+		
+		
+		
+		
+		
 		
 	}
 }

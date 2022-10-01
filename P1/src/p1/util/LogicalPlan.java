@@ -56,24 +56,28 @@ public class LogicalPlan {
 			fromTable = Aliases.getTable(from.getAlias());
 		}
 		
-		if (plainSelect.getDistinct()!=null) {
-			rootOperator= new LogicalUnique(plainSelect,from.toString());
-		}
-		else if (plainSelect.getOrderByElements()!=null) {
-			rootOperator = new LogicalSort(plainSelect,from.toString());
-		}
-		else if (!(allColumns.get(0) instanceof AllColumns)) {
-			rootOperator = new LogicalProject(plainSelect,from.toString());
-		}
-		else if(plainSelect.getJoins()!=null) {
-			rootOperator =new LogicalJoin(plainSelect,from.toString());
-		}
-		else if (!(where==null)) {
-			rootOperator= new LogicalFilter(plainSelect,from.toString());
-		}
-		else {
-			rootOperator = new LogicalScan(plainSelect,from.toString());
-		}
+		// NONE OF THIS WORKS SINCE WE ARE REFACTORING OUR ENTIRE TREE STRUCTURE
+		// SO THAT THE STRUCTURE IS NOT SO RIGID. THE LOGICAL PLAN TEST IS NOT VALID
+		// SO IT SHOULD NOT BE USED.
+		
+//		if (plainSelect.getDistinct()!=null) {
+//			rootOperator= new LogicalUnique(plainSelect,from.toString());
+//		}
+//		else if (plainSelect.getOrderByElements()!=null) {
+//			rootOperator = new LogicalSort(plainSelect,from.toString());
+//		}
+//		else if (!(allColumns.get(0) instanceof AllColumns)) {
+//			rootOperator = new LogicalProject(plainSelect,from.toString());
+//		}
+//		else if(plainSelect.getJoins()!=null) {
+//			rootOperator =new LogicalJoin(plainSelect,from.toString());
+//		}
+//		else if (!(where==null)) {
+//			rootOperator= new LogicalFilter(plainSelect,from.toString());
+//		}
+//		else {
+//			rootOperator = new LogicalScan(plainSelect,from.toString());
+//		}
 		
 	}
 	

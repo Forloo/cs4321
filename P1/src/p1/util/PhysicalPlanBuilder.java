@@ -112,36 +112,40 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			fromTable = Aliases.getTable(from.getAlias());
 		}
 		
-		if (op instanceof LogicalUnique) {
-			DuplicateEliminationOperator dup= new DuplicateEliminationOperator(this.getQuery(),fromTable);
-			QueryPlan plan = new QueryPlan(dup);
-			this.setPlan(plan);
-		}
-		else if (op instanceof LogicalSort) {
-			SortOperator sort= new SortOperator(this.getQuery(),fromTable);
-			QueryPlan plan = new QueryPlan(sort);
-			this.setPlan(plan);
-		}
-		else if (op instanceof LogicalProject) {
-			ProjectOperator project = new ProjectOperator(this.getQuery(),fromTable);
-			QueryPlan plan = new QueryPlan(project);
-			this.setPlan(plan);
-		}
-		else if(op instanceof LogicalJoin) {
-			JoinOperator join = new JoinOperator(this.getQuery(),fromTable);
-			QueryPlan plan = new QueryPlan(join);
-			this.setPlan(plan);
-		}
-		else if (op instanceof LogicalFilter) {
-			SelectOperator select = new SelectOperator(this.getQuery(),fromTable);
-			QueryPlan plan= new QueryPlan(select);
-			this.setPlan(plan);
-		}
-		else {
-			ScanOperator scan = new ScanOperator(fromTable);
-			QueryPlan plan = new QueryPlan(scan);
-			this.setPlan(plan);
-		}
+		// We are refactoring so none of this is valid anymore
+		
+//		if (op instanceof LogicalUnique) {
+//			DuplicateEliminationOperator dup= new DuplicateEliminationOperator(this.getQuery(),fromTable);
+//			QueryPlan plan = new QueryPlan(dup);
+//			this.setPlan(plan);
+//		}
+//		else if (op instanceof LogicalSort) {
+//			SortOperator sort= new SortOperator(this.getQuery(),fromTable);
+//			QueryPlan plan = new QueryPlan(sort);
+//			this.setPlan(plan);
+//		}
+//		else if (op instanceof LogicalProject) {
+//			ProjectOperator project = new ProjectOperator(this.getQuery(),fromTable);
+//			QueryPlan plan = new QueryPlan(project);
+//			this.setPlan(plan);
+//		}
+//		else if(op instanceof LogicalJoin) {
+//			JoinOperator join = new JoinOperator(this.getQuery(),fromTable);
+//			QueryPlan plan = new QueryPlan(join);
+//			this.setPlan(plan);
+//		}
+//		else if (op instanceof LogicalFilter) {
+//			SelectOperator select = new SelectOperator(this.getQuery(),fromTable);
+//			QueryPlan plan= new QueryPlan(select);
+//			this.setPlan(plan);
+//		}
+//		else {
+//			ScanOperator scan = new ScanOperator(fromTable);
+//			QueryPlan plan = new QueryPlan(scan);
+//			this.setPlan(plan);
+//		}
+		
+		this.setPlan(null);
 		
 	}
 
