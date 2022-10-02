@@ -58,7 +58,7 @@ public class DatabaseCatalog {
 				String tableName = tableDef[0];
 				schema.put(tableName, new ArrayList<String>());
 				for (int k = 1; k < tableDef.length; k++) {
-					schema.get(tableName).add(tableDef[k]);
+					schema.get(tableName).add(tableName+"."+tableDef[k]);
 				}
 			}
 		}

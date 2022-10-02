@@ -1,8 +1,10 @@
 package p1.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.Statement;
@@ -48,10 +50,12 @@ public class QueryPlan {
 		// Get all of the expression conditions for each of the tables. THIS DOES NOT HANDLE ALIASES.
 		// NEED TO DO THE PADDING LATER FOR ALIASES TO WORK.
 		HashMap<String[], ArrayList<Expression>> expressionInfoAliases= null;
+		HashMap<String,ArrayList<Expression>> expressionInfo=null;
 		if (where!=null) {
 			ExpressionParser parse= new ExpressionParser(where);
 			where.accept(parse);
 			expressionInfoAliases= parse.getTablesNeeded();
+			expressionInfo=parse.getTablesNeededString();
 		}
 		
 		// Extract aliases
@@ -68,8 +72,90 @@ public class QueryPlan {
 		// Ordering 
 		// Join,select,scan, sort,duplicate elimination operator
 		
-		// check if there is a join that has been used. If the join was used then
-		// do not use the scan
+		if(joins!=null) {
+			boolean fromUsed= false;
+			JoinOperator prev=null;
+			
+			for(int i=0;i<joins.size();i++) {
+				if(!fromUsed) {
+					if (expressionInfo==null) {
+						ScanOperator first=new ScanOperator(from.toString());
+						ScanOperator second = new ScanOperator(joins.get(i).toString());
+						String combinedName= from.toString()+","+joins.get(i).toString();
+						JoinOperator temp= new JoinOperator(combinedName,first,second,null);
+						prev=temp;				
+					}
+					else {
+						Operator first=null;
+						if(expressionInfo.containsKey(from.toString())) {
+							// Get the list of conditions and for now lets only grab the first condition on the list of expression
+							ArrayList<Expression> conditions= expressionInfo.get(from.toString());
+							ScanOperator scanone= new ScanOperator(from.toString());
+							SelectOperator selectone= new SelectOperator(scanone,conditions.get(0));
+							first=selectone;
+						}
+						else {
+							ScanOperator scanone = new ScanOperator(from.toString());
+							first=scanone;
+						}
+						
+						Operator second=null;
+						if(expressionInfo.containsKey(joins.get(i).toString())) {
+							// Get the arraylist of conditions
+							ArrayList<Expression> conditions2= expressionInfo.get(joins.get(i));
+							ScanOperator scantwo= new ScanOperator(joins.get(i).toString());
+							SelectOperator selecttwo= new SelectOperator(scantwo,conditions2.get(0));
+							second=selecttwo;
+						}
+						else {
+							ScanOperator scantwo= new ScanOperator(joins.get(0).toString());
+							second=scantwo;
+						}
+						String combinedName=from.toString()+","+joins.get(i).toString();
+						String[] tablesNeeded= combinedName.split(",");
+						Arrays.sort(tablesNeeded);
+						String sortedTablesNeeded= String.join(",",tablesNeeded);
+						Expression joinCondition=null;
+						if(expressionInfo.containsKey(sortedTablesNeeded)) {
+							ArrayList<Expression> joinConditions= expressionInfo.get(sortedTablesNeeded);
+							// Grab the first element for now later on we will use something else later to merge
+							// all of the conditions for the give operator altogether.
+							joinCondition=joinConditions.get(0);
+						}
+						JoinOperator temp = new JoinOperator(combinedName,first,second,joinCondition);	
+						prev=temp;
+					}
+				}
+				else {
+					if(expressionInfo==null) {
+						ScanOperator first= new ScanOperator(joins.get(i).toString());
+						// combine this value with the prev value
+						String combinedName= prev.getTables()+","+joins.get(i).toString();
+						JoinOperator temp= new JoinOperator(combinedName,prev,first,null);
+						prev=temp;
+					}
+					else {
+						Operator first=null;
+						if (expressionInfo.containsKey(joins.get(i).toString())) {
+							ArrayList<Expression> conditions = expressionInfo.get(joins.get(i).toString());
+							ScanOperator scanone= new ScanOperator(joins.get(i).toString());
+							SelectOperator selectone= new SelectOperator(scanone,conditions.get(0));
+							first=selectone;
+						}
+						else {
+							ScanOperator scanone= new ScanOperator(joins.get(i).toString());
+							first=scanone;
+						}
+						
+						String combinedName= prev.getTables()+","+joins.get(i).toString();
+						JoinOperator temp= new JoinOperator(combinedName,prev,first,null);
+						prev=temp;
+					}
+				}
+			}
+			child=prev;
+			joinUsed=true;
+		}
 		
 		if(!joinUsed) {
 			// Make the scan operator since we will always need it 

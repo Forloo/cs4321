@@ -32,6 +32,8 @@ public class JoinOperator extends Operator {
 	private Expression where;
 	// The left tuple to join with.
 	private Tuple leftTuple;
+	// The tables that are being joined on by this joinoperator
+	private String tables;
 
 	/**
 	 * Creates a JoinOperatorTree.
@@ -40,14 +42,23 @@ public class JoinOperator extends Operator {
 	 * @param right the right child operator
 	 * @param exp The where expression will be passed in by the query plan.
 	 */
-	public JoinOperator(Operator left, Operator right, Expression exp) {
+	public JoinOperator(String tables,Operator left, Operator right, Expression exp) {
 		this.left = left;
 		this.right = right;
 		
+		where=exp;
 		schema = left.getSchema();
 		schema.addAll(right.getSchema());
 		idx = 0;
 		leftTuple = left.getNextTuple();
+	}
+	
+	/**
+	 * Retreives the tables that are being joined by this joinOperator
+	 * @return A string delimited by commas telling us all the tables being joined.
+	 */
+	public String getTables() {
+		return tables;
 	}
 
 	/**
@@ -94,6 +105,7 @@ public class JoinOperator extends Operator {
 		ArrayList<String> together = leftTuple.getTuple();
 		together.addAll(rightTuple.getTuple());
 		Tuple joinedTuple = new Tuple(together);
+		
 		if (where == null) {
 			return joinedTuple;
 		} else {
@@ -102,6 +114,9 @@ public class JoinOperator extends Operator {
 			if (Boolean.parseBoolean(eval.getValue())) {
 				return joinedTuple;
 			} else {
+				// Some strange behavior going on here. The joinedTuple is always 
+				// 2 longer than the previous one when it should not be.
+				System.out.println(joinedTuple);
 				return getNextTuple();
 			}
 		}

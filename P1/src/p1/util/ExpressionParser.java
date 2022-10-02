@@ -3,6 +3,7 @@ package p1.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
@@ -101,7 +102,7 @@ public class ExpressionParser implements ExpressionVisitor {
 		}
 
 		HashMap<String[], ArrayList<Expression>> leftTables = leftParser.getTablesNeeded();
-
+		
 		for (String[] key : leftTables.keySet()) {
 
 			// Loop through our current table. Check if there are any overlapping keys
@@ -152,6 +153,21 @@ public class ExpressionParser implements ExpressionVisitor {
 	public HashMap<String[], ArrayList<Expression>> getTablesNeeded() {
 		return tablesNeeded;
 	}
+	
+	public HashMap<String,ArrayList<Expression>> getTablesNeededString(){
+		
+		HashMap<String[],ArrayList<Expression>> temp = this.getTablesNeeded();
+		
+		HashMap<String,ArrayList<Expression>> ret=new HashMap<String,ArrayList<Expression>>();
+		
+		for(String[] key: temp.keySet()) {
+			String together= String.join(",", key);
+			ret.put(together, temp.get(key));
+		}
+		
+		return ret;
+		
+	}
 
 	/**
 	 * Retrieves the table needed for a binaryexpressions
@@ -170,8 +186,11 @@ public class ExpressionParser implements ExpressionVisitor {
 					arg0.getRightExpression().toString().indexOf("."));
 		}
 		String[] arr = tblNeed.split(",");
-		Arrays.sort(arr);
-		return arr;
+		
+		String[] array = new HashSet<String>(Arrays.asList(arr)).toArray(new String[0]);
+		
+		Arrays.sort(array);
+		return array;
 
 	}
 	/**

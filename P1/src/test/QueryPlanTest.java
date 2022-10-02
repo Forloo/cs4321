@@ -14,6 +14,7 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.operator.JoinOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.ScanOperator;
@@ -110,12 +111,44 @@ public class QueryPlanTest {
 		Operator projectionTestingOne = projectionOne.getOperator();
 		assertTrue( projectionTestingOne instanceof ProjectOperator);
 		
-//		assertEquals(projectionTestingOne.getNextTuple().toString(),"64");
-//		assertEquals(projectionTestingOne.getNextTuple().toString(),"181");
-//		assertEquals(projectionTestingOne.getNextTuple().toString(),"147");
-//		assertEquals(projectionTestingOne.getNextTuple().toString(),"81");
-//		assertEquals(projectionTestingOne.getNextTuple().toString(),"75");
-
+		assertEquals(projectionTestingOne.getNextTuple().toString(),"64");
+		assertEquals(projectionTestingOne.getNextTuple().toString(),"181");
+		assertEquals(projectionTestingOne.getNextTuple().toString(),"147");
+		assertEquals(projectionTestingOne.getNextTuple().toString(),"81");
+		assertEquals(projectionTestingOne.getNextTuple().toString(),"75");
+		
+		// Test to see if the reset method for the project works after refactoring
+		projectionTestingOne.reset();
+		
+		assertEquals(projectionTestingOne.getNextTuple().toString(),"64");
+		
+		// Test to see if the project works when it has the select as a child instead of the scan
+		Statement queryFive =queries.get(5);
+		QueryPlan projectionTwo = new QueryPlan(queryFive,DatabaseCatalog.getInstance());
+		Operator projectionTestingTwo= projectionTwo.getOperator();
+		assertTrue( projectionTestingTwo instanceof ProjectOperator);
+				
+		assertEquals(projectionTestingTwo.getNextTuple().toString(),"133");
+		assertEquals(projectionTestingTwo.getNextTuple().toString(),"157");
+		assertEquals(projectionTestingTwo.getNextTuple().toString(),"118");
+		assertEquals(projectionTestingTwo.getNextTuple().toString(),"5");
+		assertEquals(projectionTestingTwo.getNextTuple().toString(),"173");
+		
+		// Test to see if the reset method works after re factoring
+		projectionTestingTwo.reset();
+		assertEquals(projectionTestingTwo.getNextTuple().toString(),"133");
+		
+		
+		// Join Testing 
+		Statement querySeven = queries.get(7);
+		QueryPlan join = new QueryPlan(querySeven,DatabaseCatalog.getInstance());
+		Operator joinTesting= join.getOperator();
+		assertTrue(joinTesting instanceof JoinOperator);
+		System.out.println(querySeven);
+		System.out.println(joinTesting.getNextTuple());
+		
+		
+		
 		
 
 

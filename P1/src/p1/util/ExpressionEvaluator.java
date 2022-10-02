@@ -137,9 +137,18 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 			List<String> subColumns = columns.subList(startIdx, columns.size());
 			value = row.getTuple().get(startIdx + subColumns.indexOf(arg0.getColumnName()));
 		} else {
-			int idx = columns.indexOf(arg0.getColumnName());
+			// Get the columns
+			ArrayList<String> alt = new ArrayList<String>();
+			for(int i=0;i<columns.size();i++) {
+				// Find the index of the . in the name and then grab the letter of the index after that
+				int index=columns.get(i).indexOf(".");
+				alt.add(columns.get(i).substring(index+1,index+2));
+			}
+			//System.out.println(arg0.getColumnName());
+			int idx = alt.indexOf(arg0.getColumnName());
 			value = row.getTuple().get(idx);
 		}
+		
 	}
 
 	@Override
