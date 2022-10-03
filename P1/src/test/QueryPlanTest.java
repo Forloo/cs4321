@@ -14,11 +14,13 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.operator.DuplicateEliminationOperator;
 import p1.operator.JoinOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
+import p1.operator.SortOperator;
 import p1.util.*;
 
 import org.junit.jupiter.api.Test;
@@ -198,7 +200,38 @@ public class QueryPlanTest {
 		// Sort testing 
 		Statement queryseventeen = queries.get(17);
 		QueryPlan sortJoin = new QueryPlan(queryseventeen,DatabaseCatalog.getInstance());
+		Operator sortTesting= sortJoin.getOperator();
 		
+		// Test to see if the main operator is the sortOperator
+		// Sort Operator takes a while and for some reason takes a while to compile 
+		assertTrue(sortTesting instanceof SortOperator);
+
+		assertEquals(sortTesting.getNextTuple().toString(),"4,77,1,4,89,89,52,115");
+		assertEquals(sortTesting.getNextTuple().toString(),"4,77,1,4,89,89,66,152");
+		assertEquals(sortTesting.getNextTuple().toString(),"4,77,1,4,89,89,103,172");
+		assertEquals(sortTesting.getNextTuple().toString(),"4,77,1,4,89,89,154,196");
+		assertEquals(sortTesting.getNextTuple().toString(),"4,77,1,4,90,90,75,158");
+		
+		// Testing reset for the sortoperators
+		sortTesting.reset();
+		assertEquals(sortTesting.getNextTuple().toString(),"4,77,1,4,89,89,52,115");
+
+		// Testing duplicate elimination operator
+		Statement queryten= queries.get(10);
+		QueryPlan duplicate = new QueryPlan(queryten,DatabaseCatalog.getInstance());
+		Operator duplicateTesting= duplicate.getOperator();
+		assertTrue(duplicateTesting instanceof DuplicateEliminationOperator);
+		
+		assertEquals(duplicateTesting.getNextTuple().toString(),"0,47,120");
+		assertEquals(duplicateTesting.getNextTuple().toString(),"0,49,176");
+		assertEquals(duplicateTesting.getNextTuple().toString(),"0,58,191");
+		assertEquals(duplicateTesting.getNextTuple().toString(),"0,97,129");
+		assertEquals(duplicateTesting.getNextTuple().toString(),"0,135,109");
+		
+		duplicateTesting.reset();
+		assertEquals(duplicateTesting.getNextTuple().toString(),"0,47,120");
+
+
 
 
 

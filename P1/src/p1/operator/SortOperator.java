@@ -36,14 +36,13 @@ public class SortOperator extends Operator {
 	public SortOperator(Operator op, List orders) {
 		child = op;
 		schema = op.getSchema();
-
+		
 		// Get the rows from the child operator
 		Tuple currTuple = child.getNextTuple();
 		while (currTuple != null) {
 			tupleData.add(currTuple);
 			currTuple = child.getNextTuple();
 		}
-
 		// Get a list of columns to order by
 		if (orders != null) {
 			for (Object c : orders) {
@@ -63,7 +62,7 @@ public class SortOperator extends Operator {
 		for (String col : orderBy) {
 			orderByIdx.add(schema.indexOf(col));
 		}
-
+		
 		Collections.sort(tupleData, new CompareTuples());
 	}
 
