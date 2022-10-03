@@ -3,12 +3,14 @@ package p1.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.AllColumns;
+import net.sf.jsqlparser.statement.select.Distinct;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
@@ -47,6 +49,10 @@ public class QueryPlan {
 		
 		List joins= plainSelect.getJoins();
 		
+		Distinct distinct = plainSelect.getDistinct();
+		
+		List groupByElements = plainSelect.getOrderByElements();
+		
 		// Get all of the expression conditions for each of the tables. THIS DOES NOT HANDLE ALIASES.
 		// NEED TO DO THE PADDING LATER FOR ALIASES TO WORK.
 		HashMap<String[], ArrayList<Expression>> expressionInfoAliases= null;
@@ -72,12 +78,15 @@ public class QueryPlan {
 		// Ordering 
 		// Join,select,scan, sort,duplicate elimination operator
 		
+		// Check if there is more than one table. If more than one table make join.
 		if(joins!=null) {
 			boolean fromUsed= false;
 			JoinOperator prev=null;
 			
+			// Iterate through the table and make the join operators
 			for(int i=0;i<joins.size();i++) {
 				if(!fromUsed) {
+					// If the expressionInfo is null then that means there is no where conditions
 					if (expressionInfo==null) {
 						ScanOperator first=new ScanOperator(from.toString());
 						ScanOperator second = new ScanOperator(joins.get(i).toString());
@@ -86,9 +95,9 @@ public class QueryPlan {
 						prev=temp;				
 					}
 					else {
+						// Retrieve the where conditions and then assign them to the right table.
 						Operator first=null;
 						if(expressionInfo.containsKey(from.toString())) {
-							// Get the list of conditions and for now lets only grab the first condition on the list of expression
 							ArrayList<Expression> conditions= expressionInfo.get(from.toString());
 							ScanOperator scanone= new ScanOperator(from.toString());
 							SelectOperator selectone= new SelectOperator(scanone,conditions.get(0));
@@ -115,21 +124,24 @@ public class QueryPlan {
 						String[] tablesNeeded= combinedName.split(",");
 						Arrays.sort(tablesNeeded);
 						String sortedTablesNeeded= String.join(",",tablesNeeded);
-						Expression joinCondition=null;
+						
+						// Check if there is match in the sorted table and the current string.
+						// If match then assign the conditions otherwise there are no conditions make it null.
+						ArrayList<Expression> joinCondition=null;
 						if(expressionInfo.containsKey(sortedTablesNeeded)) {
 							ArrayList<Expression> joinConditions= expressionInfo.get(sortedTablesNeeded);
-							// Grab the first element for now later on we will use something else later to merge
-							// all of the conditions for the give operator altogether.
-							joinCondition=joinConditions.get(0);
+							joinCondition=joinConditions;
 						}
 						JoinOperator temp = new JoinOperator(combinedName,first,second,joinCondition);	
 						prev=temp;
 					}
+					fromUsed=true;
 				}
 				else {
+					// From table is used meaning that there is more than one join operator being used
+					// so this means that the left child is a join operator.
 					if(expressionInfo==null) {
 						ScanOperator first= new ScanOperator(joins.get(i).toString());
-						// combine this value with the prev value
 						String combinedName= prev.getTables()+","+joins.get(i).toString();
 						JoinOperator temp= new JoinOperator(combinedName,prev,first,null);
 						prev=temp;
@@ -146,9 +158,30 @@ public class QueryPlan {
 							ScanOperator scanone= new ScanOperator(joins.get(i).toString());
 							first=scanone;
 						}
-						
 						String combinedName= prev.getTables()+","+joins.get(i).toString();
-						JoinOperator temp= new JoinOperator(combinedName,prev,first,null);
+						ArrayList<Expression> joinCondition=new ArrayList<Expression>();
+						String[] splitted= combinedName.split(",");
+						HashSet<String> tblsNeed= new HashSet<String>();
+						for(int k=0;k<splitted.length;k++) {
+							tblsNeed.add(splitted[k]);
+						}
+						
+						for(String[] key: expressionInfoAliases.keySet()) {
+							boolean allIncluded=true;
+							for(int l=0;l<key.length;l++) {
+								allIncluded=allIncluded && tblsNeed.contains(key[l]);
+							}
+							
+							if(allIncluded) {
+								ArrayList<Expression> allExpr= expressionInfoAliases.get(key);
+								for (int p=0;p<allExpr.size();p++) {
+									joinCondition.add(allExpr.get(p));
+								}
+							}
+						}
+						 
+						
+						JoinOperator temp= new JoinOperator(combinedName,prev,first,joinCondition);
 						prev=temp;
 					}
 				}
@@ -157,6 +190,7 @@ public class QueryPlan {
 			joinUsed=true;
 		}
 		
+		// Join tables handled the select and the scans for all of their own tables.
 		if(!joinUsed) {
 			// Make the scan operator since we will always need it 
 			ScanOperator scan = new ScanOperator(from.toString());
@@ -170,11 +204,24 @@ public class QueryPlan {
 			}
 		}
 		
-		// Check if there is a projection if there is a projection then make that the child after we are done
+		// Check if there is a projection. If there is a projection then make that the root node
 		if(!(allColumns.get(0) instanceof AllColumns)) {
 			ProjectOperator project= new ProjectOperator(child,allColumns);
 			child=project;
 		}
+		
+		// Check if there is a distinct
+		if (distinct!=null) {
+			// For distinct there is always a order by element
+			SortOperator sort = new SortOperator(child,groupByElements);
+			DuplicateEliminationOperator dup = new DuplicateEliminationOperator(sort);
+			child=dup;
+		}
+		else if (groupByElements!=null) {
+			SortOperator sort= new SortOperator(child,groupByElements);
+			child=sort;
+		}
+		
 		
 		this.rootOperator=child;
 		

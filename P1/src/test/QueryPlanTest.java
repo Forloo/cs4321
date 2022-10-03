@@ -144,8 +144,71 @@ public class QueryPlanTest {
 		QueryPlan join = new QueryPlan(querySeven,DatabaseCatalog.getInstance());
 		Operator joinTesting= join.getOperator();
 		assertTrue(joinTesting instanceof JoinOperator);
-		System.out.println(querySeven);
-		System.out.println(joinTesting.getNextTuple());
+		
+		assertEquals(joinTesting.getNextTuple().toString(),"64,113,139,64,156");
+		assertEquals(joinTesting.getNextTuple().toString(),"64,113,139,64,70");
+		assertEquals(joinTesting.getNextTuple().toString(),"64,113,139,64,170");
+		assertEquals(joinTesting.getNextTuple().toString(),"64,113,139,64,16");
+		assertEquals(joinTesting.getNextTuple().toString(),"64,113,139,64,70");
+
+		// Test if the reset works
+		joinTesting.reset();
+		
+		assertEquals(joinTesting.getNextTuple().toString(),"64,113,139,64,156");
+		assertEquals(joinTesting.getNextTuple().toString(),"64,113,139,64,70");
+		
+//		System.out.println("delimitered");
+		
+		// Join testing when there is more than two tables
+		Statement queryeight= queries.get(8);
+		QueryPlan join2 = new QueryPlan(queryeight,DatabaseCatalog.getInstance());
+		Operator joinTesting2= join2.getOperator();
+		assertTrue(joinTesting2 instanceof JoinOperator);
+		
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,156,156,142,9");
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,156,156,94,121");
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,156,156,193,12");
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,156,156,31,32");
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,70,70,75,147");
+		
+		// Test if the reset method works for this join
+		joinTesting2.reset();
+		
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,156,156,142,9");
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,156,156,94,121");
+		assertEquals(joinTesting2.getNextTuple().toString(),"64,113,139,64,156,156,193,12");
+		
+		// Testing a join with a projection on top of it.
+		Statement querysixteen= queries.get(16);
+		QueryPlan projectionJoin = new QueryPlan(querysixteen,DatabaseCatalog.getInstance());
+		Operator projectionJoinTesting= projectionJoin.getOperator();
+		assertTrue(projectionJoinTesting instanceof ProjectOperator);
+		
+		assertEquals(projectionJoinTesting.getNextTuple().toString(),"9,156,64,64");
+		assertEquals(projectionJoinTesting.getNextTuple().toString(),"121,156,64,64");
+		assertEquals(projectionJoinTesting.getNextTuple().toString(),"12,156,64,64");
+		assertEquals(projectionJoinTesting.getNextTuple().toString(),"32,156,64,64");
+		assertEquals(projectionJoinTesting.getNextTuple().toString(),"147,70,64,64");
+		
+		// Test to see if the reset method works for this projectionjoin
+		projectionJoinTesting.reset();
+		assertEquals(projectionJoinTesting.getNextTuple().toString(),"9,156,64,64");
+		
+		
+		// Sort testing 
+		Statement queryseventeen = queries.get(17);
+		QueryPlan sortJoin = new QueryPlan(queryseventeen,DatabaseCatalog.getInstance());
+		
+
+
+
+
+		
+		
+
+		
+		
+
 		
 		
 		

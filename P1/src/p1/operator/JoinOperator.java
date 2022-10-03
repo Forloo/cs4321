@@ -29,7 +29,7 @@ public class JoinOperator extends Operator {
 	// The schema for the results query table
 	private ArrayList<String> schema;
 	// The where condition. Only used to call accept.
-	private Expression where;
+	private ArrayList<Expression> where;
 	// The left tuple to join with.
 	private Tuple leftTuple;
 	// The tables that are being joined on by this joinoperator
@@ -42,13 +42,19 @@ public class JoinOperator extends Operator {
 	 * @param right the right child operator
 	 * @param exp The where expression will be passed in by the query plan.
 	 */
-	public JoinOperator(String tables,Operator left, Operator right, Expression exp) {
+	public JoinOperator(String tables,Operator left, Operator right, ArrayList<Expression> exp) {
 		this.left = left;
 		this.right = right;
+		this.tables=tables;
 		
 		where=exp;
-		schema = left.getSchema();
-		schema.addAll(right.getSchema());
+		ArrayList<String> schema2= new ArrayList<String>();
+		schema2.addAll(left.getSchema());
+		
+//		schema = left.getSchema();
+//		System.out.println(right.getSchema());
+		schema2.addAll(right.getSchema());
+		schema=schema2;
 		idx = 0;
 		leftTuple = left.getNextTuple();
 	}
@@ -66,8 +72,16 @@ public class JoinOperator extends Operator {
 	 *
 	 * @return An expression or null.
 	 */
-	public Expression getWhere() {
+	public ArrayList<Expression> getWhere() {
 		return where;
+	}
+	
+	public Operator getLeft() {
+		return left;
+	}
+	
+	public Operator getRight() {
+		return right;
 	}
 
 	/**
@@ -77,6 +91,14 @@ public class JoinOperator extends Operator {
 	 */
 	public ArrayList<String> getSchema() {
 		return schema;
+	}
+	
+	public Tuple getLeftTuple() {
+		return leftTuple;
+	}
+	
+	public void setLeftTuple(Tuple leftValue) {
+		this.leftTuple=leftValue;
 	}
 
 	/**
@@ -90,6 +112,8 @@ public class JoinOperator extends Operator {
 //			return null;
 //		}
 //		return new Tuple(results.get(idx++).toString());
+		
+//		System.out.println("entered this loop again");
 		if (leftTuple == null) { // no more tuples to join
 			return null;
 		}
@@ -102,21 +126,31 @@ public class JoinOperator extends Operator {
 		if (leftTuple == null) { // no more tuples to join
 			return null;
 		}
-		ArrayList<String> together = leftTuple.getTuple();
-		together.addAll(rightTuple.getTuple());
-		Tuple joinedTuple = new Tuple(together);
+//		ArrayList<String> together = leftTuple.getTuple();
+		ArrayList<String> together2 = new ArrayList<String>();
+		together2.addAll(leftTuple.getTuple());
+		together2.addAll(rightTuple.getTuple());
+//		together.addAll(rightTuple.getTuple());
+		Tuple joinedTuple = new Tuple(together2);
+		
 		
 		if (where == null) {
 			return joinedTuple;
 		} else {
 			ExpressionEvaluator eval = new ExpressionEvaluator(joinedTuple, schema);
-			where.accept(eval);
-			if (Boolean.parseBoolean(eval.getValue())) {
+			// There must be at least one expression if we enter this loop
+			boolean allTrue=true;
+			for(int i=0;i<this.getWhere().size();i++) {
+				this.getWhere().get(i).accept(eval);
+				allTrue=allTrue && (Boolean.parseBoolean(eval.getValue()));
+			}
+//			where.accept(eval);
+			if (allTrue) {
 				return joinedTuple;
 			} else {
 				// Some strange behavior going on here. The joinedTuple is always 
 				// 2 longer than the previous one when it should not be.
-				System.out.println(joinedTuple);
+//				System.out.println(joinedTuple);
 				return getNextTuple();
 			}
 		}
@@ -128,7 +162,11 @@ public class JoinOperator extends Operator {
 	 */
 	@Override
 	public void reset() {
-		idx = 0;
+//		idx = 0;
+		left.reset();
+		right.reset();
+		Tuple leftValue=this.getLeft().getNextTuple();
+		this.setLeftTuple(leftValue);
 	}
 
 	/**
