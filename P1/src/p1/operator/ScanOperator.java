@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
+import p1.util.Aliases;
 import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
@@ -22,8 +23,14 @@ public class ScanOperator extends Operator {
 	 * Constructor to scan rows of table fromTable (aliased).
 	 */
 	public ScanOperator(String fromTable) {
-		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(fromTable));
-		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
+		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
+		ArrayList<String> newSchema = new ArrayList<String>();
+		for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
+			String[] els = col.split("\\.");
+			String colName = els[els.length - 1];
+			newSchema.add(fromTable + "." + colName);
+		}
+		schema = newSchema;
 	}
 
 	/**

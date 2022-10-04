@@ -1,7 +1,5 @@
 package p1.util;
 
-import java.util.ArrayList;
-
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.CaseExpression;
@@ -42,8 +40,6 @@ import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.FromItem;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import p1.logicaloperator.LogicalFilter;
 import p1.logicaloperator.LogicalJoin;
@@ -77,7 +73,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	 */
 	public PhysicalPlanBuilder(Statement query) {
 		physicalPlan = null;
-		this.query=query;
+		this.query = query;
 	}
 
 	/**
@@ -97,100 +93,101 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	public QueryPlan getPlan() {
 		return physicalPlan;
 	}
-	
+
 	private void setPlan(QueryPlan plan) {
-		physicalPlan=plan;
+		physicalPlan = plan;
 	}
-	
+
 	/**
-	 * Generates the physical tree given the root node for the Logicaltree
-	 * After we get more than one join working we will also pass into this an object
-	 * telling us the configuration of what joins that we want.
+	 * Generates the physical tree given the root node for the Logicaltree After we
+	 * get more than one join working we will also pass into this an object telling
+	 * us the configuration of what joins that we want.
+	 *
 	 * @param rootOperator The root operator from the logical tree
 	 * @return An operator for the root node for the logical tree.
 	 */
 	public Operator generatePhysicalTree(LogicalOperator rootOperator) {
-		
+
 		// Logical scan base case check
 		if (rootOperator instanceof LogicalScan) {
 			// Cast the rootOperator to the logical scan and then get the field that we want
 			LogicalScan cpy = (LogicalScan) rootOperator;
 			// Make this into the physicalOperator
-			ScanOperator scanleaf= new ScanOperator(cpy.getFromTable());
+			ScanOperator scanleaf = new ScanOperator(cpy.getFromTable());
 			return scanleaf;
 		}
-		
+
 		if (rootOperator instanceof LogicalFilter) {
 			// Cast the rootoperator to the logical filter
 			LogicalFilter cpy = (LogicalFilter) rootOperator;
-			
-			ScanOperator child= (ScanOperator)generatePhysicalTree(cpy.getChild());
+
+			ScanOperator child = (ScanOperator) generatePhysicalTree(cpy.getChild());
 			// The child for select is always scan so we need to cast it
-			SelectOperator select = new SelectOperator(child,cpy.getExpression());
+			SelectOperator select = new SelectOperator(child, cpy.getExpression());
 			return select;
 		}
-		
+
 		if (rootOperator instanceof LogicalProject) {
 			// Cast the element to the logical project
 			LogicalProject cpy = (LogicalProject) rootOperator;
-			
+
 			// Get the child element for this
 			Operator child = generatePhysicalTree(cpy.getChild());
-			
-			ProjectOperator project= new ProjectOperator(child,cpy.getSelects());
-			
+
+			ProjectOperator project = new ProjectOperator(child, cpy.getSelects());
+
 			return project;
 		}
-		
+
 		if (rootOperator instanceof LogicalJoin) {
 			// Cast the element to the logical join
 			LogicalJoin cpy = (LogicalJoin) rootOperator;
-			
+
 			// Get the left child
-			Operator leftchild= generatePhysicalTree(cpy.getLeftChild());
-			
-			Operator rightchild= generatePhysicalTree(cpy.getRightChild());
-			
-			JoinOperator join= new JoinOperator(cpy.getTables(),leftchild,rightchild,cpy.getExpression());
-			
+			Operator leftchild = generatePhysicalTree(cpy.getLeftChild());
+
+			Operator rightchild = generatePhysicalTree(cpy.getRightChild());
+
+			JoinOperator join = new JoinOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
+
 			return join;
 		}
-		
+
 		if (rootOperator instanceof LogicalSort) {
 			// Cast the element to a logical sort
 			LogicalSort cpy = (LogicalSort) rootOperator;
-			
+
 			// Get the child for the sort
 			Operator child = generatePhysicalTree(cpy.getChild());
-			
-			SortOperator sort= new SortOperator(child,cpy.getOrderBy());
+
+			SortOperator sort = new SortOperator(child, cpy.getOrderBy());
 			return sort;
 		}
-		
+
 		if (rootOperator instanceof LogicalUnique) {
 			// Cast it to the logicalunique
-			LogicalUnique cpy= (LogicalUnique) rootOperator;
-			
+			LogicalUnique cpy = (LogicalUnique) rootOperator;
+
 			// Get the child node which we know is a sort
 			SortOperator child = (SortOperator) generatePhysicalTree(cpy.getChild());
-			
+
 			// Make the physical elimination operator
 			DuplicateEliminationOperator dup = new DuplicateEliminationOperator(child);
-			
+
 			return dup;
 		}
-		
+
 		// Reaching this is not possible
 		return null;
-		
+
 	}
 
 	public void visit(LogicalPlan lp) {
 		// Get the rootOperator for the tree
-		LogicalOperator root= lp.getOperator();
-		Operator physicalroot= this.generatePhysicalTree(root);
-		QueryPlan physicalcopy= new QueryPlan(physicalroot);
-		this.physicalPlan=physicalcopy;
+		LogicalOperator root = lp.getOperator();
+		Operator physicalroot = this.generatePhysicalTree(root);
+		QueryPlan physicalcopy = new QueryPlan(physicalroot);
+		this.physicalPlan = physicalcopy;
 	}
 
 	@Override

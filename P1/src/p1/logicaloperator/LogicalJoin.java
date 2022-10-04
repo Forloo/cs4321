@@ -22,15 +22,16 @@ public class LogicalJoin extends LogicalOperator {
 	 * @param right The right child operator
 	 * @param ex    Expression containing the information
 	 */
-	public LogicalJoin(String tables,LogicalOperator left, LogicalOperator right, ArrayList<Expression> ex) {
-		this.tables=tables;
+	public LogicalJoin(String tables, LogicalOperator left, LogicalOperator right, ArrayList<Expression> ex) {
+		this.tables = tables;
 		this.left = left;
 		this.right = right;
 		this.exp = ex;
 	}
-	
+
 	/**
 	 * Retrieves the tables that this join table contains
+	 *
 	 * @return A string delimited by commas telling us the tables that are joined.
 	 */
 	public String getTables() {

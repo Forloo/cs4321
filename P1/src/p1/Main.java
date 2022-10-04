@@ -9,6 +9,8 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
+import p1.util.LogicalPlan;
+import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
 
 public class Main {
@@ -21,7 +23,6 @@ public class Main {
 
 		// Get the file list containing all file inputs
 		File inputDir = new File(dataDir + "data");
-		System.out.println(args[0] + "/data");
 		String[] allFiles = inputDir.list();
 		File[] fileList = new File[allFiles.length];
 		File schema = new File(dataDir + "schema.txt");
@@ -38,23 +39,6 @@ public class Main {
 			Statement statement;
 			int queryCount = 1;
 
-			// =============================== TEST IO ===============================
-//			BinaryTupleWriter btw = new BinaryTupleWriter(queriesOutput + File.separator + "testbin");
-//			RandomDataGenerator rdg = new RandomDataGenerator(3, 10000);
-//			PrintWriter out = new PrintWriter(queriesOutput + File.separator + "testnormal");
-//			for (Tuple t : rdg.generate()) {
-//				out.println(t.toString());
-//				btw.writeTuple(t);
-//			}
-//			out.close();
-//			btw.close();
-//			BinaryTupleReader btr = new BinaryTupleReader(queriesOutput + File.separator + "testbin");
-//			for (int i = 0; i < 10000; i++) {
-//				System.out.println(btr.nextTuple().toString());
-//			}
-//			btr.close();
-			// =============================== TEST IO ===============================
-
 			while ((statement = parser.Statement()) != null) {
 				try {
 					// Parse statement
@@ -68,7 +52,10 @@ public class Main {
 					queryResult.createNewFile();
 
 					// Evaluate query
-					QueryPlan qp = new QueryPlan(statement, db);
+					LogicalPlan lp = new LogicalPlan(statement);
+					PhysicalPlanBuilder builder = new PhysicalPlanBuilder(statement);
+					lp.accept(builder);
+					QueryPlan qp = builder.getPlan();
 					long startMillis = System.currentTimeMillis();
 					qp.getOperator().dump(queriesOutputFile);
 					long elapsedMillis = System.currentTimeMillis() - startMillis;

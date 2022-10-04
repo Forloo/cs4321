@@ -1,14 +1,10 @@
 package p1.operator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.io.BinaryTupleWriter;
-import p1.util.Aliases;
 import p1.util.ExpressionEvaluator;
-import p1.util.ExpressionParser;
 import p1.util.Tuple;
 
 /**
@@ -20,8 +16,6 @@ public class JoinOperator extends Operator {
 	private Operator left;
 	// Right child operator
 	private Operator right;
-	// Tree representing the join operator
-	private JoinOperatorTree tree;
 	// A list of tuples containing the final results.
 	private ArrayList<Tuple> results;
 	// Index for which tuple we are on
@@ -40,27 +34,25 @@ public class JoinOperator extends Operator {
 	 *
 	 * @param left  the left child operator
 	 * @param right the right child operator
-	 * @param exp The where expression will be passed in by the query plan.
+	 * @param exp   The where expression will be passed in by the query plan.
 	 */
-	public JoinOperator(String tables,Operator left, Operator right, ArrayList<Expression> exp) {
+	public JoinOperator(String tables, Operator left, Operator right, ArrayList<Expression> exp) {
 		this.left = left;
 		this.right = right;
-		this.tables=tables;
-		
-		where=exp;
-		ArrayList<String> schema2= new ArrayList<String>();
+		this.tables = tables;
+
+		where = exp;
+		ArrayList<String> schema2 = new ArrayList<String>();
 		schema2.addAll(left.getSchema());
-		
-//		schema = left.getSchema();
-//		System.out.println(right.getSchema());
 		schema2.addAll(right.getSchema());
-		schema=schema2;
+		schema = schema2;
 		idx = 0;
 		leftTuple = left.getNextTuple();
 	}
-	
+
 	/**
 	 * Retreives the tables that are being joined by this joinOperator
+	 *
 	 * @return A string delimited by commas telling us all the tables being joined.
 	 */
 	public String getTables() {
@@ -75,11 +67,11 @@ public class JoinOperator extends Operator {
 	public ArrayList<Expression> getWhere() {
 		return where;
 	}
-	
+
 	public Operator getLeft() {
 		return left;
 	}
-	
+
 	public Operator getRight() {
 		return right;
 	}
@@ -92,13 +84,13 @@ public class JoinOperator extends Operator {
 	public ArrayList<String> getSchema() {
 		return schema;
 	}
-	
+
 	public Tuple getLeftTuple() {
 		return leftTuple;
 	}
-	
+
 	public void setLeftTuple(Tuple leftValue) {
-		this.leftTuple=leftValue;
+		this.leftTuple = leftValue;
 	}
 
 	/**
@@ -112,7 +104,7 @@ public class JoinOperator extends Operator {
 //			return null;
 //		}
 //		return new Tuple(results.get(idx++).toString());
-		
+
 //		System.out.println("entered this loop again");
 		if (leftTuple == null) { // no more tuples to join
 			return null;
@@ -132,25 +124,20 @@ public class JoinOperator extends Operator {
 		together2.addAll(rightTuple.getTuple());
 //		together.addAll(rightTuple.getTuple());
 		Tuple joinedTuple = new Tuple(together2);
-		
-		
+
 		if (where == null) {
 			return joinedTuple;
 		} else {
 			ExpressionEvaluator eval = new ExpressionEvaluator(joinedTuple, schema);
 			// There must be at least one expression if we enter this loop
-			boolean allTrue=true;
-			for(int i=0;i<this.getWhere().size();i++) {
+			boolean allTrue = true;
+			for (int i = 0; i < this.getWhere().size(); i++) {
 				this.getWhere().get(i).accept(eval);
-				allTrue=allTrue && (Boolean.parseBoolean(eval.getValue()));
+				allTrue = allTrue && (Boolean.parseBoolean(eval.getValue()));
 			}
-//			where.accept(eval);
 			if (allTrue) {
 				return joinedTuple;
 			} else {
-				// Some strange behavior going on here. The joinedTuple is always 
-				// 2 longer than the previous one when it should not be.
-//				System.out.println(joinedTuple);
 				return getNextTuple();
 			}
 		}
@@ -165,7 +152,7 @@ public class JoinOperator extends Operator {
 //		idx = 0;
 		left.reset();
 		right.reset();
-		Tuple leftValue=this.getLeft().getNextTuple();
+		Tuple leftValue = this.getLeft().getNextTuple();
 		this.setLeftTuple(leftValue);
 	}
 
@@ -202,15 +189,6 @@ public class JoinOperator extends Operator {
 			System.out.println("Exception occurred: ");
 			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * Returns the root of the JoinOperatorTree.
-	 *
-	 * @return A tree representing the order of joins.
-	 */
-	public JoinOperatorTree getRoot() {
-		return tree;
 	}
 
 }

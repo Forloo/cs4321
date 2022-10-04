@@ -73,7 +73,7 @@ public class ProjectOperator extends Operator {
 	 * @return a list of all column names for the scan table.
 	 */
 	public ArrayList<String> getSchema() {
-		return schema;
+		return cols;
 	}
 
 	/**

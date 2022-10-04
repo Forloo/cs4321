@@ -1,7 +1,6 @@
 package p1.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
@@ -71,18 +70,6 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 	}
 
 	/**
-	 * Constructor to evaluate an expression with a self join.
-	 */
-	public ExpressionEvaluator(Tuple t, String tableNames) {
-		row = t;
-		columns = new ArrayList<String>();
-		tables = Arrays.asList(tableNames.split(","));
-		for (String name : tables) {
-			columns.addAll(DatabaseCatalog.getInstance().getSchema().get(name));
-		}
-	}
-
-	/**
 	 * Evaluates the expression
 	 *
 	 * @return the value of the expression
@@ -103,13 +90,8 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 		Expression right = arg0.getRightExpression();
 		ExpressionEvaluator leftEval;
 		ExpressionEvaluator rightEval;
-		if (tables != null) {
-			leftEval = new ExpressionEvaluator(row, String.join(",", tables));
-			rightEval = new ExpressionEvaluator(row, String.join(",", tables));
-		} else {
-			leftEval = new ExpressionEvaluator(row, columns);
-			rightEval = new ExpressionEvaluator(row, columns);
-		}
+		leftEval = new ExpressionEvaluator(row, columns);
+		rightEval = new ExpressionEvaluator(row, columns);
 		left.accept(leftEval);
 		right.accept(rightEval);
 		String leftValue = leftEval.getValue();
@@ -119,36 +101,8 @@ public class ExpressionEvaluator implements ExpressionVisitor {
 
 	@Override
 	public void visit(Column arg0) {
-		if (tables != null) {
-			String table = arg0.getTable().getName();
-			int tableIdx = 0;
-
-			for (String fullTable : Aliases.getAliasList()) {
-				if (fullTable.substring((fullTable.lastIndexOf(" ") + 1)).equals(table)) {
-					break;
-				}
-				tableIdx++;
-			}
-
-			int startIdx = 0;
-			for (int i = 0; i < tableIdx; i++) {
-				startIdx += DatabaseCatalog.getInstance().getSchema().get(tables.get(i)).size();
-			}
-			List<String> subColumns = columns.subList(startIdx, columns.size());
-			value = row.getTuple().get(startIdx + subColumns.indexOf(arg0.getColumnName()));
-		} else {
-			// Get the columns
-			ArrayList<String> alt = new ArrayList<String>();
-			for(int i=0;i<columns.size();i++) {
-				// Find the index of the . in the name and then grab the letter of the index after that
-				int index=columns.get(i).indexOf(".");
-				alt.add(columns.get(i).substring(index+1,index+2));
-			}
-			//System.out.println(arg0.getColumnName());
-			int idx = alt.indexOf(arg0.getColumnName());
-			value = row.getTuple().get(idx);
-		}
-		
+		int idx = columns.indexOf(arg0.getWholeColumnName());
+		value = row.getTuple().get(idx);
 	}
 
 	@Override

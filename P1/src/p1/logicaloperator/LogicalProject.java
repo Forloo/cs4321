@@ -2,8 +2,6 @@ package p1.logicaloperator;
 
 import java.util.List;
 
-import p1.operator.Operator;
-
 public class LogicalProject extends LogicalOperator {
 
 	// The child operator
