@@ -5,11 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import net.sf.jsqlparser.statement.select.AllColumns;
-import net.sf.jsqlparser.statement.select.Join;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.io.BinaryTupleWriter;
-import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
 /**
@@ -34,48 +30,12 @@ public class SortOperator extends Operator {
 	/**
 	 * Determines the orderBy list and selects a child operator.
 	 *
-	 * @param ps        the query.
-	 * @param fromTable the table to query/join with.
+	 * @param op     the child operator
+	 * @param orders the columns to order by
 	 */
-	public SortOperator(PlainSelect ps, String fromTable) {
-		ArrayList<String> origSchema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
-		ArrayList<String> allCols = new ArrayList<String>();
-
-		String fromAlias = ps.getFromItem().getAlias() == null ? fromTable : ps.getFromItem().getAlias();
-		for (int i = 0; i < origSchema.size(); i++) {
-			allCols.add(i, fromAlias + "." + origSchema.get(i));
-		}
-
-		if (!(ps.getSelectItems().get(0) instanceof AllColumns)) { // determine child operator
-			child = new ProjectOperator(ps, fromTable);
-		} else if (ps.getJoins() != null) {
-			child = new JoinOperator(ps, fromTable);
-			for (Object join : ps.getJoins()) {
-				String[] joinTable = join.toString().split(" ");
-				String joinTableName = joinTable[0];
-				ArrayList<String> colSchema = DatabaseCatalog.getInstance().getSchema().get(joinTableName);
-				String j = ((Join) join).getRightItem().toString();
-				// Add alias to column name to distinguish for self joins
-				for (String colName : colSchema) {
-					allCols.add(joinTable[joinTable.length - 1] + "." + colName);
-				}
-			}
-		} else if (ps.getWhere() != null) {
-			child = new SelectOperator(ps, fromTable);
-		} else {
-			child = new ScanOperator(fromTable);
-		}
-
-		// Get the list of columns corresponding to the returned Tuples.
-		List selectItems = ps.getSelectItems(); // get specific select columns
-		for (int i = 0; i < selectItems.size(); i++) {
-			String col = selectItems.get(i).toString();
-			if (col.equals("*")) {
-				schema.addAll(allCols);
-			} else {
-				schema.add(col);
-			}
-		}
+	public SortOperator(Operator op, List orders) {
+		child = op;
+		schema = op.getSchema();
 
 		// Get the rows from the child operator
 		Tuple currTuple = child.getNextTuple();
@@ -83,10 +43,9 @@ public class SortOperator extends Operator {
 			tupleData.add(currTuple);
 			currTuple = child.getNextTuple();
 		}
-
 		// Get a list of columns to order by
-		if (ps.getOrderByElements() != null) {
-			for (Object c : ps.getOrderByElements()) {
+		if (orders != null) {
+			for (Object c : orders) {
 				orderBy.add(c.toString());
 			}
 			// Add the rest of the columns to break ties
@@ -157,6 +116,15 @@ public class SortOperator extends Operator {
 	public void reset() {
 		idx = 0;
 		child.reset();
+	}
+
+	/**
+	 * Gets the column names corresponding to the tuples.
+	 *
+	 * @return a list of all column names for the scan table.
+	 */
+	public ArrayList<String> getSchema() {
+		return schema;
 	}
 
 	/**

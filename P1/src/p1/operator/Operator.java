@@ -1,5 +1,7 @@
 package p1.operator;
 
+import java.util.ArrayList;
+
 import p1.util.Tuple;
 
 /**
@@ -19,6 +21,13 @@ public abstract class Operator {
 	 * Resets the Operator to its original state
 	 */
 	public abstract void reset();
+
+	/**
+	 * Gets the column names corresponding to the tuples.
+	 *
+	 * @return a list of all column names for the table.
+	 */
+	public abstract ArrayList<String> getSchema();
 
 	/**
 	 * Retrieves all tuples and outputs them to stdout.

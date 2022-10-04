@@ -1,45 +1,45 @@
 package p1.logicaloperator;
 
-import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.expression.Expression;
 
 public class LogicalFilter extends LogicalOperator {
 
-	// The table to check the condition from
-	private String tableName;
-	// The query containing the information for the logical filter.
-	private PlainSelect plainSelect;
+	// The child operator
+	private LogicalOperator child;
+	// The expression to filter by
+	private Expression exp;
 
 	/**
 	 * The constructor for the logical filter operator
 	 *
-	 * @param tableName   The table we are filtering on
-	 * @param plainSelect Query containing the information
+	 * @param op The child operator
+	 * @param ex Expression containing the information
 	 */
-	public LogicalFilter(PlainSelect plainSelect, String fromTable) {
-		this.tableName = fromTable;
-		this.plainSelect = plainSelect;
+	public LogicalFilter(LogicalOperator op, Expression ex) {
+		this.child = op;
+		this.exp = ex;
 	}
 
 	/**
-	 * Retrieves the table we are performing filter on
+	 * Retrieves the child operator.
 	 *
-	 * @return The name of the table that we are filtering on
+	 * @return The child operator used to get tuples.
 	 */
-	public String getName() {
-		return tableName;
+	public LogicalOperator getChild() {
+		return child;
 	}
 
 	/**
-	 * Retrieves the query containing the conditions that we are filtering on
+	 * Retrieves the expression containing the conditions that we are filtering on
 	 *
-	 * @return A plainSelect object containing the condition information.
+	 * @return An Expression object containing the condition information.
 	 */
-	public PlainSelect getInfo() {
-		return plainSelect;
+	public Expression getExpression() {
+		return exp;
 	}
 
 	// This is just for testing and knowing that we have the right node placement.
 	public String toString() {
-		return "This is a LogicalFilterNode";
+		return "This is a logical filter node";
 	}
 }

@@ -31,6 +31,10 @@ public class JoinOperatorTest {
 
 	@Test
 	public void JoinOperatorTesting() {
+		// This testing file is no longer valid.
+		// Refactoring how the query tree will be made and the node will consist 
+		// of multiple different nodes.
+		
 		for (int i = 0; i < allFiles.length; i++) {
 			File file = new File(dataDir + "data" + File.separator + allFiles[i]);
 			fileList[i] = file;
@@ -63,42 +67,42 @@ public class JoinOperatorTest {
 		// Get the fourth query that requires a join
 		Statement fourth = queries.get(4);
 
-		Select select = (Select) fourth;
-		PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-		JoinOperator join = new JoinOperator(plainSelect, "");
-
-		// Test that the final schema table is correct (Test again after since we are
-		// renaming the tables)
-		ArrayList<String> results = new ArrayList<String>();
-		results.add("A");
-		results.add("B");
-		results.add("C");
-		results.add("G");
-		results.add("H");
-
-		assertEquals(results, join.getSchema());
-		join.dump();
-		Expression value = join.getWhere();
-
-		ExpressionParser hope = new ExpressionParser(value);
-		value.accept(hope);
-
-		// Get the fourth query that requires a join
-		Statement ninth = queries.get(9);
-
-		Select select2 = (Select) ninth;
-		PlainSelect plainSelect2 = (PlainSelect) select2.getSelectBody();
-		JoinOperator join2 = new JoinOperator(plainSelect2, "");
-		Expression value2 = join2.getWhere();
-		ExpressionParser hope2 = new ExpressionParser(value2);
-		value2.accept(hope2);
-		ArrayList<Expression> valueOne = hope2.getList();
-
-		// Grab the tenth query
-		Statement ten = queries.get(10);
-		Select select3 = (Select) ten;
-		PlainSelect plainSelect3 = (PlainSelect) select3.getSelectBody();
-		JoinOperator join3 = new JoinOperator(plainSelect3, "");
+//		Select select = (Select) fourth;
+//		PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+//		JoinOperator join = new JoinOperator(plainSelect, "");
+//
+//		// Test that the final schema table is correct (Test again after since we are
+//		// renaming the tables)
+//		ArrayList<String> results = new ArrayList<String>();
+//		results.add("A");
+//		results.add("B");
+//		results.add("C");
+//		results.add("G");
+//		results.add("H");
+//
+//		assertEquals(results, join.getSchema());
+//		join.dump();
+//		Expression value = join.getWhere();
+//
+//		ExpressionParser hope = new ExpressionParser(value);
+//		value.accept(hope);
+//
+//		// Get the fourth query that requires a join
+//		Statement ninth = queries.get(9);
+//
+//		Select select2 = (Select) ninth;
+//		PlainSelect plainSelect2 = (PlainSelect) select2.getSelectBody();
+//		JoinOperator join2 = new JoinOperator(plainSelect2, "");
+//		Expression value2 = join2.getWhere();
+//		ExpressionParser hope2 = new ExpressionParser(value2);
+//		value2.accept(hope2);
+//		ArrayList<Expression> valueOne = hope2.getList();
+//
+//		// Grab the tenth query
+//		Statement ten = queries.get(10);
+//		Select select3 = (Select) ten;
+//		PlainSelect plainSelect3 = (PlainSelect) select3.getSelectBody();
+//		JoinOperator join3 = new JoinOperator(plainSelect3, "");
 
 		// Want to see the expected values from the leaf nodes
 

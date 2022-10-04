@@ -101,4 +101,13 @@ public class Aliases {
 	public static ArrayList<String> getOnlyAliases() {
 		return onlyAliases;
 	}
+
+	/**
+	 * Get the alias name from the full string alias object (Sailors AS S).
+	 *
+	 * @return the alias name
+	 */
+	public static String getAlias(String fullAlias) {
+		return onlyAliases.get(aliasList.indexOf(fullAlias));
+	}
 }

@@ -1,7 +1,10 @@
 package p1.operator;
 
+import java.util.ArrayList;
+
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
+import p1.util.Aliases;
 import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
@@ -13,26 +16,21 @@ public class ScanOperator extends Operator {
 
 	// Binary file reader.
 	BinaryTupleReader reader;
+	// Column names.
+	ArrayList<String> schema;
 
 	/**
-	 * Constructor to scan rows of table fromTable.
+	 * Constructor to scan rows of table fromTable (aliased).
 	 */
 	public ScanOperator(String fromTable) {
-//		rows = new ArrayList<String>();
-//		idx = 0;
-//		try {
-//			String fileLoc = DatabaseCatalog.getInstance().getNames().get(fromTable);
-//			File file = new File(fileLoc);
-//			Scanner fileReader = new Scanner(file);
-//			while (fileReader.hasNextLine()) {
-//				rows.add(fileReader.nextLine());
-//			}
-//			fileReader.close();
-//		} catch (FileNotFoundException e) {
-//			System.out.println("An error occurred.");
-//			e.printStackTrace();
-//		}
-		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(fromTable));
+		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
+		ArrayList<String> newSchema = new ArrayList<String>();
+		for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
+			String[] els = col.split("\\.");
+			String colName = els[els.length - 1];
+			newSchema.add(fromTable + "." + colName);
+		}
+		schema = newSchema;
 	}
 
 	/**
@@ -50,6 +48,15 @@ public class ScanOperator extends Operator {
 	 */
 	public void reset() {
 		reader.reset();
+	}
+
+	/**
+	 * Gets the column names corresponding to the tuples.
+	 *
+	 * @return a list of all column names for the scan table.
+	 */
+	public ArrayList<String> getSchema() {
+		return schema;
 	}
 
 	/**

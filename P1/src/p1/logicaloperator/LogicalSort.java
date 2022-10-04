@@ -1,46 +1,47 @@
 package p1.logicaloperator;
 
-import net.sf.jsqlparser.statement.select.PlainSelect;
+import java.util.List;
+
+import p1.operator.Operator;
 
 public class LogicalSort extends LogicalOperator {
 
-	// The query containing the information for our logical sort
-	private PlainSelect plainSelect;
-	// The table that we want to sort on.
-	private String tableName;
+	// The child operator for this should be some logical operator
+	private LogicalOperator child;
+	// The expression to filter by
+	private List orderBy;
 
 	/**
-	 * A relational algebra representation of the sort operator
+	 * The constructor for the logical filter operator
 	 *
-	 * @param plainSelect A plainselect containing the information
-	 * @param tableName   The table that we are sorting on.
+	 * @param op     the child operator
+	 * @param orders the columns to order by
 	 */
-	public LogicalSort(PlainSelect plainSelect, String tableName) {
-		this.plainSelect = plainSelect;
-		this.tableName = tableName;
+	public LogicalSort(LogicalOperator op, List orders) {
+		this.child = op;
+		this.orderBy = orders;
 	}
 
 	/**
-	 * Retrieves the plainselect that holds all of our information
+	 * Retrieves the child operator.
 	 *
-	 * @return A plainselect object containing information that we want to sort on
+	 * @return The child operator used to get tuples.
 	 */
-	public PlainSelect getInfo() {
-		return plainSelect;
+	public LogicalOperator getChild() {
+		return child;
 	}
 
 	/**
-	 * Retrieves the tableName that we want to sort on.
+	 * Retrieves the columns to sort by.
 	 *
-	 * @return A string representing the name of the table.
+	 * @return A list containing the columns to order by.
 	 */
-	public String getName() {
-		return tableName;
+	public List getOrderBy() {
+		return orderBy;
 	}
 
-	// This is for testing only.
+	// This is just for testing and knowing that we have the right node placement.
 	public String toString() {
-		return "This is a logical sort";
+		return "This is a logical sort node";
 	}
-
 }

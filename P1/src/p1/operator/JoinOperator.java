@@ -1,15 +1,10 @@
 package p1.operator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.io.BinaryTupleWriter;
-import p1.util.Aliases;
-import p1.util.DatabaseCatalog;
-import p1.util.ExpressionParser;
+import p1.util.ExpressionEvaluator;
 import p1.util.Tuple;
 
 /**
@@ -17,8 +12,10 @@ import p1.util.Tuple;
  */
 public class JoinOperator extends Operator {
 
-	// Tree representing the join operator
-	private JoinOperatorTree tree;
+	// Left child operator
+	private Operator left;
+	// Right child operator
+	private Operator right;
 	// A list of tuples containing the final results.
 	private ArrayList<Tuple> results;
 	// Index for which tuple we are on
@@ -26,58 +23,40 @@ public class JoinOperator extends Operator {
 	// The schema for the results query table
 	private ArrayList<String> schema;
 	// The where condition. Only used to call accept.
-	private Expression where;
+	private ArrayList<Expression> where;
+	// The left tuple to join with.
+	private Tuple leftTuple;
+	// The tables that are being joined on by this joinoperator
+	private String tables;
 
 	/**
 	 * Creates a JoinOperatorTree.
 	 *
-	 * @param plainSelect the query.
-	 * @param fromTable   the root table to join to.
+	 * @param left  the left child operator
+	 * @param right the right child operator
+	 * @param exp   The where expression will be passed in by the query plan.
 	 */
-	public JoinOperator(PlainSelect plainSelect, String fromTable) {
-		// Split the where expression
-		Expression whereClause = plainSelect.getWhere();
-		ExpressionParser parse = new ExpressionParser(whereClause);
-		where = plainSelect.getWhere();
-		where.accept(parse);
-		HashMap<String[], ArrayList<Expression>> expressionInfoAliases = parse.getTablesNeeded();
-		HashMap<String[], ArrayList<Expression>> expressionInfo = new HashMap<String[], ArrayList<Expression>>();
+	public JoinOperator(String tables, Operator left, Operator right, ArrayList<Expression> exp) {
+		this.left = left;
+		this.right = right;
+		this.tables = tables;
 
-		// Pad tables needed for expressions
-		for (Map.Entry<String[], ArrayList<Expression>> set : expressionInfoAliases.entrySet()) {
-			if (set.getKey().length > 1) {
-				ArrayList<String> key = new ArrayList<String>();
-				int idx = -1;
-				for (String s : set.getKey()) {
-					int keyIdx = Aliases.getOnlyAliases().indexOf(s);
-					if (keyIdx > idx) {
-						idx = keyIdx;
-					}
-				}
-				for (int i = 0; i <= idx; i++) {
-					String alias = Aliases.getOnlyAliases().get(i);
-					key.add(alias);
-				}
-
-				expressionInfo.put(key.toArray(new String[key.size()]), set.getValue());
-			} else {
-				expressionInfo.put(set.getKey(), set.getValue());
-			}
-		}
-
-		tree = new JoinOperatorTree(plainSelect, expressionInfo);
-
-		HashMap<String, ArrayList<Tuple>> tbl = tree.dfs(tree.getRoot(), DatabaseCatalog.getInstance());
-		for (String key : tbl.keySet()) {
-			results = tbl.get(key);
-			ArrayList<String> temp = new ArrayList<String>();
-			String[] arr = key.split(",");
-			for (int i = 0; i < arr.length; i++) {
-				temp.add(arr[i]);
-			}
-			schema = temp;
-		}
+		where = exp;
+		ArrayList<String> schema2 = new ArrayList<String>();
+		schema2.addAll(left.getSchema());
+		schema2.addAll(right.getSchema());
+		schema = schema2;
 		idx = 0;
+		leftTuple = left.getNextTuple();
+	}
+
+	/**
+	 * Retreives the tables that are being joined by this joinOperator
+	 *
+	 * @return A string delimited by commas telling us all the tables being joined.
+	 */
+	public String getTables() {
+		return tables;
 	}
 
 	/**
@@ -85,8 +64,16 @@ public class JoinOperator extends Operator {
 	 *
 	 * @return An expression or null.
 	 */
-	public Expression getWhere() {
+	public ArrayList<Expression> getWhere() {
 		return where;
+	}
+
+	public Operator getLeft() {
+		return left;
+	}
+
+	public Operator getRight() {
+		return right;
 	}
 
 	/**
@@ -98,6 +85,14 @@ public class JoinOperator extends Operator {
 		return schema;
 	}
 
+	public Tuple getLeftTuple() {
+		return leftTuple;
+	}
+
+	public void setLeftTuple(Tuple leftValue) {
+		this.leftTuple = leftValue;
+	}
+
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
 	 *
@@ -105,10 +100,47 @@ public class JoinOperator extends Operator {
 	 */
 	@Override
 	public Tuple getNextTuple() {
-		if (idx == results.size()) {
+//		if (idx == results.size()) {
+//			return null;
+//		}
+//		return new Tuple(results.get(idx++).toString());
+
+//		System.out.println("entered this loop again");
+		if (leftTuple == null) { // no more tuples to join
 			return null;
 		}
-		return new Tuple(results.get(idx++).toString());
+		Tuple rightTuple = right.getNextTuple();
+		if (rightTuple == null) {
+			right.reset();
+			rightTuple = right.getNextTuple();
+			leftTuple = left.getNextTuple();
+		}
+		if (leftTuple == null) { // no more tuples to join
+			return null;
+		}
+//		ArrayList<String> together = leftTuple.getTuple();
+		ArrayList<String> together2 = new ArrayList<String>();
+		together2.addAll(leftTuple.getTuple());
+		together2.addAll(rightTuple.getTuple());
+//		together.addAll(rightTuple.getTuple());
+		Tuple joinedTuple = new Tuple(together2);
+
+		if (where == null) {
+			return joinedTuple;
+		} else {
+			ExpressionEvaluator eval = new ExpressionEvaluator(joinedTuple, schema);
+			// There must be at least one expression if we enter this loop
+			boolean allTrue = true;
+			for (int i = 0; i < this.getWhere().size(); i++) {
+				this.getWhere().get(i).accept(eval);
+				allTrue = allTrue && (Boolean.parseBoolean(eval.getValue()));
+			}
+			if (allTrue) {
+				return joinedTuple;
+			} else {
+				return getNextTuple();
+			}
+		}
 	}
 
 	/**
@@ -117,7 +149,11 @@ public class JoinOperator extends Operator {
 	 */
 	@Override
 	public void reset() {
-		idx = 0;
+//		idx = 0;
+		left.reset();
+		right.reset();
+		Tuple leftValue = this.getLeft().getNextTuple();
+		this.setLeftTuple(leftValue);
 	}
 
 	/**
@@ -153,15 +189,6 @@ public class JoinOperator extends Operator {
 			System.out.println("Exception occurred: ");
 			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * Returns the root of the JoinOperatorTree.
-	 *
-	 * @return A tree representing the order of joins.
-	 */
-	public JoinOperatorTree getRoot() {
-		return tree;
 	}
 
 }

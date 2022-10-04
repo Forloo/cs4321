@@ -3,10 +3,7 @@ package p1.operator;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.jsqlparser.statement.select.Join;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.io.BinaryTupleWriter;
-import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
 /**
@@ -16,48 +13,27 @@ import p1.util.Tuple;
  */
 public class ProjectOperator extends Operator {
 	// The child operator.
-	private Operator child = null;
-	// The column names.
-	private ArrayList<String> schema = new ArrayList<String>();
+	private Operator child;
+	// A list of all columns.
+	private ArrayList<String> schema;
 	// The columns of the rows to return.
-	private ArrayList<String> cols = new ArrayList<String>();
+	private ArrayList<String> cols;
 	// The index of the row we are currently checking/returning.
 	int idx = 0;
 
 	/**
 	 * Initializes the variables above.
 	 *
-	 * @param ps        the query
-	 * @param fromTable the initial table to retrieve rows from
+	 * @param op      the child operator
+	 * @param selects the columns to project
 	 */
-	public ProjectOperator(PlainSelect ps, String fromTable) {
-		ArrayList<String> fromSchema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
-		String alias = ps.getFromItem().getAlias() == null ? fromTable : ps.getFromItem().getAlias();
-		for (String colName : fromSchema) {
-			schema.add(alias + "." + colName);
-		}
+	public ProjectOperator(Operator op, List selects) {
+		schema = op.getSchema();
+		child = op;
 
-		if (ps.getJoins() != null) { // determine if child is join, select, or scan
-			JoinOperator op = new JoinOperator(ps, fromTable);
-			child = op;
-			for (Object join : ps.getJoins()) {
-				String[] joinTable = join.toString().split(" ");
-				String joinTableName = joinTable[0];
-				ArrayList<String> colSchema = DatabaseCatalog.getInstance().getSchema().get(joinTableName);
-				String j = ((Join) join).getRightItem().toString();
-				// Add alias to column name to distinguish for self joins
-				for (String colName : colSchema) {
-					schema.add(j.substring(j.lastIndexOf(" ") + 1) + "." + colName);
-				}
-			}
-		} else if (ps.getWhere() != null) {
-			child = new SelectOperator(ps, fromTable);
-		} else {
-			child = new ScanOperator(fromTable);
-		}
-		List selectItems = ps.getSelectItems(); // get specific select columns
-		for (int i = 0; i < selectItems.size(); i++) {
-			cols.add(selectItems.get(i).toString());
+		cols = new ArrayList<String>();
+		for (int i = 0; i < selects.size(); i++) {
+			cols.add(selects.get(i).toString());
 		}
 	}
 
@@ -80,7 +56,7 @@ public class ProjectOperator extends Operator {
 			int idx = schema.indexOf(i);
 			projection.add(nextTuple.getTuple().get(idx));
 		}
-		return new Tuple(String.join(",", projection));
+		return new Tuple(projection);
 	}
 
 	/**
@@ -89,6 +65,15 @@ public class ProjectOperator extends Operator {
 	 */
 	public void reset() {
 		child.reset();
+	}
+
+	/**
+	 * Gets the column names corresponding to the tuples.
+	 *
+	 * @return a list of all column names for the scan table.
+	 */
+	public ArrayList<String> getSchema() {
+		return cols;
 	}
 
 	/**

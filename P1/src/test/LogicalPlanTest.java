@@ -5,11 +5,20 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertTrue;
+
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.logicaloperator.LogicalFilter;
+import p1.logicaloperator.LogicalJoin;
+import p1.logicaloperator.LogicalOperator;
+import p1.logicaloperator.LogicalProject;
+import p1.logicaloperator.LogicalScan;
+import p1.logicaloperator.LogicalSort;
+import p1.logicaloperator.LogicalUnique;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalNode;
 import p1.util.LogicalPlan;
@@ -59,92 +68,107 @@ public class LogicalPlanTest {
 			System.out.println("The file you are looking for was not found");
 	}
 		
-		// Get the first element in the query
-		Statement first = queries.get(0);
-		Select select = (Select) first;
-		PlainSelect plainselect = (PlainSelect) select.getSelectBody();
-		LogicalTree temp = new LogicalTree();
+		// Test that the scan operator does work and that the type of that operator 
+		// is of type scan
+		Statement queryZero = queries.get(0);
+		LogicalPlan scan = new LogicalPlan(queryZero);
+		LogicalOperator scantest = scan.getOperator();
+		assertTrue(scantest instanceof  LogicalScan);
 		
-		LogicalNode root= temp.buildTree(plainselect);
-		temp.setRoot(root);
+		// Testing to see if the select is the filter type
+		Statement queryFour = queries.get(4);
+		LogicalPlan filter =new LogicalPlan(queryFour);
+		LogicalFilter filtertest = (LogicalFilter)filter.getOperator();
+		assertTrue(filtertest instanceof LogicalFilter);
+		assertTrue(filtertest.getChild() instanceof LogicalScan);
 		
-		// Check if there is only one scan node in this tree
-//		temp.dfs(temp.getRoot());	
+		Statement queryOne = queries.get(1);
+		LogicalPlan project = new LogicalPlan(queryOne);
+		LogicalProject projectTesting = (LogicalProject) project.getOperator();
+		assertTrue(projectTesting instanceof LogicalProject);
+		// The child of this should be a scan
+		assertTrue(projectTesting.getChild() instanceof LogicalScan);
+		
+		// Test to see if the project operator has the filter child when the 
+		// operator 
+		Statement queryFive = queries.get(5);
+		LogicalPlan project2= new LogicalPlan(queryFive);
+		LogicalProject projectTesting2=(LogicalProject) project2.getOperator();
+		assertTrue(projectTesting2 instanceof LogicalProject);
+		assertTrue(projectTesting2.getChild() instanceof LogicalFilter);
+		LogicalFilter filtering = (LogicalFilter) projectTesting2.getChild();
+		assertTrue(filtering.getChild() instanceof LogicalScan);
+		
+		// Join testing
+		Statement querySeven = queries.get(7);
+		LogicalPlan join = new LogicalPlan(querySeven);
+		LogicalJoin jointesting=(LogicalJoin) join.getOperator();
+		assertTrue(jointesting instanceof LogicalJoin);
+		
+		LogicalScan leftChild= (LogicalScan)jointesting.getLeftChild();
+		LogicalScan rightChild= (LogicalScan) jointesting.getRightChild();
+		assertTrue(leftChild instanceof LogicalScan);
+		assertTrue(rightChild instanceof LogicalScan);
+		
+		// Testing a join with a project on top of it
+		Statement querysixteen= queries.get(16);
+		LogicalPlan join2= new LogicalPlan(querysixteen);
+		// Get the projectoperator root 
+		LogicalProject projectRoot= (LogicalProject)join2.getOperator();
+		assertTrue(projectRoot instanceof LogicalProject);
+	
+		// the child of this is a join
+		LogicalJoin child1= (LogicalJoin)projectRoot.getChild();
+		assertTrue(child1 instanceof LogicalJoin);
+		
+		// The left child of this is a join and then the right child of this
+		// node is a scan operator since each child does not have a expression for itself
+		LogicalJoin child2left = (LogicalJoin) child1.getLeftChild();
+		LogicalScan child2right= (LogicalScan) child1.getRightChild();
+		assertTrue(child2left instanceof LogicalJoin);
+		assertTrue(child2right instanceof LogicalScan);
+		
+		// The left child of the child2left should be a scan and so should the right 
+		// child of the child2left.
+		LogicalScan child3left= (LogicalScan) child2left.getLeftChild();
+		LogicalScan child3right= (LogicalScan) child2left.getRightChild();
+		assertTrue(child3left instanceof LogicalScan);
+		assertTrue(child3right instanceof LogicalScan);
 		
 		
-		// Get the second element in the query
-		Statement second= queries.get(1);
-		Select select2 = (Select) second;
-		PlainSelect plainselect2 = (PlainSelect) select2.getSelectBody();
-		LogicalTree tree2= new LogicalTree();
-		LogicalNode root2= tree2.buildTree(plainselect2);
-		tree2.setRoot(root2);
+		// Testing if the sort logical operator will work
+		Statement query17 = queries.get(17);
+		LogicalPlan sort= new LogicalPlan(query17);
+		LogicalSort sorttesting= (LogicalSort) sort.getOperator();
+		assertTrue(sorttesting instanceof LogicalSort);
 		
-		// Checking to see if there is the projection node here and the scan node
-//		tree2.dfs(root2);
+		// The first child of the sort should be a logicalJoin
+		LogicalJoin firstchild= (LogicalJoin) sorttesting.getChild();
+		assertTrue(firstchild instanceof LogicalJoin);
 		
+		// The left child should be a join
+		// The right child should be a scan
+		LogicalJoin secondchildleft= (LogicalJoin) firstchild.getLeftChild();
+		LogicalScan secondchildright= (LogicalScan) firstchild.getRightChild();
+		assertTrue(secondchildleft instanceof LogicalJoin);
+		assertTrue(secondchildright instanceof LogicalScan);
 		
-		// Get the fourth element in the queyr
-		Statement fourth = queries.get(4);
-		Select select4 = (Select) fourth;
-		PlainSelect plainselect4= (PlainSelect) select4.getSelectBody();
-		LogicalTree tree4= new LogicalTree();
-		LogicalNode root4= tree4.buildTree(plainselect4);
-		tree4.setRoot(root4);
+		// Both childs are scans
+		assertTrue(secondchildleft.getLeftChild() instanceof LogicalScan);
+		assertTrue(secondchildleft.getRightChild() instanceof LogicalScan);
 		
-		// Check if there is only a logical filter node since that is one of the bases cases.
-//		tree4.dfs(root4);
+		// Testing the LogicalUnique
+		Statement queryten= queries.get(10);
+		LogicalPlan unique = new LogicalPlan(queryten);
+		LogicalUnique testingunique= (LogicalUnique) unique.getOperator();
+		assertTrue(testingunique instanceof LogicalUnique);
 		
-		// Get the fifth elemnt in the query
-		Statement fifth= queries.get(5);
-		Select select5= (Select) fifth;
-		PlainSelect plainselect5 = (PlainSelect) select5.getSelectBody();
-		LogicalTree tree5= new LogicalTree();
-		LogicalNode root5= tree5.buildTree(plainselect5);
-		tree5.setRoot(root5);
-		
-		// Check if there is a projection node followed by a filter node
-//		tree5.dfs(root5);
-		
-		Statement seventh = queries.get(7);
-		Select select7 = (Select) seventh;
-		PlainSelect plainSelect7 = (PlainSelect) select7.getSelectBody();
-		LogicalTree tree7 = new LogicalTree();
-		LogicalNode root7 = tree7.buildTree(plainSelect7);
-		tree7.setRoot(root7);
-		
-		// There should be only one node. It should be a join node.
-		//tree7.dfs(root7);
-		
-		Statement eight= queries.get(8);
-		Select select8 = (Select) eight;
-		PlainSelect plainselect8= (PlainSelect) select8.getSelectBody();
-		LogicalTree tree8 = new LogicalTree();
-		LogicalNode root8 = tree8.buildTree(plainselect8);
-		tree8.setRoot(root7);
-		
-		// There should be two join nodes. One for the first two tables.
-		// Then another for the first two tables combined and the next table.
-//		tree8.dfs(root8);
-		
-		// Do a test where there is a projection or distinct node in front of joins
-		Statement fifteen= queries.get(15);
-		Select select15 = (Select) fifteen;
-		PlainSelect plainselect15 = (PlainSelect) select15.getSelectBody();
-		LogicalTree tree15 = new LogicalTree();
-		LogicalNode root15 = tree15.buildTree(plainselect15);
-		tree15.setRoot(root15);
-		
-		// The expected output for this is two join nodes and then the root node
-		// is the projection operator.
-//		tree15.dfs(root15);
-		
-		// Do a test where there is a distinct node
-		Statement fourteenth = queries.get(14);
-		Select select14= (Select) fourteenth;
-		PlainSelect plainselect14 = (PlainSelect) select14.getSelectBody();
-		LogicalPlan plan = new LogicalPlan(fourteenth);
-		
+		// The child for this unique should be just the sort operator since all
+		// Logical unique have the sort as their child
+		LogicalSort uniquechild = (LogicalSort) testingunique.getChild();
+		assertTrue(uniquechild instanceof LogicalSort);
+		assertTrue(uniquechild.getChild() instanceof LogicalScan);
+
 		
 		
 	}

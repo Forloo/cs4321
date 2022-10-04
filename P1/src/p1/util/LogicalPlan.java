@@ -1,6 +1,9 @@
 package p1.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import net.sf.jsqlparser.expression.Expression;
@@ -19,22 +22,23 @@ import p1.logicaloperator.LogicalSort;
 import p1.logicaloperator.LogicalUnique;
 
 public class LogicalPlan {
-	
+
 	// Make a tree for the logical plan
-	
+
 	// Priority for specific elements
 	// 1. Distinct
 	// 2. Sorting operator
-	// 3. Projection 
+	// 3. Projection
 	// 4. Join
 	// 5. Selection
 	// 6. Scan operator
-	
+
 	// The root operator
 	private LogicalOperator rootOperator;
-	
+
 	/**
 	 * The constructor for our logicalplan
+	 *
 	 * @param query The input query
 	 */
 	public LogicalPlan(Statement query) {
@@ -49,45 +53,189 @@ public class LogicalPlan {
 
 		Expression where = plainSelect.getWhere();
 
+		List joins = plainSelect.getJoins();
+
+		Distinct distinct = plainSelect.getDistinct();
+
+		List groupByElements = plainSelect.getOrderByElements();
+		HashMap<String[], ArrayList<Expression>> expressionInfoAliases = null;
+		HashMap<String, ArrayList<Expression>> expressionInfo = null;
+		if (where != null) {
+			ExpressionParser parse = new ExpressionParser(where);
+			where.accept(parse);
+			expressionInfoAliases = parse.getTablesNeeded();
+			expressionInfo = parse.getTablesNeededString();
+		}
+
 		// Extract aliases
 		Aliases.getInstance(plainSelect);
 		String fromTable = from.toString();
 		if (from.getAlias() != null) {
-			fromTable = Aliases.getTable(from.getAlias());
+			fromTable = from.getAlias();
 		}
-		
-		if (plainSelect.getDistinct()!=null) {
-			rootOperator= new LogicalUnique(plainSelect,from.toString());
+
+		LogicalOperator child = null;
+		boolean joinUsed = false;
+
+		// Check if there is more than one table being used
+		if (joins != null) {
+			boolean fromUsed = false;
+			LogicalJoin prev = null;
+			// Iterate through the join tables and make the logical join
+			for (int i = 0; i < joins.size(); i++) {
+				String alias = Aliases.getAlias(joins.get(i).toString());
+				if (!fromUsed) {
+					// there is no where condition meaning that we can just make both of
+					// the operators just scan tables
+					if (expressionInfo == null) {
+						LogicalScan first = new LogicalScan(fromTable);
+						LogicalScan second = new LogicalScan(alias);
+						String combinedName = fromTable + "," + alias;
+						LogicalJoin temp = new LogicalJoin(combinedName, first, second, null);
+						prev = temp;
+					} else {
+						// Get the where conditions for all of the tables and assign them accordingly
+						LogicalOperator first = null;
+						if (expressionInfo.containsKey(fromTable)) {
+							ArrayList<Expression> conditions = expressionInfo.get(fromTable);
+							LogicalScan scanone = new LogicalScan(fromTable);
+							LogicalFilter selectone = new LogicalFilter(scanone, conditions.get(0));
+							first = selectone;
+						} else {
+							LogicalScan scanone = new LogicalScan(fromTable);
+							first = scanone;
+						}
+
+						// Do the same for the join table
+						LogicalOperator second = null;
+						if (expressionInfo.containsKey(alias)) {
+							// Get the arraylist of conditions
+							ArrayList<Expression> conditions2 = expressionInfo.get(alias);
+							LogicalScan scantwo = new LogicalScan(alias);
+							LogicalFilter selecttwo = new LogicalFilter(scantwo, conditions2.get(0));
+							second = selecttwo;
+						} else {
+							LogicalScan scantwo = new LogicalScan(Aliases.getAlias(joins.get(0).toString()));
+							second = scantwo;
+						}
+
+						String combinedName = fromTable + "," + alias;
+						String[] tablesNeeded = combinedName.split(",");
+						Arrays.sort(tablesNeeded);
+						String sortedTablesNeeded = String.join(",", tablesNeeded);
+
+						// Check if there is match for this table. If there is a match
+						// then assign the conditions in that arraylist to the join
+						ArrayList<Expression> joinCondition = null;
+						if (expressionInfo.containsKey(sortedTablesNeeded)) {
+							ArrayList<Expression> joinConditions = expressionInfo.get(sortedTablesNeeded);
+							joinCondition = joinConditions;
+						}
+
+						LogicalJoin temp = new LogicalJoin(combinedName, first, second, joinCondition);
+						prev = temp;
+					}
+					fromUsed = true;
+				} else // The from table was used meaning that the prev node is not null
+				// so the left child will be a join operator node.
+				if (expressionInfo == null) {
+					LogicalScan first = new LogicalScan(alias);
+					String combinedName = prev.getTables() + "," + alias;
+					LogicalJoin temp = new LogicalJoin(combinedName, prev, first, null);
+					prev = temp;
+				} else {
+					LogicalOperator first = null;
+					// Check if we should put any conditions on the right table
+					if (expressionInfo.containsKey(alias)) {
+						ArrayList<Expression> conditions = expressionInfo.get(alias);
+						LogicalScan scanone = new LogicalScan(alias);
+						LogicalFilter selectone = new LogicalFilter(scanone, conditions.get(0));
+						first = selectone;
+					} else {
+						// There are no conditions for the right table so the right is just a scan
+						LogicalScan scanone = new LogicalScan(alias);
+						first = scanone;
+					}
+
+					String combinedName = prev.getTables() + "," + alias;
+					ArrayList<Expression> joinCondition = new ArrayList<Expression>();
+					String[] splitted = combinedName.split(",");
+					HashSet<String> tblsNeed = new HashSet<String>();
+					for (int k = 0; k < splitted.length; k++) {
+						tblsNeed.add(splitted[k]);
+					}
+
+					for (String[] key : expressionInfoAliases.keySet()) {
+						boolean allIncluded = true;
+						for (int l = 0; l < key.length; l++) {
+							allIncluded = allIncluded && tblsNeed.contains(key[l]);
+						}
+
+						if (allIncluded) {
+							ArrayList<Expression> allExpr = expressionInfoAliases.get(key);
+							for (int p = 0; p < allExpr.size(); p++) {
+								joinCondition.add(allExpr.get(p));
+							}
+						}
+					}
+
+					LogicalJoin temp = new LogicalJoin(combinedName, prev, first, joinCondition);
+					prev = temp;
+
+				}
+			}
+			child = prev;
+			joinUsed = true;
 		}
-		else if (plainSelect.getOrderByElements()!=null) {
-			rootOperator = new LogicalSort(plainSelect,from.toString());
+
+		if (!joinUsed) {
+			// We need to make the scan table operator anyway
+			LogicalScan logicalscan = new LogicalScan(fromTable);
+
+			// Check if there is a where clause
+			if (where != null) {
+				LogicalFilter filter = new LogicalFilter(logicalscan, where);
+				child = filter;
+			} else {
+				child = logicalscan;
+			}
+
 		}
-		else if (!(allColumns.get(0) instanceof AllColumns)) {
-			rootOperator = new LogicalProject(plainSelect,from.toString());
+
+		// Check if there is projection node that is needed here
+		if (!(allColumns.get(0) instanceof AllColumns)) {
+			LogicalProject project = new LogicalProject(child, allColumns);
+			child = project;
 		}
-		else if(plainSelect.getJoins()!=null) {
-			rootOperator =new LogicalJoin(plainSelect,from.toString());
+
+		// Check if there is a distinct
+		if (distinct != null) {
+			// For distinct there is always a order by element
+			LogicalSort sort = new LogicalSort(child, groupByElements);
+			LogicalUnique dup = new LogicalUnique(sort);
+			child = dup;
+		} else if (groupByElements != null) {
+			LogicalSort sort = new LogicalSort(child, groupByElements);
+			child = sort;
 		}
-		else if (!(where==null)) {
-			rootOperator= new LogicalFilter(plainSelect,from.toString());
-		}
-		else {
-			rootOperator = new LogicalScan(plainSelect,from.toString());
-		}
-		
+
+		this.rootOperator = child;
+
 	}
-	
+
 	/**
 	 * Retrieves the rootOperator
+	 *
 	 * @return A logicalOperator determining the root of the current node.
 	 */
 	public LogicalOperator getOperator() {
 		return rootOperator;
 	}
-	
-	
+
 	/**
-	 * Accepts a physicalplanbuilder object and then uses it to build the physical tree.
+	 * Accepts a physicalplanbuilder object and then uses it to build the physical
+	 * tree.
+	 *
 	 * @param pb
 	 */
 	public void accept(PhysicalPlanBuilder pb) {

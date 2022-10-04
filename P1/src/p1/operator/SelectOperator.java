@@ -3,9 +3,7 @@ package p1.operator;
 import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 import p1.io.BinaryTupleWriter;
-import p1.util.DatabaseCatalog;
 import p1.util.ExpressionEvaluator;
 import p1.util.Tuple;
 
@@ -17,21 +15,18 @@ import p1.util.Tuple;
 public class SelectOperator extends Operator {
 	// The child operator, scanning all rows.
 	private ScanOperator scanObj;
-	// The column names.
-	private ArrayList<String> schema;
 	// The expression to check rows on.
 	private Expression where;
 
 	/**
 	 * Determines selection conditions and rows.
 	 *
-	 * @param ps        the query.
-	 * @param fromTable the table to select from.
+	 * @param op the child scan operator.
+	 * @param ex the expression to select tuples from.
 	 */
-	public SelectOperator(PlainSelect ps, String fromTable) {
-		where = ps.getWhere();
-		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
-		scanObj = new ScanOperator(fromTable);
+	public SelectOperator(ScanOperator op, Expression ex) {
+		where = ex;
+		scanObj = op;
 	}
 
 	/**
@@ -46,14 +41,13 @@ public class SelectOperator extends Operator {
 			return null;
 		}
 
-		ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, schema);
+		ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, scanObj.getSchema());
 		where.accept(exprObj2);
 		if (Boolean.parseBoolean(exprObj2.getValue())) {
 			return nextTuple;
 		} else {
 			return getNextTuple();
 		}
-
 	}
 
 	/**
@@ -62,6 +56,15 @@ public class SelectOperator extends Operator {
 	 */
 	public void reset() {
 		scanObj.reset();
+	}
+
+	/**
+	 * Gets the column names corresponding to the tuples.
+	 *
+	 * @return a list of all column names for the scan table.
+	 */
+	public ArrayList<String> getSchema() {
+		return scanObj.getSchema();
 	}
 
 	/**
