@@ -6,8 +6,8 @@ import p1.operator.Operator;
 public class LogicalUnique extends LogicalOperator {
 
 	// The child operator
-	private LogicalOperator child;
-	// The expression to filter by
+	private LogicalSort child;
+	// There is no expression evaluate by
 	private Distinct distinct;
 
 	/**
@@ -16,9 +16,8 @@ public class LogicalUnique extends LogicalOperator {
 	 * @param op The child operator
 	 * @param d  Whether or not we want distinct tuples
 	 */
-	public LogicalUnique(LogicalOperator op, Distinct d) {
-		this.child = op;
-		this.distinct = d;
+	public LogicalUnique(LogicalSort child) {
+		this.child = child;
 	}
 
 	/**
@@ -26,7 +25,7 @@ public class LogicalUnique extends LogicalOperator {
 	 *
 	 * @return The child operator used to get tuples.
 	 */
-	public LogicalOperator getChild() {
+	public LogicalSort getChild() {
 		return child;
 	}
 

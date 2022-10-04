@@ -7,7 +7,7 @@ import p1.operator.Operator;
 public class LogicalProject extends LogicalOperator {
 
 	// The child operator
-	private Operator child;
+	private LogicalOperator child;
 	// The columns to select
 	private List selects;
 
@@ -17,7 +17,7 @@ public class LogicalProject extends LogicalOperator {
 	 * @param op      The child operator
 	 * @param selects The list of columns to select
 	 */
-	public LogicalProject(Operator op, List selects) {
+	public LogicalProject(LogicalOperator op, List selects) {
 		this.child = op;
 		this.selects = selects;
 	}
@@ -27,7 +27,7 @@ public class LogicalProject extends LogicalOperator {
 	 *
 	 * @return The child operator used to get tuples.
 	 */
-	public Operator getChild() {
+	public LogicalOperator getChild() {
 		return child;
 	}
 
