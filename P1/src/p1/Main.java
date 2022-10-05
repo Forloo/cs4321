@@ -84,10 +84,6 @@ public class Main {
 					builder.setJoinPages(joinPages);
 					builder.setSortMethod(sortMethod);
 					builder.setSortPages(sortPages);
-					System.out.println(joinMethod);
-					System.out.println(joinPages);
-					System.out.println(sortMethod);
-					System.out.println(sortPages);
 					lp.accept(builder);
 					QueryPlan qp = builder.getPlan();
 					long startMillis = System.currentTimeMillis();

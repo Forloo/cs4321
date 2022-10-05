@@ -100,12 +100,6 @@ public class JoinOperator extends Operator {
 	 */
 	@Override
 	public Tuple getNextTuple() {
-//		if (idx == results.size()) {
-//			return null;
-//		}
-//		return new Tuple(results.get(idx++).toString());
-
-//		System.out.println("entered this loop again");
 		if (leftTuple == null) { // no more tuples to join
 			return null;
 		}
@@ -118,11 +112,9 @@ public class JoinOperator extends Operator {
 		if (leftTuple == null) { // no more tuples to join
 			return null;
 		}
-//		ArrayList<String> together = leftTuple.getTuple();
 		ArrayList<String> together2 = new ArrayList<String>();
 		together2.addAll(leftTuple.getTuple());
 		together2.addAll(rightTuple.getTuple());
-//		together.addAll(rightTuple.getTuple());
 		Tuple joinedTuple = new Tuple(together2);
 
 		if (where == null) {
