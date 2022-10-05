@@ -1,7 +1,9 @@
 package p1;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Scanner;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
@@ -19,7 +21,7 @@ public class Main {
 		String queriesFile = args[0] + File.separator + "queries.sql";
 		String queriesOutput = args[1];
 		String dataDir = args[0] + File.separator + "db" + File.separator;
-//		String tempDir = args[2];
+		String tempDir = args[2];
 
 		// Get the file list containing all file inputs
 		File inputDir = new File(dataDir + "data");
@@ -33,6 +35,30 @@ public class Main {
 		}
 
 		DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema);
+		int joinMethod = 0;
+		int joinPages = 0;
+		int sortMethod = 0;
+		int sortPages = 0;
+
+		// Get configuration file data and store in DatabaseCatalog
+		try {
+			File file = new File(args[0] + File.separator + "plan_builder_config.txt");
+			Scanner fileReader = new Scanner(file);
+			String[] joinConfig = fileReader.nextLine().split(" ");
+			joinMethod = Integer.parseInt(joinConfig[0]);
+			if (joinConfig.length > 1) {
+				joinPages = Integer.parseInt(joinConfig[1]);
+			}
+			String[] sortConfig = fileReader.nextLine().split(" ");
+			sortMethod = Integer.parseInt(sortConfig[0]);
+			if (sortConfig.length > 1) {
+				sortPages = Integer.parseInt(sortConfig[1]);
+			}
+			fileReader.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("An error occurred while parsing the configuration file.");
+			e.printStackTrace();
+		}
 
 		try {
 			CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
@@ -54,6 +80,14 @@ public class Main {
 					// Evaluate query
 					LogicalPlan lp = new LogicalPlan(statement);
 					PhysicalPlanBuilder builder = new PhysicalPlanBuilder(statement);
+					builder.setJoinMethod(joinMethod);
+					builder.setJoinPages(joinPages);
+					builder.setSortMethod(sortMethod);
+					builder.setSortPages(sortPages);
+					System.out.println(joinMethod);
+					System.out.println(joinPages);
+					System.out.println(sortMethod);
+					System.out.println(sortPages);
 					lp.accept(builder);
 					QueryPlan qp = builder.getPlan();
 					long startMillis = System.currentTimeMillis();

@@ -65,6 +65,16 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	private QueryPlan physicalPlan;
 	// The plainselect containing the query information
 	private Statement query;
+	// The temp directory to store sort files.
+	private String tempDir;
+	// The type of join to use.
+	private int joinMethod;
+	// Number of buffer pages to use for join.
+	private int joinPages;
+	// Type of sort to use.
+	private int sortMethod;
+	// Number of buffer pages to use for sort.
+	private int sortPages;
 
 	/**
 	 * The constructor for the PhysicalPlanBuilder
@@ -96,6 +106,41 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 	private void setPlan(QueryPlan plan) {
 		physicalPlan = plan;
+	}
+
+	/**
+	 * Sets the temp directory for external sort.
+	 */
+	public void setTempDir(String tempDir) {
+		this.tempDir = tempDir;
+	}
+
+	/**
+	 * Sets the join method.
+	 */
+	public void setJoinMethod(int joinType) {
+		this.joinMethod = joinType;
+	}
+
+	/**
+	 * Sets the number of buffer pages to use for BNLJ.
+	 */
+	public void setJoinPages(int numPages) {
+		this.joinPages = numPages;
+	}
+
+	/**
+	 * Sets the sort method.
+	 */
+	public void setSortMethod(int sortType) {
+		this.sortMethod = sortType;
+	}
+
+	/**
+	 * Sets the number of buffer pages to use for external sort.
+	 */
+	public void setSortPages(int numPages) {
+		this.sortPages = numPages;
 	}
 
 	/**
