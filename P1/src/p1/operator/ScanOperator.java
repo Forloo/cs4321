@@ -2,6 +2,7 @@ package p1.operator;
 
 import java.util.ArrayList;
 
+
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
 import p1.util.Aliases;
