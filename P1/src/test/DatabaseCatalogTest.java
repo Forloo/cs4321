@@ -18,6 +18,8 @@ class DatabaseCatalogTest {
 	File[] fileList = new File[allFiles.length];
 	// Schema file
 	File schema = new File("././input/db/schema.txt");
+	String tempDir = "././temp";
+	File configFile = new File("././input/plan_builder_config.txt");
 
 	@Test
 	void constructorTesting() {
@@ -27,7 +29,7 @@ class DatabaseCatalogTest {
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog information = DatabaseCatalog.getInstance(fileList, schema);
+		DatabaseCatalog information = DatabaseCatalog.getInstance(fileList, schema, configFile, tempDir);
 		HashMap<String, String> names = information.getNames();
 
 		// Expected absolute paths. Results will be different on other systems

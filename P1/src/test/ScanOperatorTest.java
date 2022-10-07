@@ -21,6 +21,8 @@ class ScanOperatorTest {
 	String[] allFiles = inputDir.list();
 	File[] fileList = new File[allFiles.length];
 	File schema = new File(dataDir + "schema.txt");
+	String tempDir = "././temp";
+	File configFile = new File("././input/plan_builder_config.txt");
 
 	@Test
 	void testGetNextTuple() {
@@ -29,7 +31,7 @@ class ScanOperatorTest {
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog.getInstance(fileList, schema);
+		DatabaseCatalog.getInstance(fileList, schema, configFile, tempDir);
 		ScanOperator so = new ScanOperator("Sailors");
 
 		assertEquals("1,200,50", so.getNextTuple().toString());
@@ -49,7 +51,7 @@ class ScanOperatorTest {
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog.getInstance(fileList, schema);
+		DatabaseCatalog.getInstance(fileList, schema, configFile, tempDir);
 		ScanOperator so = new ScanOperator("Sailors");
 
 		so.getNextTuple();

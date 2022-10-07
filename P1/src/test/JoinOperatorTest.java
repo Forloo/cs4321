@@ -1,21 +1,14 @@
 package test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.Test;
 
-import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import p1.operator.JoinOperator;
 import p1.util.DatabaseCatalog;
-import p1.util.ExpressionParser;
 
 public class JoinOperatorTest {
 
@@ -28,19 +21,21 @@ public class JoinOperatorTest {
 	String[] allFiles = inputDir.list();
 	File[] fileList = new File[allFiles.length];
 	File schema = new File(dataDir + "schema.txt");
+	String tempDir = "././temp";
+	File configFile = new File("././input/plan_builder_config.txt");
 
 	@Test
 	public void JoinOperatorTesting() {
 		// This testing file is no longer valid.
-		// Refactoring how the query tree will be made and the node will consist 
+		// Refactoring how the query tree will be made and the node will consist
 		// of multiple different nodes.
-		
+
 		for (int i = 0; i < allFiles.length; i++) {
 			File file = new File(dataDir + "data" + File.separator + allFiles[i]);
 			fileList[i] = file;
 		}
 
-		DatabaseCatalog.getInstance(fileList, schema);
+		DatabaseCatalog.getInstance(fileList, schema, configFile, tempDir);
 
 		ArrayList<Statement> queries = new ArrayList<Statement>();
 

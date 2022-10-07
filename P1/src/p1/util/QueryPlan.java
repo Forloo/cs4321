@@ -14,12 +14,12 @@ import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.operator.DuplicateEliminationOperator;
-import p1.operator.JoinOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.operator.SortOperator;
+import p1.operator.TNLJOperator;
 
 /**
  * A class that evaluates what operator to use as the root for a query.
@@ -80,7 +80,7 @@ public class QueryPlan {
 		// Check if there is more than one table. If more than one table make join.
 		if (joins != null) {
 			boolean fromUsed = false;
-			JoinOperator prev = null;
+			Operator prev = null;
 
 			// Iterate through the table and make the join operators
 			for (int i = 0; i < joins.size(); i++) {
@@ -91,7 +91,7 @@ public class QueryPlan {
 						ScanOperator first = new ScanOperator(fromTable);
 						ScanOperator second = new ScanOperator(alias);
 						String combinedName = fromTable + "," + alias;
-						JoinOperator temp = new JoinOperator(combinedName, first, second, null);
+						Operator temp = createJoinOp(combinedName, first, second, null);
 						prev = temp;
 					} else {
 						// Retrieve the where conditions and then assign them to the right table.
@@ -130,7 +130,7 @@ public class QueryPlan {
 							ArrayList<Expression> joinConditions = expressionInfo.get(sortedTablesNeeded);
 							joinCondition = joinConditions;
 						}
-						JoinOperator temp = new JoinOperator(combinedName, first, second, joinCondition);
+						Operator temp = createJoinOp(combinedName, first, second, joinCondition);
 						prev = temp;
 					}
 					fromUsed = true;
@@ -139,8 +139,8 @@ public class QueryPlan {
 				// so this means that the left child is a join operator.
 				if (expressionInfo == null) {
 					ScanOperator first = new ScanOperator(alias);
-					String combinedName = prev.getTables() + "," + alias;
-					JoinOperator temp = new JoinOperator(combinedName, prev, first, null);
+					String combinedName = prev.getTable() + "," + alias;
+					Operator temp = createJoinOp(combinedName, prev, first, null);
 					prev = temp;
 				} else {
 					Operator first = null;
@@ -153,7 +153,7 @@ public class QueryPlan {
 						ScanOperator scanone = new ScanOperator(alias);
 						first = scanone;
 					}
-					String combinedName = prev.getTables() + "," + alias;
+					String combinedName = prev.getTable() + "," + alias;
 					ArrayList<Expression> joinCondition = new ArrayList<Expression>();
 					String[] splitted = combinedName.split(",");
 					HashSet<String> tblsNeed = new HashSet<String>();
@@ -175,7 +175,7 @@ public class QueryPlan {
 						}
 					}
 
-					JoinOperator temp = new JoinOperator(combinedName, prev, first, joinCondition);
+					Operator temp = createJoinOp(combinedName, prev, first, joinCondition);
 					prev = temp;
 				}
 			}
@@ -225,6 +225,34 @@ public class QueryPlan {
 	 */
 	public QueryPlan(Operator rootOperator) {
 		this.rootOperator = rootOperator;
+	}
+
+	/**
+	 * Creates a join operator based on the configuration file.
+	 *
+	 * @param tableNames     the names of all joined tables
+	 * @param leftOp         the left child operator
+	 * @param rightOp        the right child operator
+	 * @param joinConditions the conditions to join on
+	 * @return a JoinOperator
+	 */
+	public Operator createJoinOp(String tableNames, Operator leftOp, Operator rightOp,
+			ArrayList<Expression> joinConditions) {
+		if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
+			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
+		} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
+			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
+		} else { // Sort merge join
+			ArrayList<String> leftOrder = new ArrayList<String>();
+			ArrayList<String> rightOrder = new ArrayList<String>();
+			for (Expression e : joinConditions) {
+				// TODO
+			}
+			SortOperator leftSortedChild = new SortOperator(leftOp, leftOrder);
+			SortOperator rightSortedChild = new SortOperator(rightOp, rightOrder);
+//			return new SMJOperator(tableNames, leftSortedChild, rightSortedChild, joinConditions);
+			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
+		}
 	}
 
 	/**

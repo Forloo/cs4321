@@ -30,6 +30,13 @@ public abstract class Operator {
 	public abstract ArrayList<String> getSchema();
 
 	/**
+	 * Gets the table name.
+	 *
+	 * @return the table name.
+	 */
+	public abstract String getTable();
+
+	/**
 	 * Retrieves all tuples and outputs them to stdout.
 	 */
 	public abstract void dump();

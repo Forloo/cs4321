@@ -1,5 +1,8 @@
 package p1.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.CaseExpression;
@@ -49,12 +52,12 @@ import p1.logicaloperator.LogicalScan;
 import p1.logicaloperator.LogicalSort;
 import p1.logicaloperator.LogicalUnique;
 import p1.operator.DuplicateEliminationOperator;
-import p1.operator.JoinOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.operator.SortOperator;
+import p1.operator.TNLJOperator;
 
 /**
  * Walks through logical plan and builds a physical plan
@@ -65,16 +68,6 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	private QueryPlan physicalPlan;
 	// The plainselect containing the query information
 	private Statement query;
-	// The temp directory to store sort files.
-	private String tempDir;
-	// The type of join to use.
-	private int joinMethod;
-	// Number of buffer pages to use for join.
-	private int joinPages;
-	// Type of sort to use.
-	private int sortMethod;
-	// Number of buffer pages to use for sort.
-	private int sortPages;
 
 	/**
 	 * The constructor for the PhysicalPlanBuilder
@@ -106,41 +99,6 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 	private void setPlan(QueryPlan plan) {
 		physicalPlan = plan;
-	}
-
-	/**
-	 * Sets the temp directory for external sort.
-	 */
-	public void setTempDir(String tempDir) {
-		this.tempDir = tempDir;
-	}
-
-	/**
-	 * Sets the join method.
-	 */
-	public void setJoinMethod(int joinType) {
-		this.joinMethod = joinType;
-	}
-
-	/**
-	 * Sets the number of buffer pages to use for BNLJ.
-	 */
-	public void setJoinPages(int numPages) {
-		this.joinPages = numPages;
-	}
-
-	/**
-	 * Sets the sort method.
-	 */
-	public void setSortMethod(int sortType) {
-		this.sortMethod = sortType;
-	}
-
-	/**
-	 * Sets the number of buffer pages to use for external sort.
-	 */
-	public void setSortPages(int numPages) {
-		this.sortPages = numPages;
 	}
 
 	/**
@@ -188,14 +146,43 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			// Cast the element to the logical join
 			LogicalJoin cpy = (LogicalJoin) rootOperator;
 
-			// Get the left child
+			// Get the left and right child
 			Operator leftchild = generatePhysicalTree(cpy.getLeftChild());
-
 			Operator rightchild = generatePhysicalTree(cpy.getRightChild());
 
-			JoinOperator join = new JoinOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
+			if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
+				return new TNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
+			} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
+				return new TNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
+			} else { // Sort merge join
+				ArrayList<String> leftOrder = new ArrayList<String>();
+				ArrayList<String> rightOrder = new ArrayList<String>();
+				String[] leftTables = leftchild.getTable().split(",");
+				String[] rightTables = rightchild.getTable().split(",");
+				Arrays.sort(leftTables);
+				Arrays.sort(rightTables);
 
-			return join;
+//				Expression where = ((PlainSelect) ((Select) query).getSelectBody()).getWhere();
+//				ExpressionParser parse = new ExpressionParser(where);
+//				where.accept(parse);
+//				HashMap<String[], ArrayList<Expression>> expressionInfo = parse.getTablesNeeded();
+
+//				for (String[] tables : cpy.getExpression()) {
+//					String[] tablesSorted = tables.clone();
+//					Arrays.sort(tablesSorted);
+//					if (tablesSorted.equals(leftTables)) {
+//						for (Expression e : cpy.getExpression()) {
+//							for (String c : e.toString().split(" ")) {
+//								if (c.split("\\.")[0]).equals(c)
+//							}
+//						}
+//					}
+//				}
+				SortOperator leftSortedChild = new SortOperator(leftchild, null);
+				SortOperator rightSortedChild = new SortOperator(rightchild, null);
+//				return new SMJOperator(cpy.getTables(), leftSortedChild, rightSortedChild, cpy.getExpression());
+				return new TNLJOperator(cpy.getTables(), leftSortedChild, rightSortedChild, cpy.getExpression());
+			}
 		}
 
 		if (rootOperator instanceof LogicalSort) {

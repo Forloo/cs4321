@@ -18,6 +18,8 @@ public class ScanOperator extends Operator {
 	BinaryTupleReader reader;
 	// Column names.
 	ArrayList<String> schema;
+	// Table name.
+	String table;
 
 	/**
 	 * Constructor to scan rows of table fromTable (aliased).
@@ -31,6 +33,7 @@ public class ScanOperator extends Operator {
 			newSchema.add(fromTable + "." + colName);
 		}
 		schema = newSchema;
+		table = fromTable;
 	}
 
 	/**
@@ -57,6 +60,15 @@ public class ScanOperator extends Operator {
 	 */
 	public ArrayList<String> getSchema() {
 		return schema;
+	}
+
+	/**
+	 * Gets the table name.
+	 *
+	 * @return the table name.
+	 */
+	public String getTable() {
+		return table;
 	}
 
 	/**

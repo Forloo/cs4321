@@ -77,6 +77,15 @@ public class ProjectOperator extends Operator {
 	}
 
 	/**
+	 * Gets the table name.
+	 *
+	 * @return the table name.
+	 */
+	public String getTable() {
+		return child.getTable();
+	}
+
+	/**
 	 * This method repeatedly calls getNextTuple() until the next tuple is null (no
 	 * more output) and writes each tuple to System.out.
 	 */
