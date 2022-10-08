@@ -59,6 +59,14 @@ public class SelectOperator extends Operator {
 	}
 
 	/**
+	 * Resets the Operator to the ith tuple.
+	 *
+	 * @param idx the index to reset the Operator to
+	 */
+	public void reset(int idx) {
+	}
+
+	/**
 	 * Gets the column names corresponding to the tuples.
 	 *
 	 * @return a list of all column names for the scan table.

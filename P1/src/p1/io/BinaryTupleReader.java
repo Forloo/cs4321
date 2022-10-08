@@ -110,4 +110,19 @@ public class BinaryTupleReader implements TupleReader {
 		}
 	}
 
+	/**
+	 * Resets the reader to the ith tuple.
+	 */
+	public void reset(int idx) {
+		try {
+			fc.position(0);
+			numTuplesLeft = 0;
+			for (int i = 0; i < idx; i++) {
+				nextTuple();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

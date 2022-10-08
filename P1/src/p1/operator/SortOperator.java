@@ -119,6 +119,19 @@ public class SortOperator extends Operator {
 	}
 
 	/**
+	 * Resets the Operator to the ith tuple.
+	 *
+	 * @param idx the index to reset the Operator to
+	 */
+	public void reset(int i) {
+		idx = i;
+		child.reset();
+		for (int j = 0; j < i; j++) {
+			child.getNextTuple();
+		}
+	}
+
+	/**
 	 * Gets the column names corresponding to the tuples.
 	 *
 	 * @return a list of all column names for the scan table.

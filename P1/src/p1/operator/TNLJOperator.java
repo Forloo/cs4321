@@ -8,7 +8,10 @@ import p1.util.ExpressionEvaluator;
 import p1.util.Tuple;
 
 /**
- * An operator that processes queries on multiple files and conditions.
+ * An operator that processes queries on multiple files and conditions using the
+ * tuple-nested-join algorithm. For every tuple in the left child operator, we
+ * iterate through every tuple in the right child operator and return the
+ * combined tuple if the condition set by the expression list is met.
  */
 public class TNLJOperator extends Operator {
 
@@ -32,9 +35,10 @@ public class TNLJOperator extends Operator {
 	/**
 	 * Creates a JoinOperatorTree.
 	 *
-	 * @param left  the left child operator
-	 * @param right the right child operator
-	 * @param exp   The where expression will be passed in by the query plan.
+	 * @param tables the names of the tables to join, separated by a comma
+	 * @param left   the left child operator
+	 * @param right  the right child operator
+	 * @param exp    the where expression will be passed in by the query plan.
 	 */
 	public TNLJOperator(String tables, Operator left, Operator right, ArrayList<Expression> exp) {
 		this.left = left;
@@ -68,10 +72,20 @@ public class TNLJOperator extends Operator {
 		return where;
 	}
 
+	/**
+	 * Get the left child operator.
+	 *
+	 * @return the left child operator
+	 */
 	public Operator getLeft() {
 		return left;
 	}
 
+	/**
+	 * Get the right child operator.
+	 *
+	 * @return the right child operator
+	 */
 	public Operator getRight() {
 		return right;
 	}
@@ -85,10 +99,20 @@ public class TNLJOperator extends Operator {
 		return schema;
 	}
 
+	/**
+	 * Get the current left tuple.
+	 *
+	 * @return the tuple returned from the left child operator
+	 */
 	public Tuple getLeftTuple() {
 		return leftTuple;
 	}
 
+	/**
+	 * Set the current left tuple.
+	 *
+	 * @param leftValue the tuple to set the current tuple to
+	 */
 	public void setLeftTuple(Tuple leftValue) {
 		this.leftTuple = leftValue;
 	}
@@ -140,11 +164,18 @@ public class TNLJOperator extends Operator {
 	 */
 	@Override
 	public void reset() {
-//		idx = 0;
 		left.reset();
 		right.reset();
 		Tuple leftValue = this.getLeft().getNextTuple();
 		this.setLeftTuple(leftValue);
+	}
+
+	/**
+	 * Resets the Operator to the ith tuple.
+	 *
+	 * @param idx the index to reset the Operator to
+	 */
+	public void reset(int idx) {
 	}
 
 	/**

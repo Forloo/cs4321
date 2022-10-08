@@ -74,4 +74,21 @@ public class HumanTupleReader implements TupleReader {
 		}
 	}
 
+	/**
+	 * Resets the reader to the ith tuple.
+	 */
+	public void reset(int idx) {
+		try {
+			if (fileReader != null) {
+				close();
+			}
+			fileReader = new Scanner(new File(file));
+			for (int i = 0; i < idx; i++) {
+				nextTuple();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

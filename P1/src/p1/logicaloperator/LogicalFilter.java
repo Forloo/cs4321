@@ -2,6 +2,9 @@ package p1.logicaloperator;
 
 import net.sf.jsqlparser.expression.Expression;
 
+/**
+ * Logical version of SelectOperator.
+ */
 public class LogicalFilter extends LogicalOperator {
 
 	// The child operator

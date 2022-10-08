@@ -4,6 +4,9 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 
+/**
+ * Creates the query tree
+ */
 public class QueryTreePlan {
 
 	// The query plan will be represented by a tree.

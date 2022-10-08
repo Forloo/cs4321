@@ -2,7 +2,6 @@ package p1.operator;
 
 import java.util.ArrayList;
 
-
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
 import p1.util.Aliases;
@@ -52,6 +51,14 @@ public class ScanOperator extends Operator {
 	 */
 	public void reset() {
 		reader.reset();
+	}
+
+	/**
+	 * Resets the Operator to the ith tuple.
+	 *
+	 * @param idx the index to reset the Operator to
+	 */
+	public void reset(int idx) {
 	}
 
 	/**

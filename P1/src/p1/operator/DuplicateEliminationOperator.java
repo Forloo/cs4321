@@ -14,7 +14,7 @@ public class DuplicateEliminationOperator extends Operator {
 
 	// The child operator; if there is no ORDER BY, we order by the original column
 	// order and join order.
-	private SortOperator child;
+	private Operator child;
 	// The previous tuple returned to output.
 	private Tuple prev;
 
@@ -23,7 +23,7 @@ public class DuplicateEliminationOperator extends Operator {
 	 *
 	 * @param op the child sort operator
 	 */
-	public DuplicateEliminationOperator(SortOperator op) {
+	public DuplicateEliminationOperator(Operator op) {
 		child = op;
 	}
 
@@ -57,6 +57,14 @@ public class DuplicateEliminationOperator extends Operator {
 	 */
 	public void reset() {
 		child.reset();
+	}
+
+	/**
+	 * Resets the Operator to the ith tuple.
+	 *
+	 * @param idx the index to reset the Operator to
+	 */
+	public void reset(int idx) {
 	}
 
 	/**

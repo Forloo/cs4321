@@ -23,6 +23,11 @@ public abstract class Operator {
 	public abstract void reset();
 
 	/**
+	 * Resets the Operator to the ith tuple.
+	 */
+	public abstract void reset(int idx);
+
+	/**
 	 * Gets the column names corresponding to the tuples.
 	 *
 	 * @return a list of all column names for the table.

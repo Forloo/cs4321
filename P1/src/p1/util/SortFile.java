@@ -1,6 +1,5 @@
 package p1.util;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,18 +14,17 @@ import p1.io.HumanTupleWriter;
  */
 public class SortFile {
 
+	// list of tuples read from file to be sorted
+	private ArrayList<Tuple> listTuple;
+	// file to write outputs
+	private String fileOutt;
+
 	/**
 	 * Reads from appropriate file types
 	 *
 	 * @param fileOut the file to write sorted tuples and output
 	 * @param binary  true if file is binary format false if human readable format
-	 * @throws IOException
 	 */
-
-	private ArrayList<Tuple> listTuple; // list of tuples read from file to be sorted
-
-	private String fileOutt; // file to write outputs
-
 	public SortFile(String fileOut, Boolean binary) {
 		fileOutt = fileOut; // changes file out which is the file to overwrite after sorting
 		listTuple = new ArrayList<Tuple>();

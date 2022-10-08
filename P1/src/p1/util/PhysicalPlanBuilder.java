@@ -1,8 +1,5 @@
 package p1.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.CaseExpression;
@@ -52,8 +49,10 @@ import p1.logicaloperator.LogicalScan;
 import p1.logicaloperator.LogicalSort;
 import p1.logicaloperator.LogicalUnique;
 import p1.operator.DuplicateEliminationOperator;
+import p1.operator.ExternalSortOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
+import p1.operator.SMJOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.operator.SortOperator;
@@ -97,6 +96,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		return physicalPlan;
 	}
 
+	/**
+	 * Set the query plan
+	 *
+	 * @param plan the query plan to replace the current plan with
+	 */
 	private void setPlan(QueryPlan plan) {
 		physicalPlan = plan;
 	}
@@ -155,33 +159,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
 				return new TNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
 			} else { // Sort merge join
-				ArrayList<String> leftOrder = new ArrayList<String>();
-				ArrayList<String> rightOrder = new ArrayList<String>();
-				String[] leftTables = leftchild.getTable().split(",");
-				String[] rightTables = rightchild.getTable().split(",");
-				Arrays.sort(leftTables);
-				Arrays.sort(rightTables);
-
-//				Expression where = ((PlainSelect) ((Select) query).getSelectBody()).getWhere();
-//				ExpressionParser parse = new ExpressionParser(where);
-//				where.accept(parse);
-//				HashMap<String[], ArrayList<Expression>> expressionInfo = parse.getTablesNeeded();
-
-//				for (String[] tables : cpy.getExpression()) {
-//					String[] tablesSorted = tables.clone();
-//					Arrays.sort(tablesSorted);
-//					if (tablesSorted.equals(leftTables)) {
-//						for (Expression e : cpy.getExpression()) {
-//							for (String c : e.toString().split(" ")) {
-//								if (c.split("\\.")[0]).equals(c)
-//							}
-//						}
-//					}
-//				}
-				SortOperator leftSortedChild = new SortOperator(leftchild, null);
-				SortOperator rightSortedChild = new SortOperator(rightchild, null);
-//				return new SMJOperator(cpy.getTables(), leftSortedChild, rightSortedChild, cpy.getExpression());
-				return new TNLJOperator(cpy.getTables(), leftSortedChild, rightSortedChild, cpy.getExpression());
+				return new SMJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
 			}
 		}
 
@@ -192,7 +170,12 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			// Get the child for the sort
 			Operator child = generatePhysicalTree(cpy.getChild());
 
-			SortOperator sort = new SortOperator(child, cpy.getOrderBy());
+			Operator sort;
+			if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
+				sort = new SortOperator(child, cpy.getOrderBy());
+			} else { // external sort
+				sort = new ExternalSortOperator(child, cpy.getOrderBy());
+			}
 			return sort;
 		}
 
@@ -201,7 +184,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			LogicalUnique cpy = (LogicalUnique) rootOperator;
 
 			// Get the child node which we know is a sort
-			SortOperator child = (SortOperator) generatePhysicalTree(cpy.getChild());
+			Operator child = generatePhysicalTree(cpy.getChild());
 
 			// Make the physical elimination operator
 			DuplicateEliminationOperator dup = new DuplicateEliminationOperator(child);

@@ -1,5 +1,8 @@
 package p1.logicaloperator;
 
+/**
+ * Logical version of ScanOperator.
+ */
 public class LogicalScan extends LogicalOperator {
 
 	// The name of the table (aliased) to scan

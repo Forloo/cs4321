@@ -2,6 +2,9 @@ package p1.util;
 
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
+/**
+ * The tree of operators
+ */
 public class QueryTree {
 
 	// The root node of the tree
@@ -15,8 +18,15 @@ public class QueryTree {
 	}
 
 	// TODO this must be done and then tested to see if it is correct. This is only
-	// testable after
-	// we do some refactoring meaning changing the operators that we had originally.
+	// testable after we do some refactoring meaning changing the operators that we
+	// had originally.
+	/**
+	 * Creates a tree of queries.
+	 *
+	 * @param plainSelect the query
+	 * @param db          the DatabaseCatalog object that stores table information
+	 * @return a tree of queries
+	 */
 	public QueryNode buildTree(PlainSelect plainSelect, DatabaseCatalog db) {
 		return null;
 	}

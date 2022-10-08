@@ -2,8 +2,9 @@ package p1.logicaloperator;
 
 import java.util.List;
 
-import p1.operator.Operator;
-
+/**
+ * Logical version of SortOperator.
+ */
 public class LogicalSort extends LogicalOperator {
 
 	// The child operator for this should be some logical operator

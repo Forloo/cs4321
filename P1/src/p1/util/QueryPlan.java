@@ -14,8 +14,10 @@ import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.operator.DuplicateEliminationOperator;
+import p1.operator.ExternalSortOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
+import p1.operator.SMJOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.operator.SortOperator;
@@ -207,11 +209,11 @@ public class QueryPlan {
 		// Check if there is a distinct
 		if (distinct != null) {
 			// For distinct there is always a order by element
-			SortOperator sort = new SortOperator(child, groupByElements);
+			Operator sort = createSortOp(child, groupByElements);
 			DuplicateEliminationOperator dup = new DuplicateEliminationOperator(sort);
 			child = dup;
 		} else if (groupByElements != null) {
-			SortOperator sort = new SortOperator(child, groupByElements);
+			Operator sort = createSortOp(child, groupByElements);
 			child = sort;
 		}
 
@@ -234,7 +236,7 @@ public class QueryPlan {
 	 * @param leftOp         the left child operator
 	 * @param rightOp        the right child operator
 	 * @param joinConditions the conditions to join on
-	 * @return a JoinOperator
+	 * @return a JoinOperator, one of TNLJ, BNLJ, or SMJ
 	 */
 	public Operator createJoinOp(String tableNames, Operator leftOp, Operator rightOp,
 			ArrayList<Expression> joinConditions) {
@@ -243,16 +245,23 @@ public class QueryPlan {
 		} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
 			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
 		} else { // Sort merge join
-			ArrayList<String> leftOrder = new ArrayList<String>();
-			ArrayList<String> rightOrder = new ArrayList<String>();
-			for (Expression e : joinConditions) {
-				// TODO
-			}
-			SortOperator leftSortedChild = new SortOperator(leftOp, leftOrder);
-			SortOperator rightSortedChild = new SortOperator(rightOp, rightOrder);
-//			return new SMJOperator(tableNames, leftSortedChild, rightSortedChild, joinConditions);
-			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
+			return new SMJOperator(tableNames, leftOp, rightOp, joinConditions);
 		}
+	}
+
+	/**
+	 * Creates a sort operator based on the configuration file.
+	 *
+	 * @param child  the child operator
+	 * @param orders the order of columns to sort by
+	 * @return
+	 */
+	public Operator createSortOp(Operator child, List orders) {
+		if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
+			return new SortOperator(child, orders);
+		}
+		// else use external sort
+		return new ExternalSortOperator(child, orders);
 	}
 
 	/**

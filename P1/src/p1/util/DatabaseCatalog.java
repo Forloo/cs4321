@@ -16,12 +16,6 @@ import java.util.Scanner;
  * names.
  */
 public class DatabaseCatalog {
-	/*
-	 * NOTES: Delete notes after implementation is finished 1. The database catalog
-	 * needs to keep track of the names of all tables that we have 2. For each of
-	 * the objects we need to keep track of where the file for the table is located
-	 * 3. Keep track of the schema for the table.
-	 */
 
 	// private field that refers to the object
 	private static DatabaseCatalog catalogObject;

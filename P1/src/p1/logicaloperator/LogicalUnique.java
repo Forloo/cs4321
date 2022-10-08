@@ -1,8 +1,10 @@
 package p1.logicaloperator;
 
 import net.sf.jsqlparser.statement.select.Distinct;
-import p1.operator.Operator;
 
+/**
+ * Logical version of DuplicateEliminationOperator.
+ */
 public class LogicalUnique extends LogicalOperator {
 
 	// The child operator
@@ -13,8 +15,7 @@ public class LogicalUnique extends LogicalOperator {
 	/**
 	 * The constructor for the logical filter operator
 	 *
-	 * @param op The child operator
-	 * @param d  Whether or not we want distinct tuples
+	 * @param child The child operator; must be sort
 	 */
 	public LogicalUnique(LogicalSort child) {
 		this.child = child;

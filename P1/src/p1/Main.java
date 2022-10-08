@@ -64,8 +64,11 @@ public class Main {
 
 					// Check output for testing
 					FileConverter.convertBinToHuman(queriesOutputFile, queriesOutputFile + "_humanreadable");
-//					SortFile sort = new SortFile(queriesOutputFile, true);
+//					SortFile sort = new SortFile(queriesOutputFile + "_humanreadable", false);
 //					sort.sortHuman();
+//					SortFile sortExpected = new SortFile(
+//							"expected_output" + File.separator + "query" + queryCount + "_humanreadable", false);
+//					sortExpected.sortHuman();
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);
 					e.printStackTrace();

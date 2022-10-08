@@ -4,6 +4,10 @@ import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
 
+/**
+ * Logical version of a generic join operator; does not need to know what type
+ * of join.
+ */
 public class LogicalJoin extends LogicalOperator {
 
 	// The left child operator
@@ -18,9 +22,10 @@ public class LogicalJoin extends LogicalOperator {
 	/**
 	 * The constructor for the logical filter operator
 	 *
-	 * @param left  The left child operator
-	 * @param right The right child operator
-	 * @param ex    Expression containing the information
+	 * @param tables The names of joined tables separated by commas
+	 * @param left   The left child operator
+	 * @param right  The right child operator
+	 * @param ex     A list of expressions to join the left and right children on
 	 */
 	public LogicalJoin(String tables, LogicalOperator left, LogicalOperator right, ArrayList<Expression> ex) {
 		this.tables = tables;

@@ -23,4 +23,9 @@ public interface TupleReader {
 	 * Resets the reader.
 	 */
 	public void reset();
+
+	/**
+	 * Resets the reader to the ith tuple.
+	 */
+	public abstract void reset(int idx);
 }
