@@ -226,8 +226,8 @@ public class SMJOperator extends Operator {
 	public void reset() {
 		left.reset();
 		right.reset();
-		Tuple leftValue = left.getNextTuple();
-		leftTuple = leftValue;
+		leftTuple = left.getNextTuple();
+		rightTuple = right.getNextTuple();
 	}
 
 	/**
