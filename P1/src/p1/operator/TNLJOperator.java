@@ -137,6 +137,8 @@ public class TNLJOperator extends Operator {
 			if (leftTuple == null) { // no more tuples to join
 				return null;
 			}
+//			System.out.println(rightTuple);
+//			System.out.println(where);
 			ArrayList<String> together2 = new ArrayList<String>();
 			together2.addAll(leftTuple.getTuple());
 			together2.addAll(rightTuple.getTuple());
@@ -151,6 +153,7 @@ public class TNLJOperator extends Operator {
 					this.getWhere().get(i).accept(eval);
 					allTrue = allTrue && (Boolean.parseBoolean(eval.getValue()));
 				}
+//				System.out.println(allTrue);
 				if (allTrue) {
 					return joinedTuple;
 				}

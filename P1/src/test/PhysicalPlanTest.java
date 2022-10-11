@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
+import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.TNLJOperator;
 import p1.operator.Operator;
@@ -187,61 +188,37 @@ public class PhysicalPlanTest {
 		assertEquals(p8root.getNextTuple().toString(), "64,113,139,64,156,156,142,9");
 		assertEquals(p8root.getNextTuple().toString(), "64,113,139,64,156,156,94,121");
 		assertEquals(p8root.getNextTuple().toString(), "64,113,139,64,156,156,193,12");
+		
+		// Test that the join operator works when the method for it is the blocke
+		// nested join
+		
+		DatabaseCatalog.getInstance().setJoinMethod(1);
+		DatabaseCatalog.getInstance().setJoinPages(1);
+		
+		// Call the reset method for the seventh query since the statement that they
+		// use are the same the object for them will also be the same causing issues 
+		// when doing parsing
+		
+		p7root.reset();
+		PhysicalPlanBuilder builderSeventh = new PhysicalPlanBuilder(querySeven);
+		LogicalPlan lp7bnlj = new LogicalPlan(querySeven);
+		lp7bnlj.accept(builderSeventh);
+		QueryPlan p7bnlj = builderSeventh.getPlan();
+		Operator p7rootbnlj = p7bnlj.getOperator();	
+		assertTrue(p7rootbnlj instanceof BNLJOperator);
+		
+		assertEquals("164,90,107,164,10",p7rootbnlj.getNextTuple().toString());
+		assertEquals("75,191,192,75,179",p7rootbnlj.getNextTuple().toString());
+		assertEquals("75,30,100,75,179",p7rootbnlj.getNextTuple().toString());
+		assertEquals("145,170,1,145,88",p7rootbnlj.getNextTuple().toString());
+		assertEquals("136,26,44,136,69",p7rootbnlj.getNextTuple().toString());
 
-		// Testing the join when there is projection on top of it
-		Statement querysixteen = queries.get(16);
-		PhysicalPlanBuilder buildersixteen = new PhysicalPlanBuilder(querysixteen);
-		LogicalPlan lp16 = new LogicalPlan(querysixteen);
-		lp16.accept(buildersixteen);
-		QueryPlan p16 = buildersixteen.getPlan();
-		Operator p16root = p16.getOperator();
-		assertTrue(p16root instanceof ProjectOperator);
-
-		assertEquals(p16root.getNextTuple().toString(), "9,156,64,64");
-		assertEquals(p16root.getNextTuple().toString(), "121,156,64,64");
-		assertEquals(p16root.getNextTuple().toString(), "12,156,64,64");
-		assertEquals(p16root.getNextTuple().toString(), "32,156,64,64");
-		assertEquals(p16root.getNextTuple().toString(), "147,70,64,64");
-
-		p16root.reset();
-		assertEquals(p16root.getNextTuple().toString(), "9,156,64,64");
-
-		// Sort testing
-		Statement queryseventeen = queries.get(17);
-		PhysicalPlanBuilder builderseventeen = new PhysicalPlanBuilder(queryseventeen);
-		LogicalPlan lp17 = new LogicalPlan(queryseventeen);
-		lp17.accept(builderseventeen);
-		QueryPlan p17 = builderseventeen.getPlan();
-		Operator p17root = p17.getOperator();
-		assertTrue(p17root instanceof SortOperator);
-
-		assertEquals(p17root.getNextTuple().toString(), "4,77,1,4,89,89,52,115");
-		assertEquals(p17root.getNextTuple().toString(), "4,77,1,4,89,89,66,152");
-		assertEquals(p17root.getNextTuple().toString(), "4,77,1,4,89,89,103,172");
-		assertEquals(p17root.getNextTuple().toString(), "4,77,1,4,89,89,154,196");
-		assertEquals(p17root.getNextTuple().toString(), "4,77,1,4,90,90,75,158");
-
-		// Testing reset for the sortoperators
-		p17root.reset();
-		assertEquals(p17root.getNextTuple().toString(), "4,77,1,4,89,89,52,115");
-
-		Statement queryten = queries.get(10);
-		PhysicalPlanBuilder builderten = new PhysicalPlanBuilder(queryten);
-		LogicalPlan lp10 = new LogicalPlan(queryten);
-		lp10.accept(builderten);
-		QueryPlan p10 = builderten.getPlan();
-		Operator p10root = p10.getOperator();
-		assertTrue(p10root instanceof DuplicateEliminationOperator);
-
-		assertEquals(p10root.getNextTuple().toString(), "0,47,120");
-		assertEquals(p10root.getNextTuple().toString(), "0,49,176");
-		assertEquals(p10root.getNextTuple().toString(), "0,58,191");
-		assertEquals(p10root.getNextTuple().toString(), "0,97,129");
-		assertEquals(p10root.getNextTuple().toString(), "0,135,109");
-
-		p10root.reset();
-		assertEquals(p10root.getNextTuple().toString(), "0,47,120");
-
+		// Test if getting the first element in the second page still works
+		for(int i=0;i<1693;i++) {
+			p7rootbnlj.getNextTuple();
+		}
+				
+		assertEquals("13,19,111,13,107",p7rootbnlj.getNextTuple().toString());
 	}
 
 }
