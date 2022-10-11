@@ -3,6 +3,7 @@ package p1.operator;
 import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
+import p1.io.BinaryTupleWriter;
 import p1.util.ExpressionEvaluator;
 import p1.util.Tuple;
 
@@ -29,8 +30,11 @@ public class BNLJOperator extends Operator{
 	public static final int pageSize=4096;
 	// The Arraylist of tuples containing the elements in the outer block
 	private ArrayList<Tuple> outerBlock;
+	// The position of the tuple in the outer loop
 	private int outerPos;
+	// Retrives the current block number
 	private int blockNumber;
+	// Tells us if we reached the last boolean page
 	private boolean lastBlock;
 	
 	/**
@@ -60,7 +64,6 @@ public class BNLJOperator extends Operator{
 		
 		// Need to only get the block if the inner table returns some tuple to us
 		rightTuple=right.getNextTuple();
-//		System.out.println(rightTuple);
 		if (rightTuple!=null) {
 			outerBlock=this.getBlock();
 			outerPos=0;
@@ -76,46 +79,41 @@ public class BNLJOperator extends Operator{
 		// over the inner table
 		
 		while(true) {
-			// Check if the index for the outer block is in range
+			// Check if the outer index is out of range
 			if (outerPos>=outerBlock.size()) {
-				// Get the next right tuple if that value is not null
-				// then that means that we need to reset the outer tuple 
-				// back to the beginning 
+				// If we are not done iterating through the inner table then we
+				// are not done checking all of the possible combination
 				rightTuple=right.getNextTuple();
-				// If the right tuple is null then it means that we are done
-				// with this current outer block
+				
+				// Right tuple is null then we are done with this block
 				if (rightTuple==null) {
 					if (lastBlock) {
-						// If this is the last block then there is no next tuple
 						return null;
 					}
-					// Otherwise if it not the last block get the next block
-					outerBlock=this.getBlock();
 					
-					// If we reset the outerblock then we need to reset the outerpos 
+					outerBlock=this.getBlock();
+					 
 					outerPos=0;
-					// Getting the next block then we need to reset the right operator
 					right.reset();
 					rightTuple=right.getNextTuple();
 				}
-				// If the righttuple is not null then we still have other tuples
-				// on the outer table to iterate through
+				// If the right tuple is not null then we need to reset the index
+				// to the beginning of the outer block
 				else {
 					outerPos=0;
 				}
 			}
 			
-			// The left tuple value here is the one in the arraylist for the outerblock
 			Tuple leftSide= outerBlock.get(outerPos);
 			// The value of the right tuple is just hte current right tuple
 			Tuple currRight= rightTuple;
-			// Make them into one larger tuple
 			ArrayList<String> together= new ArrayList<String>();
 			together.addAll(leftSide.getTuple());
 			together.addAll(currRight.getTuple());
 			
 			// Make the new tuple
 			Tuple combined= new Tuple(together);
+			// Move to the next tuple in the block
 			outerPos=outerPos+1;
 			
 			if (where==null) {
@@ -145,7 +143,9 @@ public class BNLJOperator extends Operator{
 		return where;
 	}
 
-	@Override
+	/**
+	 * Resets the block nested loop join 
+	 */
 	public void reset() {
 		// Reset the outer block of the loop which is just resetting the left child
 		// Reset the left operator
@@ -167,27 +167,49 @@ public class BNLJOperator extends Operator{
 		
 	}
 
-	@Override
+	/**
+	 * Retrieves the schema for the given block nested join
+	 */
 	public ArrayList<String> getSchema() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		return schema;
 	}
 
-	@Override
+	/**
+	 * Get the tables needed for the current join delimited by commas
+	 */
 	public String getTable() {
-		// TODO Auto-generated method stub
-		return null;
+		return tables;
 	}
 
-	@Override
+	/**
+	 * Prints out all of the tuples for this join method
+	 */
 	public void dump() {
-		// TODO Auto-generated method stub
+		Tuple temp = this.getNextTuple();
+		while (temp!=null) {
+			System.out.println(temp);
+			temp=this.getNextTuple();
+		}
 		
 	}
 
-	@Override
+	/**
+	 * Chooses the file to output the results of this join to 
+	 */
 	public void dump(String outputFile) {
-		// TODO Auto-generated method stub
+		Tuple nextTuple = getNextTuple();
+		try {
+			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
+			while (nextTuple != null) {
+				out.writeTuple(nextTuple);
+				nextTuple = getNextTuple();
+			}
+			out.close();
+		} catch (Exception e) {
+			System.out.println("Exception occurred: ");
+			e.printStackTrace();
+		}
 		
 	}
 	/**
