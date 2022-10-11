@@ -172,5 +172,21 @@ public class DatabaseCatalog {
 	public int getSortPages() {
 		return sortPages;
 	}
+	
+	/**
+	 * Set the join method to use
+	 * @param joinMethod an int representing which join method to use
+	 */
+	public void setJoinMethod(int joinMethod) {
+		this.joinMethod=joinMethod;
+	}
+	
+	/**
+	 * Set the number of pages to use for the bnlj
+	 * @param joinPages an integer specifying the number of pages to use for bnlj
+	 */
+	public void setJoinPages(int joinPages) {
+		this.joinPages=joinPages;
+	}
 
 }

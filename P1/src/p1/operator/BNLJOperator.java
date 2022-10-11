@@ -30,6 +30,7 @@ public class BNLJOperator extends Operator{
 	// The Arraylist of tuples containing the elements in the outer block
 	private ArrayList<Tuple> outerBlock;
 	private int outerPos;
+	private int blockNumber;
 	private boolean lastBlock;
 	
 	/**
@@ -50,15 +51,20 @@ public class BNLJOperator extends Operator{
 		schema2.addAll(left.getSchema());
 		schema2.addAll(right.getSchema());
 		schema=schema2;
+		blockNumber=0;
 		
 		// The size of the left table is how long the schema is 
 		int leftTuplelength= left.getSchema().size();
 		// Subtract 8 since each page has metadata that takes up 8 bytes
-		tuplePerScan= bufferSize*((pageSize-8)*(4*leftTuplelength));
+		tuplePerScan= bufferSize*((pageSize-8)/(4*leftTuplelength));
 		
-		// Get the block from the child
-		outerBlock=this.getBlock();
-		outerPos=0;
+		// Need to only get the block if the inner table returns some tuple to us
+		rightTuple=right.getNextTuple();
+//		System.out.println(rightTuple);
+		if (rightTuple!=null) {
+			outerBlock=this.getBlock();
+			outerPos=0;
+		}
 	}
 	
 	
@@ -66,12 +72,10 @@ public class BNLJOperator extends Operator{
 	 * Retrieves the next tuple for bnlj
 	 */
 	public Tuple getNextTuple() {
-		// For each block we read the inner table once meaning that we want to
-		// reset the outer table to the index one instead of resetting the inner
-		// table and doing multiple page reads in that instance.
+		// Given each block read the outer table in its entirety 
+		// over the inner table
 		
 		while(true) {
-			
 			// Check if the index for the outer block is in range
 			if (outerPos>=outerBlock.size()) {
 				// Get the next right tuple if that value is not null
@@ -90,6 +94,9 @@ public class BNLJOperator extends Operator{
 					
 					// If we reset the outerblock then we need to reset the outerpos 
 					outerPos=0;
+					// Getting the next block then we need to reset the right operator
+					right.reset();
+					rightTuple=right.getNextTuple();
 				}
 				// If the righttuple is not null then we still have other tuples
 				// on the outer table to iterate through
@@ -102,7 +109,6 @@ public class BNLJOperator extends Operator{
 			Tuple leftSide= outerBlock.get(outerPos);
 			// The value of the right tuple is just hte current right tuple
 			Tuple currRight= rightTuple;
-			
 			// Make them into one larger tuple
 			ArrayList<String> together= new ArrayList<String>();
 			together.addAll(leftSide.getTuple());
@@ -110,6 +116,7 @@ public class BNLJOperator extends Operator{
 			
 			// Make the new tuple
 			Tuple combined= new Tuple(together);
+			outerPos=outerPos+1;
 			
 			if (where==null) {
 				return combined;
@@ -140,8 +147,18 @@ public class BNLJOperator extends Operator{
 
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
-		
+		// Reset the outer block of the loop which is just resetting the left child
+		// Reset the left operator
+		left.reset();
+		right.reset();
+		outerPos=0;
+		blockNumber=0;
+		currTuple=null;
+		rightTuple=right.getNextTuple();
+		if (rightTuple!=null) {
+			outerBlock=this.getBlock();
+			outerPos=0;
+		}
 	}
 
 	@Override
@@ -173,12 +190,20 @@ public class BNLJOperator extends Operator{
 		// TODO Auto-generated method stub
 		
 	}
+	/**
+	 * Retrives the current block number of the outer block that we are currently
+	 * @return An integer telling us the block we are on for the outer block.
+	 */
+	public int getBlockNumber() {
+		return blockNumber;
+	}
 	
 	/**
 	 * A method to get the outer block for bnlj
 	 * @return A list of tuples for the outer block.
 	 */
 	private ArrayList<Tuple> getBlock(){
+		blockNumber=blockNumber+1;
 		int tuplesToScan=tuplePerScan;
 		ArrayList<Tuple> outer= new ArrayList<Tuple>();
 		

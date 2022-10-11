@@ -48,6 +48,7 @@ import p1.logicaloperator.LogicalProject;
 import p1.logicaloperator.LogicalScan;
 import p1.logicaloperator.LogicalSort;
 import p1.logicaloperator.LogicalUnique;
+import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
 import p1.operator.Operator;
@@ -157,7 +158,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
 				return new TNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
 			} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
-				return new TNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
+				return new BNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression(),DatabaseCatalog.getInstance().getJoinPages());
 			} else { // Sort merge join
 				return new SMJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
 			}

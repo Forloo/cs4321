@@ -13,6 +13,7 @@ import net.sf.jsqlparser.statement.select.Distinct;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
 import p1.operator.Operator;
@@ -243,7 +244,7 @@ public class QueryPlan {
 		if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
 			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
 		} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
-			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
+			return new BNLJOperator(tableNames,leftOp,rightOp,joinConditions,DatabaseCatalog.getInstance().getJoinPages());
 		} else { // Sort merge join
 			return new SMJOperator(tableNames, leftOp, rightOp, joinConditions);
 		}
@@ -272,5 +273,6 @@ public class QueryPlan {
 	public Operator getOperator() {
 		return rootOperator;
 	}
+	
 
 }
