@@ -82,7 +82,7 @@ public class ExternalSortOperator extends Operator {
 		if (reader == null) {
 			return;
 		}
-		reader.reset();
+		reader.reset(i);
 	}
 
 	/**
