@@ -15,17 +15,19 @@ public class ExternalSortOperator extends Operator {
 	private ArrayList<String> schema = new ArrayList<String>();
 	private BinaryTupleReader reader = null;
 	private int bufferPages;
+	public static final int pageSize=4096;
 
 	/**
 	 * Constructor for the operator.
 	 *
 	 * @param op     the child operator
 	 * @param orders the sorting order
+	 * @param bufferSize The number of pages that will be used 
 	 */
-	public ExternalSortOperator(Operator op, List orders) {
+	public ExternalSortOperator(Operator op, List orders, int bufferSize) {
 		child = op;
 		schema = op.getSchema();
-		bufferPages = 0;
+		bufferPages = bufferSize;
 
 	}
 
@@ -33,6 +35,9 @@ public class ExternalSortOperator extends Operator {
 	 * Create number of runs, sort each run
 	 */
 	public void sort() {
+		int tuplesPerPage = 4096 / schema.size() / 4;
+		int totalTuples = tuplesPerPage * bufferPages;
+		int run = 0;
 
 	}
 
@@ -40,8 +45,7 @@ public class ExternalSortOperator extends Operator {
 	 * Merge the runs
 	 */
 	public void merge() {
-		int tuplesPerPage = 4096 / schema.size() / 4;
-		int totalTuples = tuplesPerPage * bufferPages;
+
 
 	}
 
@@ -92,7 +96,6 @@ public class ExternalSortOperator extends Operator {
 	 */
 	@Override
 	public ArrayList<String> getSchema() {
-		// TODO Auto-generated method stub
 		return schema;
 	}
 
