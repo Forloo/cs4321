@@ -45,6 +45,13 @@ public class ExternalSortOperator extends Operator {
 		}
 
 	}
+	
+	/**
+	 * Set name of temp file for each run
+	 */
+	public String nameTempFile(int run) {
+		return "Run #" + Integer.toString(run);
+	}
 
 	/**
 	 * Create number of runs, sort each run
@@ -66,7 +73,7 @@ public class ExternalSortOperator extends Operator {
 		}
 		Collections.sort(sortList, new CompareTuples());
 		
-		BinaryTupleWriter writer = new BinaryTupleWriter("temp");
+		BinaryTupleWriter writer = new BinaryTupleWriter(nameTempFile(run));
 		for(Tuple t : sortList) {
 		    writer.writeTuple(t);
 		}
