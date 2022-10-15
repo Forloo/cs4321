@@ -21,6 +21,10 @@ public class ExternalSortOperator extends Operator {
 	public static final int pageSize=4096;
 	private ArrayList<String> order;
 	private ArrayList<Integer> orderByIdx = new ArrayList<Integer>();
+	
+	//each stores buffer page worth of tuples from each run
+	private ArrayList<ArrayList<Tuple>> inputBuffer = new ArrayList<ArrayList<Tuple>>();
+	private ArrayList<ArrayList<Tuple>> outputBuffer = new ArrayList<ArrayList<Tuple>>();
 
 	/**
 	 * Constructor for the operator.
@@ -78,7 +82,7 @@ public class ExternalSortOperator extends Operator {
 	 * Merge the runs
 	 */
 	public void merge(int run) {
-
+		
 
 	}
 	
