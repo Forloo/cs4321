@@ -46,7 +46,7 @@ public class ExternalSortOperator extends Operator {
 	 * Create number of runs, sort each run
 	 */
 	public void sort() {
-		int tuplesPerPage = 4096 / schema.size() / 4;
+		int tuplesPerPage = pageSize / schema.size() / 4;
 		int totalTuples = tuplesPerPage * bufferPages;
 		int run = 0; 
 		Tuple tup;
