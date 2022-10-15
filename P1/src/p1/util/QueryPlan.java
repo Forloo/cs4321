@@ -262,7 +262,7 @@ public class QueryPlan {
 			return new SortOperator(child, orders);
 		}
 		// else use external sort
-		return new ExternalSortOperator(child, orders);
+		return new ExternalSortOperator(child, orders,DatabaseCatalog.getInstance().getSortPages());
 	}
 
 	/**
