@@ -39,22 +39,22 @@ class DatabaseCatalogTest {
 
 		HashMap<String, ArrayList<String>> colInfo = information.getSchema();
 
-		// Expected schemas
+		// Update the schema test as the columns now all have the prefix of the table that they are from
 		ArrayList<String> reserveExpected = new ArrayList<String>();
-		reserveExpected.add("G");
-		reserveExpected.add("H");
+		reserveExpected.add("Reserves.G");
+		reserveExpected.add("Reserves.H");
 		assertEquals(reserveExpected, colInfo.get("Reserves"));
 
 		ArrayList<String> boatsExpected = new ArrayList<String>();
-		boatsExpected.add("D");
-		boatsExpected.add("E");
-		boatsExpected.add("F");
+		boatsExpected.add("Boats.D");
+		boatsExpected.add("Boats.E");
+		boatsExpected.add("Boats.F");
 		assertEquals(boatsExpected, colInfo.get("Boats"));
 
 		ArrayList<String> sailorsExpected = new ArrayList<String>();
-		sailorsExpected.add("A");
-		sailorsExpected.add("B");
-		sailorsExpected.add("C");
+		sailorsExpected.add("Sailors.A");
+		sailorsExpected.add("Sailors.B");
+		sailorsExpected.add("Sailors.C");
 		assertEquals(sailorsExpected, colInfo.get("Sailors"));
 
 	}

@@ -107,53 +107,6 @@ public class LogicalPlanTest {
 		assertTrue(leftChild instanceof LogicalScan);
 		assertTrue(rightChild instanceof LogicalScan);
 
-		// Testing a join with a project on top of it
-		Statement querysixteen = queries.get(16);
-		LogicalPlan join2 = new LogicalPlan(querysixteen);
-		// Get the projectoperator root
-		LogicalProject projectRoot = (LogicalProject) join2.getOperator();
-		assertTrue(projectRoot instanceof LogicalProject);
-
-		// the child of this is a join
-		LogicalJoin child1 = (LogicalJoin) projectRoot.getChild();
-		assertTrue(child1 instanceof LogicalJoin);
-
-		// The left child of this is a join and then the right child of this
-		// node is a scan operator since each child does not have a expression for
-		// itself
-		LogicalJoin child2left = (LogicalJoin) child1.getLeftChild();
-		LogicalScan child2right = (LogicalScan) child1.getRightChild();
-		assertTrue(child2left instanceof LogicalJoin);
-		assertTrue(child2right instanceof LogicalScan);
-
-		// The left child of the child2left should be a scan and so should the right
-		// child of the child2left.
-		LogicalScan child3left = (LogicalScan) child2left.getLeftChild();
-		LogicalScan child3right = (LogicalScan) child2left.getRightChild();
-		assertTrue(child3left instanceof LogicalScan);
-		assertTrue(child3right instanceof LogicalScan);
-
-		// Testing if the sort logical operator will work
-		Statement query17 = queries.get(17);
-		LogicalPlan sort = new LogicalPlan(query17);
-		LogicalSort sorttesting = (LogicalSort) sort.getOperator();
-		assertTrue(sorttesting instanceof LogicalSort);
-
-		// The first child of the sort should be a logicalJoin
-		LogicalJoin firstchild = (LogicalJoin) sorttesting.getChild();
-		assertTrue(firstchild instanceof LogicalJoin);
-
-		// The left child should be a join
-		// The right child should be a scan
-		LogicalJoin secondchildleft = (LogicalJoin) firstchild.getLeftChild();
-		LogicalScan secondchildright = (LogicalScan) firstchild.getRightChild();
-		assertTrue(secondchildleft instanceof LogicalJoin);
-		assertTrue(secondchildright instanceof LogicalScan);
-
-		// Both childs are scans
-		assertTrue(secondchildleft.getLeftChild() instanceof LogicalScan);
-		assertTrue(secondchildleft.getRightChild() instanceof LogicalScan);
-
 		// Testing the LogicalUnique
 		Statement queryten = queries.get(10);
 		LogicalPlan unique = new LogicalPlan(queryten);

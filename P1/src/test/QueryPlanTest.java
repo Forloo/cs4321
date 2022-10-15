@@ -177,41 +177,6 @@ public class QueryPlanTest {
 		assertEquals(joinTesting2.getNextTuple().toString(), "64,113,139,64,156,156,94,121");
 		assertEquals(joinTesting2.getNextTuple().toString(), "64,113,139,64,156,156,193,12");
 
-		// Testing a join with a projection on top of it.
-		Statement querysixteen = queries.get(16);
-		QueryPlan projectionJoin = new QueryPlan(querysixteen, DatabaseCatalog.getInstance());
-		Operator projectionJoinTesting = projectionJoin.getOperator();
-		assertTrue(projectionJoinTesting instanceof ProjectOperator);
-
-		assertEquals(projectionJoinTesting.getNextTuple().toString(), "9,156,64,64");
-		assertEquals(projectionJoinTesting.getNextTuple().toString(), "121,156,64,64");
-		assertEquals(projectionJoinTesting.getNextTuple().toString(), "12,156,64,64");
-		assertEquals(projectionJoinTesting.getNextTuple().toString(), "32,156,64,64");
-		assertEquals(projectionJoinTesting.getNextTuple().toString(), "147,70,64,64");
-
-		// Test to see if the reset method works for this projectionjoin
-		projectionJoinTesting.reset();
-		assertEquals(projectionJoinTesting.getNextTuple().toString(), "9,156,64,64");
-
-		// Sort testing
-		Statement queryseventeen = queries.get(17);
-		QueryPlan sortJoin = new QueryPlan(queryseventeen, DatabaseCatalog.getInstance());
-		Operator sortTesting = sortJoin.getOperator();
-
-		// Test to see if the main operator is the sortOperator
-		// Sort Operator takes a while and for some reason takes a while to compile
-		assertTrue(sortTesting instanceof SortOperator);
-
-		assertEquals(sortTesting.getNextTuple().toString(), "4,77,1,4,89,89,52,115");
-		assertEquals(sortTesting.getNextTuple().toString(), "4,77,1,4,89,89,66,152");
-		assertEquals(sortTesting.getNextTuple().toString(), "4,77,1,4,89,89,103,172");
-		assertEquals(sortTesting.getNextTuple().toString(), "4,77,1,4,89,89,154,196");
-		assertEquals(sortTesting.getNextTuple().toString(), "4,77,1,4,90,90,75,158");
-
-		// Testing reset for the sortoperators
-		sortTesting.reset();
-		assertEquals(sortTesting.getNextTuple().toString(), "4,77,1,4,89,89,52,115");
-
 		// Testing duplicate elimination operator
 		Statement queryten = queries.get(10);
 		QueryPlan duplicate = new QueryPlan(queryten, DatabaseCatalog.getInstance());
