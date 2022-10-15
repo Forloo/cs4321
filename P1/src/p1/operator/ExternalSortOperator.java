@@ -7,6 +7,7 @@ import java.util.List;
 
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
+import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
 /**
@@ -21,6 +22,7 @@ public class ExternalSortOperator extends Operator {
 	public static final int pageSize=4096;
 	private ArrayList<String> order;
 	private ArrayList<Integer> orderByIdx = new ArrayList<Integer>();
+	private String tempDir;
 	
 	//each stores buffer page worth of tuples from each run
 	private ArrayList<ArrayList<Tuple>> inputBuffer = new ArrayList<ArrayList<Tuple>>();
@@ -42,15 +44,14 @@ public class ExternalSortOperator extends Operator {
 		// Get the indices of columns to order by
 		for (String col : order) {
 			orderByIdx.add(schema.indexOf(col));
-		}
-
+		}		
 	}
 	
 	/**
 	 * Set name of temp file for each run
 	 */
-	public String nameTempFile(int run) {
-		return "Run #" + Integer.toString(run);
+	public String nameTempFile(int pass, int run) {
+		return "Pass_" + Integer.toString(pass) + "Run_" + Integer.toString(run);
 	}
 
 	/**
@@ -73,7 +74,7 @@ public class ExternalSortOperator extends Operator {
 		}
 		Collections.sort(sortList, new CompareTuples());
 		
-		BinaryTupleWriter writer = new BinaryTupleWriter(nameTempFile(run));
+		BinaryTupleWriter writer = new BinaryTupleWriter(nameTempFile(0, run));
 		for(Tuple t : sortList) {
 		    writer.writeTuple(t);
 		}

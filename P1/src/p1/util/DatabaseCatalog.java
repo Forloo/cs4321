@@ -22,7 +22,7 @@ public class DatabaseCatalog {
 	private HashMap<String, String> tableNames;
 	private HashMap<String, ArrayList<String>> schema;
 	// The temp directory to store sort files.
-	private String tempDir;
+	public String tempDir;
 	// The type of join to use.
 	private int joinMethod;
 	// Number of buffer pages to use for join.
