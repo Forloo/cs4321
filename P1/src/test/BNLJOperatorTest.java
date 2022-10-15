@@ -111,5 +111,54 @@ public class BNLJOperatorTest {
 		// The result should be null for all following next tuple get operations
 		assertEquals(null,seventhroot.getNextTuple());
 		
+		// Test the bnlj operator on when the join condition has more than one table
+		// and check if the output is right.
+		
+		Statement queryEight= queries.get(8);
+		
+		// Set the join condition to be the bnlj 
+		DatabaseCatalog.getInstance().setJoinMethod(1);
+		DatabaseCatalog.getInstance().setJoinPages(2);
+		QueryPlan planEight = new QueryPlan(queryEight,DatabaseCatalog.getInstance());
+		BNLJOperator eightRoot= (BNLJOperator)planEight.getOperator();
+		
+		// Get the outer block of the first loop the values in it should be the 
+		// same for some of the values in the first outer block value that we 
+		// tested.
+		for(int i=0;i<eightRoot.getOuterBlock().size();i++) {
+			System.out.println(i);
+			System.out.println(eightRoot.getOuterBlock().get(i));
+		}
+		// The size of the outer output should be 408
+		assertEquals(408,eightRoot.getTuplePerScan());
+		
+		// First value that is a match is 30
+		assertEquals("12,93,143,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		assertEquals("12,18,57,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		assertEquals("12,80,128,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		assertEquals("12,27,7,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		
+		// Next value that is a match is the value 57 and there is one value with the same value
+		assertEquals("183,169,161,183,57,57,24,130",eightRoot.getNextTuple().toString());
+		assertEquals("183,22,42,183,57,57,24,130",eightRoot.getNextTuple().toString());
+		assertEquals("183,37,79,183,57,57,24,130",eightRoot.getNextTuple().toString());
+		
+		// The next value that is a match is the value 172 and 
+		assertEquals("6,125,191,6,172,172,68,43",eightRoot.getNextTuple().toString());
+		
+		// Check if the reset method works for the nested blocked nested loop joins
+		eightRoot.reset();
+		
+		// Check if the reset worked.
+		assertEquals("12,93,143,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		assertEquals("12,18,57,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		assertEquals("12,80,128,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		assertEquals("12,27,7,12,30,30,63,101",eightRoot.getNextTuple().toString());
+		assertEquals("183,169,161,183,57,57,24,130",eightRoot.getNextTuple().toString());
+		assertEquals("183,22,42,183,57,57,24,130",eightRoot.getNextTuple().toString());
+		assertEquals("183,37,79,183,57,57,24,130",eightRoot.getNextTuple().toString());
+		assertEquals("6,125,191,6,172,172,68,43",eightRoot.getNextTuple().toString());
+
+		
 	}
 }
