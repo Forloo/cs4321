@@ -26,8 +26,6 @@ public class BNLJOperator extends Operator{
 	
 	// The number of tuples that we scan into a block in total
 	private int tuplePerScan;
-	// The number of bytes for a page.
-	public static final int pageSize=4096;
 	// The Arraylist of tuples containing the elements in the outer block
 	private ArrayList<Tuple> outerBlock;
 	// The position of the tuple in the outer loop

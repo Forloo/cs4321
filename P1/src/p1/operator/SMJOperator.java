@@ -81,7 +81,7 @@ public class SMJOperator extends Operator {
 					}
 				}
 			}
-		}
+		} 
 
 		// Get order for comparisons to determine "less than", "greater than"
 		for (Expression e : exp) {
@@ -112,7 +112,7 @@ public class SMJOperator extends Operator {
 	}
 
 	/**
-	 * Retreives the tables that are being joined by this joinOperator
+	 * Retrieves the tables that are being joined by this joinOperator
 	 *
 	 * @return A string delimited by commas telling us all the tables being joined.
 	 */

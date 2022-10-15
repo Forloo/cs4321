@@ -1,10 +1,16 @@
 package p1.operator;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import p1.io.BinaryTupleReader;
+import p1.io.BinaryTupleWriter;
+import p1.io.TupleWriter;
 import p1.util.Tuple;
+import p1.operator.*;
 
 /**
  * Physical external sort operator
@@ -16,6 +22,8 @@ public class ExternalSortOperator extends Operator {
 	private BinaryTupleReader reader = null;
 	private int bufferPages;
 	public static final int pageSize=4096;
+	private ArrayList<String> order;
+	private ArrayList<Integer> orderByIdx = new ArrayList<Integer>();
 
 	/**
 	 * Constructor for the operator.
@@ -24,10 +32,16 @@ public class ExternalSortOperator extends Operator {
 	 * @param orders the sorting order
 	 * @param bufferSize The number of pages that will be used 
 	 */
-	public ExternalSortOperator(Operator op, List orders, int bufferSize) {
+	public ExternalSortOperator(Operator op, ArrayList<String> orders, int bufferSize) {
 		child = op;
 		schema = op.getSchema();
 		bufferPages = bufferSize;
+		order = orders;
+		
+		// Get the indices of columns to order by
+		for (String col : order) {
+			orderByIdx.add(schema.indexOf(col));
+		}
 
 	}
 
@@ -37,15 +51,68 @@ public class ExternalSortOperator extends Operator {
 	public void sort() {
 		int tuplesPerPage = 4096 / schema.size() / 4;
 		int totalTuples = tuplesPerPage * bufferPages;
-		int run = 0;
+		int run = 0; 
+		Tuple tup;
+		
+		List<Tuple> sortList = new ArrayList<>(totalTuples);
+		int tuplesRemaining = totalTuples;
+		
+		while ((tup = child.getNextTuple()) != null) {
+			sortList.add(tup);
+			tup = child.getNextTuple();
+			tuplesRemaining--;
+			
+		}
+		Collections.sort(sortList, new CompareTuples());
+		
+		BinaryTupleWriter writer = new BinaryTupleWriter("temp");
+		for(Tuple t : sortList) {
+		    writer.writeTuple(t);
+		}
+		writer.close();
 
+        run++;
+		
+		
+		merge(run);		
 	}
 
 	/**
 	 * Merge the runs
 	 */
-	public void merge() {
+	public void merge(int run) {
 
+
+	}
+	
+	/**
+	 * A custom Comparator that sorts two Tuples based on the orderBy columns.
+	 */
+	public class CompareTuples implements Comparator<Tuple> {
+
+		@Override
+		/**
+		 * Compares two Tuples.
+		 *
+		 * @param o1 the first Tuple to compare.
+		 * @param o2 the second Tuple to compare.
+		 * @return -1 if the first Tuple should come before the second Tuple, 0 if they
+		 *         are equal, and 1 if the first Tuple should come after the second
+		 *         Tuple.
+		 */
+		public int compare(Tuple o1, Tuple o2) {
+			for (Integer i : orderByIdx) {
+				int t1 = Integer.valueOf(o1.getTuple().get(i));
+				int t2 = Integer.valueOf(o2.getTuple().get(i));
+				if (t1 < t2) {
+					return -1;
+				} else if (t1 > t2) {
+					return 1;
+				}
+			}
+
+			return 0;
+		}
 
 	}
 
