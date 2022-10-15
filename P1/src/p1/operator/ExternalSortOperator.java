@@ -1,6 +1,5 @@
 package p1.operator;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -8,9 +7,7 @@ import java.util.List;
 
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
-import p1.io.TupleWriter;
 import p1.util.Tuple;
-import p1.operator.*;
 
 /**
  * Physical external sort operator
