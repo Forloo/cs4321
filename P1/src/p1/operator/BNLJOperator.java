@@ -166,6 +166,14 @@ public class BNLJOperator extends Operator{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	/**
+	 * Retrives the max number of tuples per scan
+	 * @return An integer telling us the maximum number of tuples per scan.
+	 */
+	public int getTuplePerScan() {
+		return tuplePerScan;
+	}
 
 	/**
 	 * Retrieves the schema for the given block nested join
@@ -255,6 +263,14 @@ public class BNLJOperator extends Operator{
 		}
 		
 		return outer;
+	}
+	
+	/**
+	 * This is for testing only delete this method after
+	 * @return
+	 */
+	public ArrayList<Tuple> getOuterBlock(){
+		return outerBlock;
 	}
 
 }
