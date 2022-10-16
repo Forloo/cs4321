@@ -59,9 +59,12 @@ public class ExternalSortOperator extends Operator {
 	 * Create number of runs, sort each run
 	 */
 	public void sort() throws IOException {
-		int totalTuples = (4096 / schema.size() / 4) * bufferPages;
+		int tuplesPerPage = (4096 / schema.size() / 4);
+		int totalTuples = tuplesPerPage * bufferPages;
 		int run = 0; 
 		Tuple tup;
+		List<String> fileList = new ArrayList<String>();
+
 				
 		while ((tup = child.getNextTuple()) != null) {
 			List<Tuple> sortList = new ArrayList<>(totalTuples);
@@ -75,8 +78,10 @@ public class ExternalSortOperator extends Operator {
 			
 			Collections.sort(sortList, new CompareTuples());
 			
-			BinaryTupleWriter writer = new BinaryTupleWriter(nameTempFile(0, run));
-			
+			String fileName = nameTempFile(0, run);
+			BinaryTupleWriter writer = new BinaryTupleWriter(fileName); 
+			fileList.add(fileName);
+						
 			for(Tuple t : sortList) {
 			    writer.writeTuple(t);
 			} writer.close();
@@ -87,15 +92,12 @@ public class ExternalSortOperator extends Operator {
 		}	
 	}
 	
-	
-
-
 /**
  * Merge the runs
  * @param n is the number of sorted runs left to merge into one big run
  * @param b is the size of buffer
  */
-public void merge(int n, int b, String temp, List<String> fileList,int tuplesPerPage) {
+public void merge(int n, int b, BinaryTupleWriter temp, List<String> fileList,int tuplesPerPage) {
 	//keeps track of which files to read and put into input buffer
 	ArrayList<BinaryTupleReader> fileReaders = new ArrayList<BinaryTupleReader>();
 	for (String f : fileList) {
