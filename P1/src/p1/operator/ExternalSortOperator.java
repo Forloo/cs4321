@@ -83,17 +83,109 @@ public class ExternalSortOperator extends Operator {
 			
 	        run++;
 			
-			merge(run);	
+	        merge(run, bufferPages, writer, fileList, tuplesPerPage);		
 		}	
 	}
+	
+	
 
-	/**
-	 * Merge the runs
-	 */
-	public void merge(int run) {
-		
 
+/**
+ * Merge the runs
+ * @param n is the number of sorted runs left to merge into one big run
+ * @param b is the size of buffer
+ */
+public void merge(int n, int b, String temp, List<String> fileList,int tuplesPerPage) {
+	//keeps track of which files to read and put into input buffer
+	ArrayList<BinaryTupleReader> fileReaders = new ArrayList<BinaryTupleReader>();
+	for (String f : fileList) {
+		//make BinaryTupleReader for all runs...
+		fileReaders.add(new BinaryTupleReader(f));
 	}
+	//whenever this many tuples in output buffer, write to disk
+	int eachRunSize = tuplesPerPage;
+	//whenever write to disk when output buffer is full, add 1 here
+	int newTempDirNum = 0;
+	while(n!=1) { //to merge to one big run
+		//initialize input buffer
+		for(int i=0; i<b;i++) {//to add tuples of correct page of runs to each input buffer
+			ArrayList<Tuple> onePage = new ArrayList<Tuple>();
+			int leftRuns = 0; //find run with pages left
+			Tuple saveTuple = fileReaders.get(leftRuns).nextTuple();
+			while(saveTuple == null) {
+				leftRuns++; //keep adding
+				saveTuple = fileReaders.get(leftRuns).nextTuple();
+			}
+			if (saveTuple != null) {
+				onePage.add(saveTuple);
+			}
+			int t=0;
+			while(t<tuplesPerPage) { //add tuples to input buffer
+				onePage.add(fileReaders.get(i).nextTuple());
+				t++;
+			}
+			inputBuffer.add(onePage);
+		}
+		
+		//done initializing input buffer
+		while(true) {//to merge intermediate runs, each iteration writes to disk
+			ArrayList<Tuple> outputBuffer = new ArrayList<Tuple>(); //resets after writing to disk
+			int oBTupNum = 0;
+			ArrayList<Tuple> sortList = new ArrayList<Tuple>();
+			
+			Tuple minTup = null;
+			//find the minimum in inputBuffer
+//			ArrayList<Tuple> combined = new ArrayList<Tuple>();
+			int minCoordOut = 0;
+			int minCoordIn = 0;
+			int outer = 0;
+			int inner = 0;
+			for(ArrayList<Tuple> aTup : inputBuffer) {
+				for(Tuple tup : aTup) {
+					if (minTup == null || (compare(tup, minTup) == -1)) {
+						minTup = tup;
+						minCoordOut = outer;
+						minCoordIn = inner;
+					}
+					inner++;
+				}
+				outer ++;
+			}
+			inputBuffer.get(outer).remove(inner); //delete that min node from corresponding page
+			//write to new file when sortList is eachRunSize
+			if (oBTupNum == eachRunSize) {
+				BinaryTupleWriter writer = new BinaryTupleWriter("temp");
+				for(Tuple t : sortList) {
+				    writer.writeTuple(t);
+				}
+				writer.close();
+			}
+			//how should I keep track of what tuple i am at in a certain run's page?
+			//add 1 to n after each merge
+			n ++;
+		}
+		
+		eachRunSize = eachRunSize * 2; //update when to write to disk from output buffer
+		n = n / 2; //after one merge for all runs in temp dir is done, reduce n size
+		
+	}
+	
+
+}
+
+public int compare(Tuple o1, Tuple o2) {
+	for (Integer i : orderByIdx) {
+		int t1 = Integer.valueOf(o1.getTuple().get(i));
+		int t2 = Integer.valueOf(o2.getTuple().get(i));
+		if (t1 < t2) {
+			return -1;
+		} else if (t1 > t2) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
 	
 	/**
 	 * A custom Comparator that sorts two Tuples based on the orderBy columns.
