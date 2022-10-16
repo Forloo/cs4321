@@ -1,5 +1,6 @@
 package p1.operator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,7 +38,7 @@ public class ExternalSortOperator extends Operator {
 	 */
 	public ExternalSortOperator(Operator op, ArrayList<String> orders, int bufferSize) {
 		child = op;
-		schema = op.getSchema();
+		schema = child.getSchema();
 		bufferPages = bufferSize;
 		order = orders;
 		
@@ -57,33 +58,33 @@ public class ExternalSortOperator extends Operator {
 	/**
 	 * Create number of runs, sort each run
 	 */
-	public void sort() {
-		int tuplesPerPage = 4096 / schema.size() / 4;
-		int totalTuples = tuplesPerPage * bufferPages;
+	public void sort() throws IOException {
+		int totalTuples = (4096 / schema.size() / 4) * bufferPages;
 		int run = 0; 
 		Tuple tup;
-		
-		List<Tuple> sortList = new ArrayList<>(totalTuples);
-		int tuplesRemaining = totalTuples;
-		
+				
 		while ((tup = child.getNextTuple()) != null) {
-			sortList.add(tup);
-			tup = child.getNextTuple();
-			tuplesRemaining--;
+			List<Tuple> sortList = new ArrayList<>(totalTuples);
+			int tuplesRemaining = totalTuples;
 			
-		}
-		Collections.sort(sortList, new CompareTuples());
-		
-		BinaryTupleWriter writer = new BinaryTupleWriter(nameTempFile(0, run));
-		for(Tuple t : sortList) {
-		    writer.writeTuple(t);
-		}
-		writer.close();
-
-        run++;
-		
-		
-		merge(run);		
+			while (tuplesRemaining > 0 && tup != null) {
+				sortList.add(tup);
+				tup = child.getNextTuple();
+				tuplesRemaining--;
+			}
+			
+			Collections.sort(sortList, new CompareTuples());
+			
+			BinaryTupleWriter writer = new BinaryTupleWriter(nameTempFile(0, run));
+			
+			for(Tuple t : sortList) {
+			    writer.writeTuple(t);
+			} writer.close();
+			
+	        run++;
+			
+			merge(run);	
+		}	
 	}
 
 	/**
