@@ -113,6 +113,9 @@ public class ExternalSortOperator extends Operator {
 		while(outDirSize != 1) { //initialize before merge step
 			//initialize possible runs to go in input buffer
 			outDirSize = outDirSize / 2;
+			if (outDirSize == 1) {//included here bc once putting under while loop below, code doesn't reach
+				break;
+			}
 			//adjust fileList here
 			List<String> subItems = new ArrayList<String>(fileList.subList(0, outDirSize)); //change
 			ArrayList<BinaryTupleReader> fileReaders = new ArrayList<BinaryTupleReader>();
@@ -135,14 +138,12 @@ public class ExternalSortOperator extends Operator {
 				numTupInBuff++;
 			}
 			int outBufferNumTup = 0;
-			//QUESTION: What is the size of the intermediate run? - twice the original...
+			//QUESTION: What is the size of the intermediate run? - twice the original... maybe
 			tuplesPerPage = tuplesPerPage * 2;
 			int bwOutDirSize = 0;
 			
-			if (outDirSize == 1) {//included here bc once putting under while loop below, code doesn't reach
-				break;
-			}
-			
+			//for the temp file names
+			//Question: Do I need all intermediate temp files? Or can I just overwrite previous files for runs?
 			int ms = 0;
 			int rn = 0;
 //			ArrayList<String> interFileList = new ArrayList<String>();
@@ -165,6 +166,7 @@ public class ExternalSortOperator extends Operator {
 				//add min to output buffer and "remove" it from input buffer
 				outputBuffer.add(minTup);
 				outBufferNumTup++;
+				//updating the input buffer... might have indexing errors...
 				if (fileReaders.get(minTupIndx).nextTuple() == null) {
 					if (fileReaders.get(numTupInBuff + 1) != null) {
 						fileReaders.get(numTupInBuff+1); //get the next fileReader not read to the right... and set to minTupIndx
@@ -178,7 +180,6 @@ public class ExternalSortOperator extends Operator {
 					bMinusOneTuple.set(minTupIndx, fileReaders.get(minTupIndx).nextTuple());
 				}
 				
-				
 				if (outBufferNumTup == tuplesPerPage || fileReaders.isEmpty()) { //do we have to create files whenever the 
 					//output buffer is full? slide says to write to disk when output buffer is full
 					//but I want each files to be intermediate runs, two runs combined, but if i 
@@ -190,11 +191,11 @@ public class ExternalSortOperator extends Operator {
 					ms++;
 					rn++;
 					BinaryTupleWriter writer = new BinaryTupleWriter(fileName);
-					outputBuffer = new ArrayList<Tuple>();//reset output buffer
 					for(Tuple t : outputBuffer) {
 					    writer.writeTuple(t);
 					} //does this pad the binary file with zeros?
 					writer.close();
+					outputBuffer = new ArrayList<Tuple>();//reset output buffer
 				}
 			}
 		}
