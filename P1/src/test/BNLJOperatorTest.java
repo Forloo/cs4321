@@ -122,13 +122,6 @@ public class BNLJOperatorTest {
 		QueryPlan planEight = new QueryPlan(queryEight,DatabaseCatalog.getInstance());
 		BNLJOperator eightRoot= (BNLJOperator)planEight.getOperator();
 		
-		// Get the outer block of the first loop the values in it should be the 
-		// same for some of the values in the first outer block value that we 
-		// tested.
-		for(int i=0;i<eightRoot.getOuterBlock().size();i++) {
-			System.out.println(i);
-			System.out.println(eightRoot.getOuterBlock().get(i));
-		}
 		// The size of the outer output should be 408
 		assertEquals(408,eightRoot.getTuplePerScan());
 		
@@ -158,7 +151,21 @@ public class BNLJOperatorTest {
 		assertEquals("183,22,42,183,57,57,24,130",eightRoot.getNextTuple().toString());
 		assertEquals("183,37,79,183,57,57,24,130",eightRoot.getNextTuple().toString());
 		assertEquals("6,125,191,6,172,172,68,43",eightRoot.getNextTuple().toString());
-
+		
+		// Check if the bnlj works with alias and that the outer table holds all
+		// of the tuples if the outer block size is larger enough
+		Statement queryEleven= queries.get(11);
+		DatabaseCatalog.getInstance().setJoinMethod(1);
+		DatabaseCatalog.getInstance().setJoinPages(3);
+		QueryPlan planTen = new QueryPlan(queryEleven,DatabaseCatalog.getInstance());
+		BNLJOperator op = (BNLJOperator)planTen.getOperator();
+		
+		// Get the size of the left table
+		assertEquals(1020,op.getTuplePerScan());
+		// Get the size of the outer table it should be 1000 for all of the tuples in our table
+		assertEquals(1000,op.getOuterBlock().size());
+		
+		
 		
 	}
 }
