@@ -57,7 +57,7 @@ public class BinaryTupleWriter implements TupleWriter {
 	public void writeTuple(Tuple t) {
 		numAttr = t.getTuple().size();
 		// Reset buffer when it has written an entire page.
-		if (numBytesLeft > numAttr * 4) {
+		if (numBytesLeft < numAttr * 4) {
 			dump();
 			numBytesLeft = 4096 - 8;
 			numTuples = 0;
