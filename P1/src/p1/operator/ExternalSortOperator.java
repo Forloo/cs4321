@@ -38,6 +38,7 @@ public class ExternalSortOperator extends Operator {
 		tempDir = tempDirPath + id;
 		child = op;
 		schema = child.getSchema();
+//		System.out.println(child.getSchema().toString()); //debugging 
 		bufferPages = bufferSize;
 		order = list;
 		
@@ -69,19 +70,22 @@ public class ExternalSortOperator extends Operator {
 		int tuplesPerPage = (4096 / schema.size() / 4);
 		int totalTuples = tuplesPerPage * bufferPages;
 		int run = 0; 
+		System.out.println("tuplesperpage:" + totalTuples);
 		Tuple tup;
 		List<String> fileList = new ArrayList<String>();
-
-
+//		System.out.println(child.dump());
 		while ((tup = child.getNextTuple()) != null) {
 			List<Tuple> sortList = new ArrayList<>(totalTuples);
 			int tuplesRemaining = totalTuples;
-			
+			System.out.println(tup.toString());//debug
+			System.out.println(tuplesRemaining);
 			while (tuplesRemaining > 0 && tup != null) {
 				sortList.add(tup);
 				tup = child.getNextTuple();
 				tuplesRemaining--;
+				System.out.println(tuplesRemaining);
 			}
+			System.out.println(sortList.toString());
 			
 			Collections.sort(sortList, new CompareTuples());
 			
@@ -97,11 +101,10 @@ public class ExternalSortOperator extends Operator {
 			FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable");
 			
 
-	        run++;
-			
-	        
-	        merge(run, bufferPages, fileList, tuplesPerPage);		
+	        run++;	
 		}
+		System.out.println(run);
+		merge(run, bufferPages, fileList, tuplesPerPage);	
 		//for debugging
 		for (String s: fileList) {
 			System.out.println(s);
@@ -125,6 +128,7 @@ public class ExternalSortOperator extends Operator {
 		//change file dir to read from 
 		//clean temp directory between queries
 		int outDirSize = fileList.size() * 2;
+		System.out.println(outDirSize);
 		tuplesPerPage = tuplesPerPage / 2;//this is for output buffer
 		while(outDirSize != 1) { //initialize before merge step
 			//initialize possible runs to go in input buffer
@@ -168,6 +172,7 @@ public class ExternalSortOperator extends Operator {
 			int rn = 0;
 //			ArrayList<String> interFileList = new ArrayList<String>();
 			ArrayList<Tuple> outputBuffer = new ArrayList<Tuple>();
+			
 			while(bwOutDirSize != outDirSize) { //merging 1 step (stop merge when outDirSize number of 
 				//runs in output temp directory)
 				//find the minTup among the tuples added
@@ -228,7 +233,7 @@ public class ExternalSortOperator extends Operator {
 					//runs combined...
 					
 					String fileName = tempDir + "mergeStep_" + Integer.toString(ms) + "_run_" + Integer.toString(rn);
-					fileList.set(bwOutDirSize-1, fileName); //overwrite fileList and get first n elements next merge
+					fileList.set(bwOutDirSize, fileName); //overwrite fileList and get first n elements next merge
 					bwOutDirSize ++;
 					ms++;
 					rn++;

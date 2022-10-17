@@ -2,16 +2,20 @@ package p1;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.io.BinaryTupleWriter;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
+import p1.util.RandomDataGenerator;
+import p1.util.Tuple;
 
 public class Main {
 
@@ -31,7 +35,33 @@ public class Main {
 			File file = new File(dataDir + "data" + File.separator + allFiles[i]);
 			fileList[i] = file;
 		}
-
+		//debugging by generating random data
+		String fileName = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Boats";
+		ArrayList<Tuple> rdg = new RandomDataGenerator(3,10000).generate();
+		BinaryTupleWriter writer = new BinaryTupleWriter(fileName); 
+		for(Tuple t : rdg) {
+		    writer.writeTuple(t);
+		} writer.close();
+		//for debugging
+		FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable");
+		String fileName2 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors";
+		ArrayList<Tuple> rdg2 = new RandomDataGenerator(3,10000).generate();
+		BinaryTupleWriter writer2 = new BinaryTupleWriter(fileName2); 
+		for(Tuple t : rdg2) {
+		    writer2.writeTuple(t);
+		} writer2.close();
+		//for debugging
+		FileConverter.convertBinToHuman(fileName2, fileName2 + "_humanreadable");
+		String fileName3 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Reserves";
+		ArrayList<Tuple> rdg3 = new RandomDataGenerator(3,10000).generate();
+		BinaryTupleWriter writer3 = new BinaryTupleWriter(fileName3); 
+		for(Tuple t : rdg3) {
+		    writer3.writeTuple(t);
+		} writer3.close();
+		//for debugging
+		FileConverter.convertBinToHuman(fileName3, fileName3 + "_humanreadable");
+		
+		
 		DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema,
 				new File(args[0] + File.separator + "plan_builder_config.txt"), tempDir);
 
