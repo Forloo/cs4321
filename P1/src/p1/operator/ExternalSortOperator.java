@@ -230,6 +230,7 @@ public class ExternalSortOperator extends Operator {
 				//writing to output buffer
 				outputBuffer.add(minTup);
 				outBufferNumTup++;
+//				System.out.println(outBufferNumTup);
 				
 				
 				
@@ -237,17 +238,21 @@ public class ExternalSortOperator extends Operator {
 				System.out.println("unusedRuns = " + unusedRuns);
 
 				//updating the input buffer
-				if (fileReaders.get(minTupIndx).nextTuple() == null) {//if there exists unusedRun to be used
+				if (usedRuns.get(minTupIndx).nextTuple() == null) {//if there exists unusedRun to be used
 					if(!unusedRuns.isEmpty()) {
 						System.out.println("refill the input buffer");
 						usedRuns.set(minTupIndx, unusedRuns.get(0));
+						Tuple nextTup = usedRuns.get(minTupIndx).nextTuple();
+						System.out.println(nextTup.toString());
+						bMinusOneTuple.set(minTupIndx, nextTup);
 						unusedRuns.remove(0);
 					} else {
 						usedRuns.remove(minTupIndx);
 						bMinusOneTuple.remove(minTupIndx);
 					}
 				} else{ //else just keep getting next tuple from the same run
-					bMinusOneTuple.set(minTupIndx, fileReaders.get(minTupIndx).nextTuple());
+//					System.out.println("called?");
+					bMinusOneTuple.set(minTupIndx, usedRuns.get(minTupIndx).nextTuple());
 				}
 
 				
@@ -264,7 +269,8 @@ public class ExternalSortOperator extends Operator {
 					
 					//write to temp dir
 					BinaryTupleWriter writer = new BinaryTupleWriter(fileName);
-					System.out.println("outbuff size: " + outputBuffer.size());
+					System.out.println("this many tuples stored in output buffer: " + outputBuffer.size());
+					System.out.println("writing this file to temp dir: " + fileName);
 					for(Tuple t : outputBuffer) {
 						if (t == null) {
 							break;
