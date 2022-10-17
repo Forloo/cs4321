@@ -187,17 +187,6 @@ public class ExternalSortOperator extends Operator {
 			
 			
 			//for debugging (check if initialized properly)
-<<<<<<< HEAD
-//			for (String title:fileList) {
-//				System.out.println(title);//print fileList for debugging
-//			}
-//			System.out.println("fileReader Size: "+fileReaders.size()); //all runs
-//			System.out.println("bminus one tuple size: " + bMinusOneTuple.size()); //tuples
-//			System.out.println("used run size: "  +usedRuns.size()); //input buff runs
-//			System.out.println("unused run size: "  +unusedRuns.size()); //potential input buff runs
-			System.out.println("out dir number of tuples should be: "+ tuplesPerPage); //this merge step's run size
-//			System.out.println("out dir size: " + outDirSize);
-=======
 			for (String title:fileList) {
 				System.out.println(title);//print fileList for debugging
 			}
@@ -207,7 +196,7 @@ public class ExternalSortOperator extends Operator {
 			System.out.println("unused run size: "  +uninputBufferRun.size()); //potential input buff runs
 			System.out.println("out dir number of tuples should be: "+ tuplesPerPage); //this merge step's run size
 			System.out.println("out dir size: " + numRunsAfterMerge);
->>>>>>> cefc1105cd2248da500427a0f75cf98863b3e211
+
 			
 			
 			
