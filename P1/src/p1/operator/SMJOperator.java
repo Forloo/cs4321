@@ -96,8 +96,8 @@ public class SMJOperator extends Operator {
 			left = new SortOperator(leftOp, leftOrder);
 			right = new SortOperator(rightOp, rightOrder);
 		} else { // external sort
-			left = new ExternalSortOperator(leftOp, leftOrder,DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir());
-			right = new ExternalSortOperator(rightOp, rightOrder, DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir());
+			left = new ExternalSortOperator(leftOp, leftOrder,DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),0);
+			right = new ExternalSortOperator(rightOp, rightOrder, DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),1);
 		}
 		this.tables = tables;
 

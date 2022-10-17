@@ -175,7 +175,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
 				sort = new SortOperator(child, cpy.getOrderBy());
 			} else { // external sort
-				sort = new ExternalSortOperator(child, cpy.getOrderBy(), DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir());
+				sort = new ExternalSortOperator(child, cpy.getOrderBy(), DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),0);
 			}
 			return sort;
 		}

@@ -9,6 +9,8 @@ import java.util.List;
 
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
+import p1.io.FileConverter;
+import p1.io.HumanTupleReader;
 import p1.util.Tuple;
 
 /**
@@ -32,17 +34,23 @@ public class ExternalSortOperator extends Operator {
 	 * @param bufferSize The number of pages that will be used 
 	 * @param tempDir the file path for temporary directory
 	 */
-	public ExternalSortOperator(Operator op, List<String> list, int bufferSize, String tempDirPath) {
+	public ExternalSortOperator(Operator op, List<String> list, int bufferSize, String tempDirPath, int id) {
+		tempDir = tempDirPath + id;
 		child = op;
 		schema = child.getSchema();
 		bufferPages = bufferSize;
 		order = list;
-		tempDir = tempDirPath;
 		
 		// Get the indices of columns to order by
 		for (String col : order) {
 			orderByIdx.add(schema.indexOf(col));
 		}		
+		try {
+			sort();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -64,7 +72,7 @@ public class ExternalSortOperator extends Operator {
 		Tuple tup;
 		List<String> fileList = new ArrayList<String>();
 
-				
+
 		while ((tup = child.getNextTuple()) != null) {
 			List<Tuple> sortList = new ArrayList<>(totalTuples);
 			int tuplesRemaining = totalTuples;
@@ -80,15 +88,25 @@ public class ExternalSortOperator extends Operator {
 			String fileName = nameTempFile(0, run);
 			BinaryTupleWriter writer = new BinaryTupleWriter(fileName); 
 			fileList.add(fileName);
-						
+//			System.out.println("writing");	
 			for(Tuple t : sortList) {
+				
 			    writer.writeTuple(t);
 			} writer.close();
+			//for debugging
+			FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable");
 			
+
 	        run++;
 			
+	        
 	        merge(run, bufferPages, fileList, tuplesPerPage);		
-		}	
+		}
+		//for debugging
+		for (String s: fileList) {
+			System.out.println(s);
+		}
+		
 	}
 	
 
@@ -106,7 +124,6 @@ public class ExternalSortOperator extends Operator {
 		//do we always have even number of runs to merge?
 		//change file dir to read from 
 		//clean temp directory between queries
-		
 		int outDirSize = fileList.size() * 2;
 		tuplesPerPage = tuplesPerPage / 2;//this is for output buffer
 		while(outDirSize != 1) { //initialize before merge step
@@ -117,6 +134,10 @@ public class ExternalSortOperator extends Operator {
 			}
 			//adjust fileList here
 			List<String> subItems = new ArrayList<String>(fileList.subList(0, outDirSize)); //change
+			
+			
+			
+			//load to input buffer
 			ArrayList<BinaryTupleReader> fileReaders = new ArrayList<BinaryTupleReader>();
 			for (String f : subItems) {
 				//make BinaryTupleReader for all runs...
@@ -154,6 +175,10 @@ public class ExternalSortOperator extends Operator {
 				CompareTuples tc = new CompareTuples();
 				int minTupIndx = 0;
 				int inc = 0;
+				
+				
+				
+				//finding the min tuple
 				for(Tuple tup : bMinusOneTuple) {
 					if (minTup == null || tc.compare(tup,minTup) == -1){
 						minTup = tup;
@@ -163,9 +188,21 @@ public class ExternalSortOperator extends Operator {
 				}
 				//my file reader adds up to bMinusOneTuple
 				//add min to output buffer and "remove" it from input buffer
+				
+				
+				
+				
+				
+				//writing to output buffer
 				outputBuffer.add(minTup);
 				outBufferNumTup++;
 				//updating the input buffer... might have indexing errors...
+				
+				
+				
+				
+				
+				//updating the input buffer
 				if (fileReaders.get(minTupIndx).nextTuple() == null) {
 					if (fileReaders.get(numTupInBuff + 1) != null) {
 						fileReaders.get(numTupInBuff+1); //get the next fileReader not read to the right... and set to minTupIndx
@@ -179,12 +216,18 @@ public class ExternalSortOperator extends Operator {
 					bMinusOneTuple.set(minTupIndx, fileReaders.get(minTupIndx).nextTuple());
 				}
 				
+				
+				
+				
+				//write to disk and clear output buffer
+				//checking the output buffer and writing to "disk"
 				if (outBufferNumTup == tuplesPerPage || fileReaders.isEmpty()) { //do we have to create files whenever the 
 					//output buffer is full? slide says to write to disk when output buffer is full
 					//but I want each files to be intermediate runs, two runs combined, but if i 
 					//output whenever output buffer is full, the files will only contain one page, not 
 					//runs combined...
-					String fileName = tempDir + File.separator + "mergeStep_" + (ms) + "_run_" + (rn);
+					
+					String fileName = tempDir + "mergeStep_" + Integer.toString(ms) + "_run_" + Integer.toString(rn);
 					fileList.set(bwOutDirSize-1, fileName); //overwrite fileList and get first n elements next merge
 					bwOutDirSize ++;
 					ms++;
