@@ -189,4 +189,14 @@ public class DatabaseCatalog {
 		this.joinPages=joinPages;
 	}
 
+	public void setSortMethod(int sortMethod) {
+		this.sortMethod= sortMethod;
+
+	}
+
+	public void setSortPages(int sortPages) {
+		this.sortPages = sortPages;
+		
+	}
+
 }
