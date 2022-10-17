@@ -230,12 +230,9 @@ public class ExternalSortOperator extends Operator {
 				//writing to output buffer
 				outputBuffer.add(minTup);
 				outBufferNumTup++;
-//				System.out.println(outBufferNumTup);
+				System.out.println("outBufferNumTup = " + outBufferNumTup);
 				
 				
-				
-				System.out.println("minTupIndx = " + fileReaders.get(minTupIndx).nextTuple());
-				System.out.println("unusedRuns = " + unusedRuns);
 
 				//updating the input buffer
 				if (usedRuns.get(minTupIndx).nextTuple() == null) {//if there exists unusedRun to be used
