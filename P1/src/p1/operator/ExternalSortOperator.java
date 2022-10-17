@@ -200,8 +200,7 @@ public class ExternalSortOperator extends Operator {
 			ArrayList<Tuple> outputBuffer = new ArrayList<Tuple>(); //intialize output buffer
 			ms++; //for storing files, creating unique names
 			rn = 0;
-			while(currentNumRuns != numRunsAfterMerge && !inputBufferRun.isEmpty()) { //1 merge step
-				
+			while(!inputBufferTuple.isEmpty()) { //1 merge step
 				
 				//finding min tuple, saving which input buffer page min came from
 				Tuple minTup = null;
@@ -209,11 +208,6 @@ public class ExternalSortOperator extends Operator {
 				int minTupIndx = 0;
 				int inc = 0;
 				for(Tuple tup : inputBufferTuple) {
-					
-					if (tup == null) {
-						break;
-					}
-//					System.out.println(tup.toString());
 					if (minTup == null){
 						minTup = tup;
 						minTupIndx = inc;
@@ -224,7 +218,6 @@ public class ExternalSortOperator extends Operator {
 					
 					inc++;
 				}
-//				System.out.println("min tuple is: " + minTup.toString());
 
 				
 				
@@ -237,29 +230,31 @@ public class ExternalSortOperator extends Operator {
 				
 				
 				
+				Tuple nextTupInBuff = inputBufferRun.get(minTupIndx).nextTuple();
 				//updating the input buffer
-				if (inputBufferRun.get(minTupIndx).nextTuple() == null) {//if there exists unusedRun to be used
+				if (nextTupInBuff == null) {//if there exists unusedRun to be used
 					if(!uninputBufferRun.isEmpty()) {
 						System.out.println("refill the input buffer");
 						inputBufferRun.set(minTupIndx, uninputBufferRun.get(0));
 						Tuple nextTup = inputBufferRun.get(minTupIndx).nextTuple();
-						System.out.println(nextTup.toString());
+//						System.out.println("size of unused input buffer: " + uninputBufferRun.size());
 						inputBufferTuple.set(minTupIndx, nextTup);
 						uninputBufferRun.remove(0);
 					} else {
 						inputBufferRun.remove(minTupIndx);
 						inputBufferTuple.remove(minTupIndx);
+						System.out.println("input buffer tuple array size is: "+inputBufferTuple.size());
 					}
 				} else{ //else just keep getting next tuple from the same run
 //					System.out.println("called?");
-					inputBufferTuple.set(minTupIndx, inputBufferRun.get(minTupIndx).nextTuple());
+					inputBufferTuple.set(minTupIndx, nextTupInBuff);
 				}
 
 				
 				
 				
 				//write the disk and clear output buffer
-				if (outBufferNumTup == tuplesPerPage || inputBufferRun.isEmpty()) {
+				if (outBufferNumTup == tuplesPerPage || inputBufferTuple.isEmpty()) {
 					String fileName = tempDir + "mergeStep_" + Integer.toString(ms) + "_run_" + Integer.toString(rn);
 //					fileList.set(currentNumRuns, fileName); //overwrite fileList and get first n elements next merge???
 					fileList.add(0,fileName); //try this?
@@ -271,6 +266,7 @@ public class ExternalSortOperator extends Operator {
 					BinaryTupleWriter writer = new BinaryTupleWriter(fileName);
 					System.out.println("this many tuples stored in output buffer: " + outputBuffer.size());
 					System.out.println("writing this file to temp dir: " + fileName);
+//					outputBuffer.add(nextTupInBuff)
 					for(Tuple t : outputBuffer) {
 						if (t == null) {
 							break;
