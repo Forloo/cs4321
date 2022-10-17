@@ -124,20 +124,20 @@ public class ExternalSortOperator extends Operator {
 	 * @param tuplesPerPage represents the number of tuples that fills the output buffer for each step of merge.
 	 */
 	public void merge(int n, int b, List<String> fileList,int tuplesPerPage) {
-		int outDirSize = fileList.size() * 2;//issue is when we start with n number of runs where n is not a power of 2
+		int numRunsAfterMerge = fileList.size() * 2;//issue is when we start with n number of runs where n is not a power of 2
 		tuplesPerPage = tuplesPerPage * b;//initialize output buffer size or run size of merge step
 		int ms = 0; //merge step for storing files in temp dir
 		int rn = 0; //n'th run for storing files in temp dir
 		
-		while(outDirSize != 1) { //for merging into one big run
-			outDirSize = outDirSize / 2; //same issue as mentioned
+		while(numRunsAfterMerge != 1) { //for merging into one big run
+			numRunsAfterMerge = numRunsAfterMerge / 2; //same issue as mentioned
 			
-			if (outDirSize == 1) {//included here bc once putting under while loop below, code doesn't reach
+			if (numRunsAfterMerge == 1) {//included here bc once putting under while loop below, code doesn't reach
 				break;
 			}
 			
 			//adjust fileList here, potential issue here
-			List<String> subItems = new ArrayList<String>(fileList.subList(0, outDirSize)); //change
+			List<String> subItems = new ArrayList<String>(fileList.subList(0, numRunsAfterMerge)); //change
 			
 			
 			//initialize all runs
@@ -147,28 +147,28 @@ public class ExternalSortOperator extends Operator {
 				fileReaders.add(new BinaryTupleReader(f));
 			}
 			
-			//initialize input buffer (usedRuns) (load the tuples)
-			ArrayList<BinaryTupleReader> usedRuns = new ArrayList<BinaryTupleReader>();
-			ArrayList<Tuple> bMinusOneTuple = new ArrayList<Tuple>();
+			//initialize input buffer (inputBufferRun) (load the tuples)
+			ArrayList<BinaryTupleReader> inputBufferRun = new ArrayList<BinaryTupleReader>();
+			ArrayList<Tuple> inputBufferTuple = new ArrayList<Tuple>();
 			int numTupInBuff = 0;
 			for (BinaryTupleReader fileRead : fileReaders) {
 				if(numTupInBuff<b-1) {
-					bMinusOneTuple.add(fileRead.nextTuple());
+					inputBufferTuple.add(fileRead.nextTuple());
 					numTupInBuff++;
-					usedRuns.add(fileRead);
+					inputBufferRun.add(fileRead);
 				} else {
 					break;
 				}
 				
 			}
 			
-			//create unusedRuns (leftover runs to refill input buffer once one runs out)
-			ArrayList<BinaryTupleReader> unusedRuns = new ArrayList<BinaryTupleReader>();
+			//create uninputBufferRun (leftover runs to refill input buffer once one runs out)
+			ArrayList<BinaryTupleReader> uninputBufferRun = new ArrayList<BinaryTupleReader>();
 			int copy = numTupInBuff;
 			if (copy == b-1) { //when equal amount of tuples in input buff, there might be left over runs...
 				try {
 					while(copy<=fileReaders.size()-1) {
-						unusedRuns.add(fileReaders.get(copy));
+						uninputBufferRun.add(fileReaders.get(copy));
 						copy++;
 					}
 				} catch (Exception e){
@@ -180,7 +180,7 @@ public class ExternalSortOperator extends Operator {
 			
 			
 			int outBufferNumTup = 0; //to check how many tuples in output buffer now
-			int bwOutDirSize = 0; //to check current merge step's number of produced runs
+			int currentNumRuns = 0; //to check current merge step's number of produced runs
 			tuplesPerPage = tuplesPerPage * 2;
 			
 			
@@ -189,17 +189,18 @@ public class ExternalSortOperator extends Operator {
 				System.out.println(title);//print fileList for debugging
 			}
 			System.out.println("fileReader Size: "+fileReaders.size()); //all runs
-			System.out.println("bminus one tuple size: " + bMinusOneTuple.size()); //tuples
-			System.out.println("used run size: "  +usedRuns.size()); //input buff runs
-			System.out.println("unused run size: "  +unusedRuns.size()); //potential input buff runs
+			System.out.println("bminus one tuple size: " + inputBufferTuple.size()); //tuples
+			System.out.println("used run size: "  +inputBufferRun.size()); //input buff runs
+			System.out.println("unused run size: "  +uninputBufferRun.size()); //potential input buff runs
 			System.out.println("out dir number of tuples should be: "+ tuplesPerPage); //this merge step's run size
-			System.out.println("out dir size: " + outDirSize);
+			System.out.println("out dir size: " + numRunsAfterMerge);
 			
 			
 			
 			ArrayList<Tuple> outputBuffer = new ArrayList<Tuple>(); //intialize output buffer
-			
-			while(bwOutDirSize != outDirSize && !usedRuns.isEmpty()) { //1 merge step
+			ms++; //for storing files, creating unique names
+			rn = 0;
+			while(currentNumRuns != numRunsAfterMerge && !inputBufferRun.isEmpty()) { //1 merge step
 				
 				
 				//finding min tuple, saving which input buffer page min came from
@@ -207,10 +208,12 @@ public class ExternalSortOperator extends Operator {
 				CompareTuples tc = new CompareTuples();
 				int minTupIndx = 0;
 				int inc = 0;
-				for(Tuple tup : bMinusOneTuple) {
+				for(Tuple tup : inputBufferTuple) {
+					
 					if (tup == null) {
 						break;
 					}
+//					System.out.println(tup.toString());
 					if (minTup == null){
 						minTup = tup;
 						minTupIndx = inc;
@@ -221,6 +224,7 @@ public class ExternalSortOperator extends Operator {
 					
 					inc++;
 				}
+//				System.out.println("min tuple is: " + minTup.toString());
 
 				
 				
@@ -234,33 +238,33 @@ public class ExternalSortOperator extends Operator {
 				
 				
 				//updating the input buffer
-				if (usedRuns.get(minTupIndx).nextTuple() == null) {//if there exists unusedRun to be used
-					if(!unusedRuns.isEmpty()) {
+				if (inputBufferRun.get(minTupIndx).nextTuple() == null) {//if there exists unusedRun to be used
+					if(!uninputBufferRun.isEmpty()) {
 						System.out.println("refill the input buffer");
-						usedRuns.set(minTupIndx, unusedRuns.get(0));
-						Tuple nextTup = usedRuns.get(minTupIndx).nextTuple();
+						inputBufferRun.set(minTupIndx, uninputBufferRun.get(0));
+						Tuple nextTup = inputBufferRun.get(minTupIndx).nextTuple();
 						System.out.println(nextTup.toString());
-						bMinusOneTuple.set(minTupIndx, nextTup);
-						unusedRuns.remove(0);
+						inputBufferTuple.set(minTupIndx, nextTup);
+						uninputBufferRun.remove(0);
 					} else {
-						usedRuns.remove(minTupIndx);
-						bMinusOneTuple.remove(minTupIndx);
+						inputBufferRun.remove(minTupIndx);
+						inputBufferTuple.remove(minTupIndx);
 					}
 				} else{ //else just keep getting next tuple from the same run
 //					System.out.println("called?");
-					bMinusOneTuple.set(minTupIndx, usedRuns.get(minTupIndx).nextTuple());
+					inputBufferTuple.set(minTupIndx, inputBufferRun.get(minTupIndx).nextTuple());
 				}
 
 				
 				
 				
 				//write the disk and clear output buffer
-				if (outBufferNumTup == tuplesPerPage || usedRuns.isEmpty()) {
+				if (outBufferNumTup == tuplesPerPage || inputBufferRun.isEmpty()) {
 					String fileName = tempDir + "mergeStep_" + Integer.toString(ms) + "_run_" + Integer.toString(rn);
-//					fileList.set(bwOutDirSize, fileName); //overwrite fileList and get first n elements next merge???
+//					fileList.set(currentNumRuns, fileName); //overwrite fileList and get first n elements next merge???
 					fileList.add(0,fileName); //try this?
-					bwOutDirSize ++; //for while loop end condition
-					ms++; //for storing files, creating unique names
+					currentNumRuns ++; //for while loop end condition
+					
 					rn++; //creating unique names
 					
 					//write to temp dir
