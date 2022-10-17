@@ -9,7 +9,6 @@ import java.util.List;
 
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
-import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
 /**
@@ -22,22 +21,22 @@ public class ExternalSortOperator extends Operator {
 	private BinaryTupleReader reader = null;
 	private int bufferPages;
 	public static final int pageSize=4096;
-	private ArrayList<String> order;
+	private List<String> order;
 	private ArrayList<Integer> orderByIdx = new ArrayList<Integer>();
 	private String tempDir;
 	/**
 	 * Constructor for the operator.
 	 *
 	 * @param op     the child operator
-	 * @param orders the sorting order
+	 * @param list the sorting order
 	 * @param bufferSize The number of pages that will be used 
 	 * @param tempDir the file path for temporary directory
 	 */
-	public ExternalSortOperator(Operator op, ArrayList<String> orders, int bufferSize, String tempDirPath) {
+	public ExternalSortOperator(Operator op, List<String> list, int bufferSize, String tempDirPath) {
 		child = op;
 		schema = child.getSchema();
 		bufferPages = bufferSize;
-		order = orders;
+		order = list;
 		tempDir = tempDirPath;
 		
 		// Get the indices of columns to order by
