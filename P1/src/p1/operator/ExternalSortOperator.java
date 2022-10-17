@@ -182,8 +182,6 @@ public class ExternalSortOperator extends Operator {
 			int outBufferNumTup = 0; //to check how many tuples in output buffer now
 			int currentNumRuns = 0; //to check current merge step's number of produced runs
 			tuplesPerPage = tuplesPerPage * 2;
-			System.out.println("tuplesPerPage = " + tuplesPerPage);
-
 			
 			
 			//for debugging (check if initialized properly)
@@ -196,7 +194,6 @@ public class ExternalSortOperator extends Operator {
 			System.out.println("unused run size: "  +uninputBufferRun.size()); //potential input buff runs
 			System.out.println("out dir number of tuples should be: "+ tuplesPerPage); //this merge step's run size
 			System.out.println("out dir size: " + numRunsAfterMerge);
-
 			
 			
 			
@@ -235,10 +232,11 @@ public class ExternalSortOperator extends Operator {
 				//writing to output buffer
 				outputBuffer.add(minTup);
 				outBufferNumTup++;
-				System.out.println("outBufferNumTup = " + outBufferNumTup);
+//				System.out.println(outBufferNumTup);
 				
 				
-
+				
+				
 				//updating the input buffer
 				if (inputBufferRun.get(minTupIndx).nextTuple() == null) {//if there exists unusedRun to be used
 					if(!uninputBufferRun.isEmpty()) {
