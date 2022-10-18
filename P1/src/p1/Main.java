@@ -102,7 +102,7 @@ public class Main {
 //					sortExpected.sortHuman();
 					
 					// Clean temp directory
-					for(File tempFile : new File(tempDir).listFiles()) 
+					for (File tempFile : new File(tempDir).listFiles()) 
 					    if (!tempFile.isDirectory()) tempFile.delete();
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);

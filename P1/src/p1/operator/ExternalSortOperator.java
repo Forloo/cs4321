@@ -46,7 +46,12 @@ public class ExternalSortOperator extends Operator {
 		// Get the indices of columns to order by
 		for (String col : order) {
 			orderByIdx.add(schema.indexOf(col));
-		}		
+		}
+		for (int i = 0; i < order.size(); i++) {
+			if (!orderByIdx.contains(i)) {
+				orderByIdx.add(i);
+			}
+		}
 		try {
 			sort();
 		} catch (IOException e) {
