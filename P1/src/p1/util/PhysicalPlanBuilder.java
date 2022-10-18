@@ -175,8 +175,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			Operator sort;
 			ArrayList<String> orderBy = new ArrayList<String>();
-			for (Object el : cpy.getOrderBy()) {
-				orderBy.add(el.toString());
+			if (cpy.getOrderBy() != null) {
+				for (Object el : cpy.getOrderBy()) {
+					orderBy.add(el.toString());
+				}
 			}
 			
 			if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort

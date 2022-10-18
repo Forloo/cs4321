@@ -15,6 +15,7 @@ import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
 import p1.util.RandomDataGenerator;
+import p1.util.SortFile;
 import p1.util.Tuple;
 
 public class Main {
@@ -97,8 +98,12 @@ public class Main {
 //					SortFile sort = new SortFile(queriesOutputFile + "_humanreadable", false);
 //					sort.sortHuman();
 //					SortFile sortExpected = new SortFile(
-//							"expected_output" + File.separator + "query" + queryCount + "_humanreadable", false);
+//							"/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/expected_output" + File.separator + "query" + queryCount + "_humanreadable", false);
 //					sortExpected.sortHuman();
+					
+					// Clean temp directory
+					for(File tempFile : new File(tempDir).listFiles()) 
+					    if (!tempFile.isDirectory()) tempFile.delete();
 				} catch (Exception e) {
 					System.err.println("Exception occurred during query " + queryCount);
 					e.printStackTrace();

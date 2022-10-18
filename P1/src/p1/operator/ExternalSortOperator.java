@@ -26,6 +26,7 @@ public class ExternalSortOperator extends Operator {
 	private List<String> order;
 	private ArrayList<Integer> orderByIdx = new ArrayList<Integer>();
 	private String tempDir;
+	
 	/**
 	 * Constructor for the operator.
 	 *
@@ -68,7 +69,7 @@ public class ExternalSortOperator extends Operator {
 	 */
 	public void sort() throws IOException {
 		System.out.println("\nnew table\n");
-		int tuplesPerPage = 4096 / schema.size() / 4;
+		int tuplesPerPage = 4088 / schema.size() / 4;
 		System.out.println("schema size = " + schema.size());
 		int totalTuples = tuplesPerPage * bufferPages;
 
@@ -290,6 +291,7 @@ public class ExternalSortOperator extends Operator {
 					BinaryTupleWriter writer = new BinaryTupleWriter(fileName);
 					System.out.println("this many tuples stored in output buffer: " + outputBuffer.size());
 					System.out.println("writing this file to temp dir: " + fileName);
+					reader = new BinaryTupleReader(fileName);
 //					outputBuffer.add(nextTupInBuff)
 					for(Tuple t : outputBuffer) {
 						if (t == null) {
@@ -415,8 +417,11 @@ public class ExternalSortOperator extends Operator {
 	 */
 	@Override
 	public void dump() {
-		// TODO Auto-generated method stub
-
+		Tuple nextTuple = reader.nextTuple();
+		while (nextTuple != null) {
+			System.out.println(nextTuple.toString());
+			nextTuple = reader.nextTuple();
+		}
 	}
 
 	/**
@@ -427,8 +432,18 @@ public class ExternalSortOperator extends Operator {
 	 */
 	@Override
 	public void dump(String outputFile) {
-		// TODO Auto-generated method stub
-
+		Tuple nextTuple = reader.nextTuple();
+		try {
+			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
+			while (nextTuple != null) {
+				out.writeTuple(nextTuple);
+				nextTuple = reader.nextTuple();
+			}
+			out.close();
+		} catch (Exception e) {
+			System.out.println("Exception occurred: ");
+			e.printStackTrace();
+		}
 	}
 
 }
