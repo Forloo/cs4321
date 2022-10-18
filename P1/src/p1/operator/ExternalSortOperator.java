@@ -73,10 +73,10 @@ public class ExternalSortOperator extends Operator {
 		int totalTuples = tuplesPerPage * bufferPages;
 		int run = 0; 
 //		System.out.println("tuplesperpage:" + totalTuples);
-		Tuple tup = child.getNextTuple();
+		Tuple tup;
 		List<String> fileList = new ArrayList<String>();
 //		System.out.println(child.dump());
-		while (tup != null) {
+		while ((tup = child.getNextTuple()) != null) {
 			List<Tuple> sortList = new ArrayList<>(totalTuples);
 			int tuplesRemaining = totalTuples;
 //			System.out.println(tup.toString());//debug
@@ -102,8 +102,8 @@ public class ExternalSortOperator extends Operator {
 			//for debugging
 			FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable");
 			
-			tup = child.getNextTuple();
-	        run++;
+
+	        run++;	
 		}
 //		System.out.println(run);
 		merge(run, bufferPages, fileList, tuplesPerPage);	
@@ -352,7 +352,11 @@ public class ExternalSortOperator extends Operator {
 	 */
 	@Override
 	public Tuple getNextTuple() {
-		return reader.nextTuple();
+		if (reader == null) {
+			return null;
+		}
+		Tuple tp = reader.nextTuple();
+		return tp;
 	}
 
 	/**
@@ -361,6 +365,9 @@ public class ExternalSortOperator extends Operator {
 	 */
 	@Override
 	public void reset() {
+		if (reader == null) {
+			return;
+		}
 		reader.reset();
 	}
 
@@ -372,6 +379,9 @@ public class ExternalSortOperator extends Operator {
 	 */
 	@Override
 	public void reset(int i) {
+		if (reader == null) {
+			return;
+		}
 		reader.reset(i);
 	}
 
