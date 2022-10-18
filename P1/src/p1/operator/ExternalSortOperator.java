@@ -130,10 +130,10 @@ public class ExternalSortOperator extends Operator {
 		int rn = 0; //n'th run for storing files in temp dir
 		
 		//this many steps of merge
-		int totalMerge = (int)(Math.log(fileList.size())/ Math.log(2)) + 1;
+		int totalMerge = (int)(Math.log(fileList.size())/ Math.log(b-1)) + 1;
 		for(int i = 0 ; i < totalMerge ; i++) {
-			System.out.println("\n\ni is : " + i);
-			System.out.println(totalMerge);
+//			System.out.println("\n\ni is : " + i);
+//			System.out.println(totalMerge);
 		
 			//for merging into one big run
 			if (numRunsAfterMerge % 2 != 0) {
@@ -146,6 +146,7 @@ public class ExternalSortOperator extends Operator {
 //			if (numRunsAfterMerge == 1) {//included here bc once putting under while loop below, code doesn't reach
 //				break;
 //			}
+			
 			
 			//adjust fileList here, potential issue here
 			List<String> subItems = new ArrayList<String>(fileList.subList(0, numRunsAfterMerge)); //change
@@ -196,10 +197,11 @@ public class ExternalSortOperator extends Operator {
 			tuplesPerPage = tuplesPerPage * 2;
 			
 			
-			//for debugging (check if initialized properly)
-//			for (String title:fileList) {
-//				System.out.println(title);//print fileList for debugging
-//			}
+			System.out.println("numRuns after merge: " + numRunsAfterMerge);
+//			for debugging (check if initialized properly)
+			for (String title:subItems) {
+				System.out.println(title);//print fileList for debugging
+			}
 			System.out.println("fileReader Size: "+fileReaders.size()); //all runs
 			System.out.println("bminus one tuple size: " + inputBufferTuple.size()); //tuples
 			System.out.println("used run size: "  +inputBufferRun.size()); //input buff runs
@@ -217,6 +219,7 @@ public class ExternalSortOperator extends Operator {
 //				System.out.println(outputBuffer.size());
 //				System.out.println(inputBufferTuple.size());
 				//finding min tuple, saving which input buffer page min came from
+				
 				Tuple minTup = null;
 				CompareTuples tc = new CompareTuples();
 				int minTupIndx = 0;
@@ -246,20 +249,11 @@ public class ExternalSortOperator extends Operator {
 				
 				//updating the input buffer
 				Tuple nextTupInBuff = inputBufferRun.get(minTupIndx).nextTuple();
-				if (nextTupInBuff == null) {//if there exists unusedRun to be used
-					if(!uninputBufferRun.isEmpty()) {
-						System.out.println("refill the input buffer");
-						inputBufferRun.set(minTupIndx, uninputBufferRun.get(0));
-						uninputBufferRun.remove(0);
-						Tuple nextTup = inputBufferRun.get(minTupIndx).nextTuple();
-//						System.out.println("size of unused input buffer: " + uninputBufferRun.size());
-						inputBufferTuple.set(minTupIndx, nextTup);
-						
-					} else {
+				if (nextTupInBuff == null) {//if one input buffer runs out, just remove
 						inputBufferRun.remove(minTupIndx);
 						inputBufferTuple.remove(minTupIndx);
-						System.out.println("input buffer tuple array size is: "+inputBufferTuple.size());
-					}
+//						System.out.println("input buffer tuple array size is: "+inputBufferTuple.size());
+					
 				} else{ //else just keep getting next tuple from the same run
 //					System.out.println("called?");
 					inputBufferTuple.set(minTupIndx, nextTupInBuff);
@@ -292,6 +286,29 @@ public class ExternalSortOperator extends Operator {
 					FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable"); //for debugging
 					outputBuffer = new ArrayList<Tuple>();//reset output buffer
 					outBufferNumTup = 0;//reset output buffer (for efficiency)
+				}
+				
+				
+				//added code
+				if(inputBufferRun.isEmpty() && !uninputBufferRun.isEmpty()) { //done sorting input buffer worth runs
+					//now re-initialize input buffer and tuples
+					int numTupInBuff2 = 0;
+					for(BinaryTupleReader btr : uninputBufferRun) {
+						if(numTupInBuff2<b-1 && !uninputBufferRun.isEmpty()) {
+							inputBufferRun.add(btr);
+							inputBufferTuple.add(inputBufferRun.get(numTupInBuff2).nextTuple());
+							numTupInBuff2++;
+						} else {
+							break;
+						}
+					}
+					//now remove b-1 buffers from uninputBufferRun
+					for(int i2=0;i2<b-1;i2++) {
+						if(!uninputBufferRun.isEmpty()) {
+							uninputBufferRun.remove(0);
+						}
+					}
+					
 				}
 			}
 		}
