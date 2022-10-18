@@ -1,1 +1,1 @@
-SELECT Sailors.A FROM Sailors,Boats WHERE Sailors.C = Boats.F;
+SELECT * FROM Sailors ORDER BY Sailors.A;

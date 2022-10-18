@@ -23,20 +23,20 @@ public class Main {
 		String queriesFile = args[0] + File.separator + "queries.sql";
 		String queriesOutput = args[1];
 		String dataDir = args[0] + File.separator + "db" + File.separator;
-		String tempDir = args[2];
+		String tempDir = args[2] + File.separator;
 
 		// Get the file list containing all file inputs
 		File inputDir = new File(dataDir + "data");
 		String[] allFiles = inputDir.list();
 		File[] fileList = new File[allFiles.length];
 		File schema = new File(dataDir + "schema.txt");
-
+		
 		for (int i = 0; i < allFiles.length; i++) {
 			File file = new File(dataDir + "data" + File.separator + allFiles[i]);
 			fileList[i] = file;
 		}
 //		//debugging by generating random data
-//		String fileName = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Boats";
+//		String fileName = "/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/input/db/data/Boats";
 //		ArrayList<Tuple> rdg = new RandomDataGenerator(3,10000).generate();
 //		BinaryTupleWriter writer = new BinaryTupleWriter(fileName); 
 //		for(Tuple t : rdg) {
@@ -44,7 +44,7 @@ public class Main {
 //		} writer.close();
 //		//for debugging
 //		FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable");
-//		String fileName2 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors";
+//		String fileName2 = "/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/input/db/data/Sailors";
 //		ArrayList<Tuple> rdg2 = new RandomDataGenerator(3,10000).generate();
 //		BinaryTupleWriter writer2 = new BinaryTupleWriter(fileName2); 
 //		for(Tuple t : rdg2) {
@@ -52,7 +52,7 @@ public class Main {
 //		} writer2.close();
 //		//for debugging
 //		FileConverter.convertBinToHuman(fileName2, fileName2 + "_humanreadable");
-//		String fileName3 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Reserves";
+//		String fileName3 = "/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/input/db/data/Reserves";
 //		ArrayList<Tuple> rdg3 = new RandomDataGenerator(3,10000).generate();
 //		BinaryTupleWriter writer3 = new BinaryTupleWriter(fileName3); 
 //		for(Tuple t : rdg3) {

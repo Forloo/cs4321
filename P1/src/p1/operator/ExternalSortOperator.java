@@ -69,7 +69,7 @@ public class ExternalSortOperator extends Operator {
 	public void sort() throws IOException {
 		System.out.println("\nnew table\n");
 		System.out.println((int)2.6);
-		int tuplesPerPage = (4096 / schema.size() / 4);
+		int tuplesPerPage = (4088 / schema.size() / 4);
 		int totalTuples = tuplesPerPage * bufferPages;
 		int run = 0; 
 //		System.out.println("tuplesperpage:" + totalTuples);
