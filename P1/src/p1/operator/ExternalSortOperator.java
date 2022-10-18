@@ -124,7 +124,7 @@ public class ExternalSortOperator extends Operator {
 	 * @param tuplesPerPage represents the number of tuples that fills the output buffer for each step of merge.
 	 */
 	public void merge(int n, int b, List<String> fileList,int tuplesPerPage) {
-		int numRunsAfterMerge = fileList.size() * 2;//issue is when we start with n number of runs where n is not a power of 2
+		int numRunsAfterMerge = fileList.size() * (b-1);//issue is when we start with n number of runs where n is not a power of 2
 		tuplesPerPage = tuplesPerPage * b;//initialize output buffer size or run size of merge step
 		int ms = 0; //merge step for storing files in temp dir
 		int rn = 0; //n'th run for storing files in temp dir
@@ -136,10 +136,10 @@ public class ExternalSortOperator extends Operator {
 //			System.out.println(totalMerge);
 		
 			//for merging into one big run
-			if (numRunsAfterMerge % 2 != 0) {
-				numRunsAfterMerge = numRunsAfterMerge / 2  + 1; //same issue as mentioned
+			if (numRunsAfterMerge % (b-1) != 0) {
+				numRunsAfterMerge = numRunsAfterMerge / (b-1)  + 1; //same issue as mentioned
 			} else {
-				numRunsAfterMerge = numRunsAfterMerge / 2 ; //same issue as mentioned
+				numRunsAfterMerge = numRunsAfterMerge / (b-1) ; //same issue as mentioned
 			}
 			
 			
@@ -194,7 +194,7 @@ public class ExternalSortOperator extends Operator {
 			
 			int outBufferNumTup = 0; //to check how many tuples in output buffer now
 //			int currentNumRuns = 0; //to check current merge step's number of produced runs
-			tuplesPerPage = tuplesPerPage * 2;
+			tuplesPerPage = tuplesPerPage * (b-1);
 			
 			
 			System.out.println("numRuns after merge: " + numRunsAfterMerge);
