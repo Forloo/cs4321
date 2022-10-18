@@ -74,10 +74,10 @@ public class ExternalSortOperator extends Operator {
 		int run = 0; 
 //		System.out.println("tuplesperpage:" + totalTuples);
 		Tuple tup = child.getNextTuple();
-		List<String> fileList = new ArrayList<String>();
+		ArrayList<String> fileList = new ArrayList<String>();
 //		System.out.println(child.dump());
 		while (tup != null) {
-			List<Tuple> sortList = new ArrayList<>(totalTuples);
+			ArrayList<Tuple> sortList = new ArrayList<Tuple>();
 			int tuplesRemaining = totalTuples;
 //			System.out.println(tup.toString());//debug
 //			System.out.println(tuplesRemaining);
@@ -352,8 +352,7 @@ public class ExternalSortOperator extends Operator {
 	 */
 	@Override
 	public Tuple getNextTuple() {
-		Tuple tp = reader.nextTuple();
-		return tp;
+		return reader.nextTuple();
 	}
 
 	/**
