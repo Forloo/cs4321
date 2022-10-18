@@ -57,13 +57,15 @@ public class SMJOperator extends Operator {
 		String[] rightTables = rightOp.getTable().split(",");
 		Arrays.sort(leftTables);
 		Arrays.sort(rightTables);
-		
+
 		// Get sort order for child sort operators
 		for (Expression e : exp) {
 			String[] condition = e.toString().split(" ");
 			if (leftOp.getSchema().contains(condition[0]) && rightOp.getSchema().contains(condition[2])) {
-				leftOrder.add(condition[0]);
-				rightOrder.add(condition[2]);
+				if (!leftOrder.contains(condition[0]))
+					leftOrder.add(condition[0]);
+				if (!rightOrder.contains(condition[2]))
+					rightOrder.add(condition[2]);
 			}
 		}
 
@@ -74,13 +76,18 @@ public class SMJOperator extends Operator {
 				compareOrder.add(new String[] { conditions[0], conditions[2] });
 			}
 		}
+		System.out.println(exp);
+		System.out.println(leftOrder);
+		System.out.println(rightOrder);
 
 		if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
 			left = new SortOperator(leftOp, leftOrder);
 			right = new SortOperator(rightOp, rightOrder);
 		} else { // external sort
-			left = new ExternalSortOperator(leftOp, leftOrder,DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),0);
-			right = new ExternalSortOperator(rightOp, rightOrder, DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),1);
+			left = new ExternalSortOperator(leftOp, leftOrder, DatabaseCatalog.getInstance().getSortPages(),
+					DatabaseCatalog.getInstance().getTempDir(), 0);
+			right = new ExternalSortOperator(rightOp, rightOrder, DatabaseCatalog.getInstance().getSortPages(),
+					DatabaseCatalog.getInstance().getTempDir(), 1);
 		}
 		this.tables = tables;
 
