@@ -262,7 +262,7 @@ public class QueryPlan {
 			return new SortOperator(child, orders);
 		}
 		// else use external sort
-		return new ExternalSortOperator(child, orders,DatabaseCatalog.getInstance().getSortPages());
+		return new ExternalSortOperator(child, (List<String>) orders, DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),0);
 	}
 
 	/**

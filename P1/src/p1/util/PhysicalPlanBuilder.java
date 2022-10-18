@@ -1,5 +1,7 @@
 package p1.util;
 
+import java.util.ArrayList;
+
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.CaseExpression;
@@ -172,10 +174,17 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			Operator child = generatePhysicalTree(cpy.getChild());
 
 			Operator sort;
+			ArrayList<String> orderBy = new ArrayList<String>();
+			if (cpy.getOrderBy() != null) {
+				for (Object el : cpy.getOrderBy()) {
+					orderBy.add(el.toString());
+				}
+			}
+			
 			if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
 				sort = new SortOperator(child, cpy.getOrderBy());
 			} else { // external sort
-				sort = new ExternalSortOperator(child, cpy.getOrderBy(),DatabaseCatalog.getInstance().getSortPages());
+				sort = new ExternalSortOperator(child, orderBy, DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),0);
 			}
 			return sort;
 		}

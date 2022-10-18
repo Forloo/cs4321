@@ -34,6 +34,7 @@ public class BNLJOperator extends Operator{
 	private int blockNumber;
 	// Tells us if we reached the last boolean page
 	private boolean lastBlock;
+	public static final int pageSize=4096;
 	
 	/**
 	 * The constructor for bnlj

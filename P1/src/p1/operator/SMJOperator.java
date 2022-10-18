@@ -2,6 +2,7 @@ package p1.operator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.io.BinaryTupleWriter;
@@ -30,9 +31,9 @@ public class SMJOperator extends Operator {
 	// The tables that are being joined on by this joinoperator
 	private String tables;
 	// Sort order for left child
-	private ArrayList<String> leftOrder;
+	private List<String> leftOrder;
 	// Sort order for right child
-	private ArrayList<String> rightOrder;
+	private List<String> rightOrder;
 	// Compare order: [[S.A, R.G], [S.B, R.H], ...]
 	private ArrayList<String[]> compareOrder;
 	// Start of the current partition
@@ -58,30 +59,15 @@ public class SMJOperator extends Operator {
 		Arrays.sort(rightTables);
 
 		// Get sort order for child sort operators
-		for (String table : leftTables) {
-			for (Expression e : exp) {
-				// get columns (and therefore tables) associated with expressions
-				String[] condition = e.toString().split(" ");
-				for (String c : condition) {
-					String[] split = c.split("\\.");
-					if (split[0].equals(table)) {
-						leftOrder.add(c);
-					}
-				}
+		for (Expression e : exp) {
+			String[] condition = e.toString().split(" ");
+			if (leftOp.getSchema().contains(condition[0]) && rightOp.getSchema().contains(condition[2])) {
+				if (!leftOrder.contains(condition[0]))
+					leftOrder.add(condition[0]);
+				if (!rightOrder.contains(condition[2]))
+					rightOrder.add(condition[2]);
 			}
 		}
-		for (String table : rightTables) {
-			for (Expression e : exp) {
-				// get columns (and therefore tables) associated with expressions
-				String[] condition = e.toString().split(" ");
-				for (String c : condition) {
-					String[] split = c.split("\\.");
-					if (split[0].equals(table)) {
-						rightOrder.add(c);
-					}
-				}
-			}
-		} 
 
 		// Get order for comparisons to determine "less than", "greater than"
 		for (Expression e : exp) {
@@ -95,8 +81,10 @@ public class SMJOperator extends Operator {
 			left = new SortOperator(leftOp, leftOrder);
 			right = new SortOperator(rightOp, rightOrder);
 		} else { // external sort
-			left = new ExternalSortOperator(leftOp, leftOrder,DatabaseCatalog.getInstance().getSortPages());
-			right = new ExternalSortOperator(rightOp, rightOrder, DatabaseCatalog.getInstance().getSortPages());
+			left = new ExternalSortOperator(leftOp, leftOrder, DatabaseCatalog.getInstance().getSortPages(),
+					DatabaseCatalog.getInstance().getTempDir(), 0);
+			right = new ExternalSortOperator(rightOp, rightOrder, DatabaseCatalog.getInstance().getSortPages(),
+					DatabaseCatalog.getInstance().getTempDir(), 1);
 		}
 		this.tables = tables;
 
