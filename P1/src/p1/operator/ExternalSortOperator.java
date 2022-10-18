@@ -68,41 +68,55 @@ public class ExternalSortOperator extends Operator {
 	 */
 	public void sort() throws IOException {
 		System.out.println("\nnew table\n");
-		System.out.println((int)2.6);
-		int tuplesPerPage = (4088 / schema.size() / 4);
+		int tuplesPerPage = 4096 / schema.size() / 4;
+		System.out.println("schema size = " + schema.size());
 		int totalTuples = tuplesPerPage * bufferPages;
+
 		int run = 0; 
 //		System.out.println("tuplesperpage:" + totalTuples);
-		Tuple tup = child.getNextTuple();
-		ArrayList<String> fileList = new ArrayList<String>();
+		Tuple tup = null;
+		List<String> fileList = new ArrayList<String>();
 //		System.out.println(child.dump());
-		while (tup != null) {
-			ArrayList<Tuple> sortList = new ArrayList<Tuple>();
+		System.out.println("totalTuples = " + totalTuples);
+		
+		List<Tuple> sortList = new ArrayList<>(totalTuples);
+
+
+		while (true) {
+			sortList.clear();
 			int tuplesRemaining = totalTuples;
 //			System.out.println(tup.toString());//debug
 //			System.out.println(tuplesRemaining);
-			while (tuplesRemaining > 0 && tup != null) {
+			
+			while (tuplesRemaining-- > 0 &&(tup = child.getNextTuple()) != null) {				
 				sortList.add(tup);
-				tup = child.getNextTuple();
-				tuplesRemaining--;
+//				tuplesRemaining--;
+
+				
+//				tup = child.getNextTuple();
+				
 //				System.out.println(tuplesRemaining);
 			}
-//			System.out.println(sortList.toString());
+			if (sortList.size() == 0) break;
+
+			System.out.println("sortlist size = " + sortList.size());
+
 			
 			Collections.sort(sortList, new CompareTuples());
 			
 			String fileName = nameTempFile(0, run);
 			BinaryTupleWriter writer = new BinaryTupleWriter(fileName); 
 			fileList.add(fileName);
-//			System.out.println("writing");	
-			for (Tuple t : sortList) {
+
+			for(Tuple t : sortList) {
+				
 			    writer.writeTuple(t);
-			}
-			writer.close();
+			} writer.close();
+						
 			//for debugging
 			FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable");
 			
-			tup = child.getNextTuple();
+
 	        run++;	
 		}
 //		System.out.println(run);
@@ -113,6 +127,7 @@ public class ExternalSortOperator extends Operator {
 		}
 		
 	}
+	
 	
 
 
