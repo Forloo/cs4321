@@ -57,32 +57,15 @@ public class SMJOperator extends Operator {
 		String[] rightTables = rightOp.getTable().split(",");
 		Arrays.sort(leftTables);
 		Arrays.sort(rightTables);
-
+		
 		// Get sort order for child sort operators
-		for (String table : leftTables) {
-			for (Expression e : exp) {
-				// get columns (and therefore tables) associated with expressions
-				String[] condition = e.toString().split(" ");
-				for (String c : condition) {
-					String[] split = c.split("\\.");
-					if (split[0].equals(table)) {
-						leftOrder.add(c);
-					}
-				}
+		for (Expression e : exp) {
+			String[] condition = e.toString().split(" ");
+			if (leftOp.getSchema().contains(condition[0]) && rightOp.getSchema().contains(condition[2])) {
+				leftOrder.add(condition[0]);
+				rightOrder.add(condition[2]);
 			}
 		}
-		for (String table : rightTables) {
-			for (Expression e : exp) {
-				// get columns (and therefore tables) associated with expressions
-				String[] condition = e.toString().split(" ");
-				for (String c : condition) {
-					String[] split = c.split("\\.");
-					if (split[0].equals(table)) {
-						rightOrder.add(c);
-					}
-				}
-			}
-		} 
 
 		// Get order for comparisons to determine "less than", "greater than"
 		for (Expression e : exp) {
