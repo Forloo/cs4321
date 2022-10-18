@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
@@ -26,6 +27,7 @@ public class ExternalSortOperator extends Operator {
 	private List<String> order;
 	private ArrayList<Integer> orderByIdx = new ArrayList<Integer>();
 	private String tempDir;
+	private String finalFile;
 	
 	/**
 	 * Constructor for the operator.
@@ -36,10 +38,11 @@ public class ExternalSortOperator extends Operator {
 	 * @param tempDir the file path for temporary directory
 	 */
 	public ExternalSortOperator(Operator op, List<String> list, int bufferSize, String tempDirPath, int id) {
+		Random rand = new Random();
+		id = rand.nextInt(1000000);
 		tempDir = tempDirPath + id;
 		child = op;
 		schema = child.getSchema();
-//		System.out.println(child.getSchema().toString()); //debugging 
 		bufferPages = bufferSize;
 		order = list;
 		
@@ -47,7 +50,7 @@ public class ExternalSortOperator extends Operator {
 		for (String col : order) {
 			orderByIdx.add(schema.indexOf(col));
 		}
-		for (int i = 0; i < order.size(); i++) {
+		for (int i = 0; i < schema.size(); i++) {
 			if (!orderByIdx.contains(i)) {
 				orderByIdx.add(i);
 			}
@@ -55,7 +58,6 @@ public class ExternalSortOperator extends Operator {
 		try {
 			sort();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -81,11 +83,11 @@ public class ExternalSortOperator extends Operator {
 		int run = 0; 
 //		System.out.println("tuplesperpage:" + totalTuples);
 		Tuple tup = null;
-		List<String> fileList = new ArrayList<String>();
+		ArrayList<String> fileList = new ArrayList<String>();
 //		System.out.println(child.dump());
 		System.out.println("totalTuples = " + totalTuples);
 		
-		List<Tuple> sortList = new ArrayList<>(totalTuples);
+		ArrayList<Tuple> sortList = new ArrayList<Tuple>();
 
 
 		while (true) {
@@ -94,19 +96,12 @@ public class ExternalSortOperator extends Operator {
 //			System.out.println(tup.toString());//debug
 //			System.out.println(tuplesRemaining);
 			
-			while (tuplesRemaining-- > 0 &&(tup = child.getNextTuple()) != null) {				
+			while (tuplesRemaining-- > 0 && (tup = child.getNextTuple()) != null) {				
 				sortList.add(tup);
-//				tuplesRemaining--;
-
-				
-//				tup = child.getNextTuple();
-				
-//				System.out.println(tuplesRemaining);
 			}
+			
 			if (sortList.size() == 0) break;
-
-			System.out.println("sortlist size = " + sortList.size());
-
+			System.out.println("sort list size: " + sortList.size());
 			
 			Collections.sort(sortList, new CompareTuples());
 			
@@ -115,27 +110,18 @@ public class ExternalSortOperator extends Operator {
 			fileList.add(fileName);
 
 			for(Tuple t : sortList) {
-				
 			    writer.writeTuple(t);
-			} writer.close();
+			}
+			writer.close();
 						
 			//for debugging
 			FileConverter.convertBinToHuman(fileName, fileName + "_humanreadable");
-			
 
 	        run++;	
 		}
-//		System.out.println(run);
-		merge(run, bufferPages, fileList, tuplesPerPage);	
-		//for debugging
-		for (String s: fileList) {
-//			System.out.println(s);
-		}
 		
+		merge(run, bufferPages, fileList, tuplesPerPage);
 	}
-	
-	
-
 
 	/**
 	 * Merge the runs
@@ -296,6 +282,7 @@ public class ExternalSortOperator extends Operator {
 					BinaryTupleWriter writer = new BinaryTupleWriter(fileName);
 					System.out.println("this many tuples stored in output buffer: " + outputBuffer.size());
 					System.out.println("writing this file to temp dir: " + fileName);
+					finalFile = fileName;
 					reader = new BinaryTupleReader(fileName);
 //					outputBuffer.add(nextTupInBuff)
 					for(Tuple t : outputBuffer) {
