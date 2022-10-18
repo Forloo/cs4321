@@ -76,9 +76,6 @@ public class SMJOperator extends Operator {
 				compareOrder.add(new String[] { conditions[0], conditions[2] });
 			}
 		}
-		System.out.println(exp);
-		System.out.println(leftOrder);
-		System.out.println(rightOrder);
 
 		if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
 			left = new SortOperator(leftOp, leftOrder);
