@@ -66,6 +66,11 @@ public class SMJOperator extends Operator {
 					leftOrder.add(condition[0]);
 				if (!rightOrder.contains(condition[2]))
 					rightOrder.add(condition[2]);
+			} else if (leftOp.getSchema().contains(condition[2]) && rightOp.getSchema().contains(condition[0])) {
+				if (!leftOrder.contains(condition[2]))
+					leftOrder.add(condition[2]);
+				if (!rightOrder.contains(condition[0]))
+					rightOrder.add(condition[0]);
 			}
 		}
 
