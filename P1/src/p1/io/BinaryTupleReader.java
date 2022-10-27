@@ -124,5 +124,13 @@ public class BinaryTupleReader implements TupleReader {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Retrieves the number of tuple left on the current page
+	 * @return An integer telling us the number of tuple left on this page.
+	 */
+	public int getTuplesLeft() {
+		return numTuplesLeft;
+	}
 
 }
