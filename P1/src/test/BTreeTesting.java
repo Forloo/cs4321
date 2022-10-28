@@ -60,9 +60,19 @@ public class BTreeTesting {
 		} catch (Exception err) {
 			System.out.println("The file you are looking for was not found");
 		}
+		// NEED SOME EXTRA CODE TO HANDLE THE CASE BETWEEN WHEN THERE ARE QUERIES AND WHEN THERE ARE NOT
+		// IF THERE ARE QUERIES THEN WE CAN RUN INTO THE ISSUE THAT THERE ARE ALIASES.
+		
+		// IF THERE ARE NO ALIASES AND NO QUERY IS RUN THEN ALIASES IS EMPTY AND WE GET A NULL ERRROR 
+		// IF WE ARE TRYING TO MAKE A CLUSTERED INDEX.
+		
+		// A SIMPLE CHANGE TO MAKE THIS WORK IS JUST TO ADD AN IF ELSE STATEMENT IN THE READER TO CHECK 
+		// IF THERE IS ALIASES THERE TO READ TO BEGIN WITH IF THERE IS NO ALIASE THEN THERE IS NOTHING TO
+		// CHECK AND THE DB CATALOG SHOULD JUST USE THE INPUT NAME.e
+		
 		// After doing this testing make sure that it works when we are using table aliases.
 		File file= new File("C:\\Users\\henry\\git\\cs4321\\P1\\expected_indexes\testing.txt");
-		BTree testingOne = new BTree(3,false,0,file,DatabaseCatalog.getInstance().getNames().get("Sailors"),0);
+		BTree testingOne = new BTree(3,false,0,file,"Sailors",0);
 		BTreeNode root=testingOne.constructTree();
 		
 

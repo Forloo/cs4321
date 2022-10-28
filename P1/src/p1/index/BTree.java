@@ -2,10 +2,15 @@ package p1.index;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
 import p1.io.BinaryTupleReader;
+import p1.operator.ExternalSortOperator;
+import p1.operator.ScanOperator;
+import p1.util.Aliases;
+import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
 public class BTree {
@@ -48,13 +53,31 @@ public class BTree {
 		// If clustered then sort the relation table
 		if (this.clustered) {
 			// Do some sorting on the relation beforehand.
+//			ScanOperator scan = new ScanOperator(input);
 			BinaryTupleReader reader= new BinaryTupleReader(input);
 			this.reader=reader;
 			
 		}
 		else {
 			// Reading from the input file to get all of the binary tuples
-			BinaryTupleReader reader= new BinaryTupleReader(input);
+			// Make the scan operator in here for now
+			ScanOperator scan = new ScanOperator(input);
+			// Get the schema so after that I can pass in the ordering that I want for the external sort operation
+			ArrayList<String> ordering = scan.getSchema();
+			ArrayList<String> newOrdering = new ArrayList<String>();
+			// Make a deep copy of the schema
+			for(String element: ordering) {
+				String curr=element;
+				newOrdering.add(element);
+			}
+			
+			if (indexedColumn!=0) {
+				Collections.swap(newOrdering, 0, indexedColumn);
+			}
+			
+			ExternalSortOperator external = new ExternalSortOperator(scan,newOrdering,DatabaseCatalog.getInstance().getSortPages(),DatabaseCatalog.getInstance().getTempDir(),0);
+			
+			BinaryTupleReader reader= new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(input));
 			this.reader=reader;
 		}
 	}
