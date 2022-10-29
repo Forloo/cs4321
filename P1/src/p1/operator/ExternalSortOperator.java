@@ -1,5 +1,6 @@
 package p1.operator;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +56,9 @@ public class ExternalSortOperator extends Operator {
 		}
 		try {
 			sort();
+			File inputDir = new File(tempDirPath);
+			String[] allFiles = inputDir.list();
+			reader = new BinaryTupleReader(allFiles[0]);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -307,6 +311,7 @@ public class ExternalSortOperator extends Operator {
 
 				}
 			}
+//			reader = BinaryTupleWriter(fileName);
 		}
 	}
 

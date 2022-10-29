@@ -3,11 +3,13 @@ package p1;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.io.BinaryTreeReader;
 import p1.io.BinaryTupleWriter;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
@@ -36,6 +38,41 @@ public class Main {
 			File file = new File(dataDir + "data" + File.separator + allFiles[i]);
 			fileList[i] = file;
 		}
+
+//Jason testing
+		BinaryTreeReader btr = new BinaryTreeReader("/Users/jinseokoh/git/cs4321/P1/expected_indexes/Sailors.A");
+		System.out.println("Header Page info: tree has order " + btr.getOrderOfTree() + ", a root at address " + btr.getAddressOfRoot()+ " and " +btr.getNumLeaves() + " leaf nodes");
+		btr.checkNodeType();
+		btr.checkNodeType(); //try second leaf page
+		btr.getNextDataEntryUnclus();
+		btr.getNextDataEntryUnclus();
+		btr.getNextDataEntryUnclus();
+		btr.getNextDataEntryUnclus();
+		
+		int c = 0;
+		Boolean v = btr.checkNodeType();
+		while(v == true) {//reach index nodes
+			c += 1;
+			v = btr.checkNodeType();
+		}
+		btr.checkNodeType(); //try second page of index node
+		int btrKey= btr.getNextKey();
+		while(( btrKey  != -1)) {
+			System.out.println(btrKey);
+			btrKey = btr.getNextKey();
+		}
+		int child = btr.getNextAddrIN();
+		while ((child) != -1) {
+			System.out.println(child);
+			child = btr.getNextAddrIN();
+		}
+		
+		while(btr.checkNodeType() != null) {
+		}
+		System.out.println("works");
+//jason testing	
+		
+		
 //		//debugging by generating random data
 //		String fileName = "/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/input/db/data/Boats";
 //		ArrayList<Tuple> rdg = new RandomDataGenerator(3,10000).generate();

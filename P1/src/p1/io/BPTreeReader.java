@@ -12,16 +12,7 @@ import p1.util.Tuple;
 /**
  * A tree reader that reads binary input.
  */
-public class BinaryTreeReader {
-	//4096 byte page, each node fits within
-	//first is header page
-	//header -> leaf node -> inner node above -> above -> ... -> root node
-	//address of node: number of page it is serialized on
-	
-	//index node1 flag
-	//	number of keys in node
-	//	actual keys in node in order
-	//  the addresses of all children of the node in order
+public class BPTreeReader{
 	
 	// Obtains input bytes from a file in a file system.
 	FileInputStream fin;
@@ -38,6 +29,7 @@ public class BinaryTreeReader {
 	private int curDatEnt = 0;
 	private HashMap<Integer, ArrayList<ArrayList<Integer>>> pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
 	private ArrayList<ArrayList<Integer>> locations = new ArrayList<ArrayList<Integer>>();
+	private Tuple tuples = new Tuple("");
 	private int key;
 	/**
 	 * Creates a ByteBuffer that reads from the input file
@@ -51,10 +43,12 @@ public class BinaryTreeReader {
 			fc = fin.getChannel();
 			bb = ByteBuffer.allocate(4096);
 			fc.read(bb);
+			ArrayList<Integer> temp = new ArrayList<Integer>();
 			for(int i = 0; i < 3; i++) {
-				header.add(bb.getInt(0));
-				header.add(bb.getInt(4));
-				header.add(bb.getInt(8));
+				temp.add(bb.getInt(0));
+				temp.add(bb.getInt(4));
+				temp.add(bb.getInt(8));
+				header = temp;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -70,13 +64,20 @@ public class BinaryTreeReader {
 		//read new page.
 		try {
 			bb = ByteBuffer.allocate(4096); //skip the header page afterwards
-			fc.read(bb);
+			int end = fc.read(bb);
+			idx = 0;
+			curDatEnt = 0;
+			if (end == -1) {
+				return null;
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
 		idx += 4;
-		return bb.get(0) == 0;
+//		System.out.println("is leaf node: " +  bb.getInt(0));
+		return bb.getInt(0) == 0;
 	}
 	
 	/**
@@ -84,6 +85,22 @@ public class BinaryTreeReader {
 	 * @return data entry of leaf node, null after returning all the entries.
 	 */
 	public HashMap<Integer, ArrayList<ArrayList<Integer>>> getNextDataEntryClus() {
+//		if (idx == 4) {
+//			dataEnt = bb.getInt(idx);
+//			idx += 4;
+//		}
+//		
+//		if (curDatEnt < dataEnt) {
+//			key = bb.getInt(idx); //start by getting key
+//			locations = new ArrayList<ArrayList<Integer>>(); //stores tuples
+//			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
+//			System.out.println("key: " + key);
+//			idx += 4;
+//			numEl = bb.getInt(idx); //then num elements
+//			System.out.println("numEl: " + numEl);
+//			idx += 4;
+//		}
+		
 		return null;
 	}
 	
@@ -93,44 +110,55 @@ public class BinaryTreeReader {
 	 */
 	public HashMap<Integer, ArrayList<ArrayList<Integer>>> getNextDataEntryUnclus() {
 		if (idx == 4) {
-			dataEnt = bb.get(idx);
+			dataEnt = bb.getInt(idx);
 			idx += 4;
 		}
+//		System.out.println(dataEnt);
 		if (curDatEnt < dataEnt) { //leaf node starts with 0 and num entries, then entries
-			key = bb.get(idx); //start by getting key
+			key = bb.getInt(idx); //start by getting key
+			locations = new ArrayList<ArrayList<Integer>>();
+			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
+			System.out.println("key: " + key);
 			idx += 4;
-			numEl = bb.get(idx); //then num elements 
+			numEl = bb.getInt(idx); //then num elements 
+			System.out.println("numEl: " + numEl);
 			idx += 4;
 			for (int i = 0; i < numEl; i++) { //number of pairs
 				ArrayList<Integer> onePair = new ArrayList<Integer>();
 				for (int j =0; j < 2; j ++) { //per element (pair)
-					onePair.add((int) bb.get(idx));
+					onePair.add(bb.getInt(idx));
 					idx += 4;
 				}
 				locations.add(onePair);
 			}
 			curDatEnt += 1;
 			pair.put(key, locations);
+			System.out.println(pair.toString());
 			return pair;
-		} else { //done returning the keys
+		} else { //done returning the key value pairs
 			return null;
 		}
 	}
 	
 	/**
-	 * gets the next key for the node. Call this after checkNodeType()
+	 * gets the next key for the node. Call this after checkNodeType(). After calling this,
+	 * call getNextAddrIN.
 	 * @return key of index node, -1 after returning all the keys.
 	 */
 	public int getNextKey() {
+//		System.out.println("current idx for next key is: " + idx);
 		if (idx == 4) {
-			numKeys = bb.get(idx);
+			numKeys = bb.getInt(idx);
+//			System.out.println("number of keys: "+numKeys);
 			idx += 4;
 		}
 		if (idx / 4 - 2 < numKeys) { //index node starts with 1 and num keys, then keys
-			int ret = bb.get(idx);
+			int ret = bb.getInt(idx);
 			idx += 4;
+//			System.out.println(ret);
 			return ret;
 		} else { //done returning the keys
+			idx -= 4;
 			return -1;
 		}
 	}
@@ -140,16 +168,33 @@ public class BinaryTreeReader {
 	 * @return address of child node.
 	 */
 	public int getNextAddrIN() {
-		if(idx>4096) {
-			idx = 0;
+//		System.out.println("start idx: " + idx);
+//		System.out.println("cur idx is: "+ idx);
+		if(idx>=4096) {
+//			idx = 0;
 			return -1;
 		} else {
-			int ret = bb.get(idx);
+			int ret = bb.getInt(idx);
+			if (ret == 0) {
+				return -1;
+			}
 			idx += 4;
 			return ret;
 		}
 	}
 	
+	/**
+	 * Closes the reader.
+	 *
+	 * @throws IOException
+	 */
+	public void close() {
+		try {
+			fin.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	/**
 	 * Gets the address of the root
