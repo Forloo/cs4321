@@ -17,7 +17,6 @@ import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
 import p1.operator.IndexScanOperator;
-import p1.operator.IndexSelectOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
@@ -104,7 +103,7 @@ public class QueryPlan {
 						if (expressionInfo.containsKey(fromTable)) {
 							ArrayList<Expression> conditions = expressionInfo.get(fromTable);
 							Operator scanone = createScanOp(fromTable);
-							Operator selectone = createSelectOp(scanone, conditions.get(0));
+							SelectOperator selectone = new SelectOperator(scanone, conditions.get(0));
 							first = selectone;
 						} else {
 							Operator scanone = createScanOp(fromTable);
@@ -116,7 +115,7 @@ public class QueryPlan {
 							// Get the arraylist of conditions
 							ArrayList<Expression> conditions2 = expressionInfo.get(alias);
 							Operator scantwo = createScanOp(alias);
-							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0));
+							SelectOperator selecttwo = new SelectOperator(scantwo, conditions2.get(0));
 							second = selecttwo;
 						} else {
 							Operator scantwo = createScanOp(Aliases.getAlias(joins.get(0).toString()));
@@ -152,7 +151,7 @@ public class QueryPlan {
 					if (expressionInfo.containsKey(alias)) {
 						ArrayList<Expression> conditions = expressionInfo.get(alias);
 						Operator scanone = createScanOp(alias);
-						Operator selectone = createSelectOp(scanone, conditions.get(0));
+						SelectOperator selectone = new SelectOperator(scanone, conditions.get(0));
 						first = selectone;
 					} else {
 						Operator scanone = createScanOp(alias);
@@ -195,7 +194,7 @@ public class QueryPlan {
 			// Then check if there is some where condition. If there is then we need to make
 			// the select
 			if (where != null) {
-				Operator selectop = createSelectOp(scan, where);
+				SelectOperator selectop = new SelectOperator(scan, where);
 				child = selectop;
 			} else {
 				child = scan;
@@ -280,21 +279,6 @@ public class QueryPlan {
 			return new IndexScanOperator(from);
 		} else {
 			return new ScanOperator(from);
-		}
-	}
-
-	/**
-	 * Creates a select operator based on if we want to use indexes.
-	 *
-	 * @param child the child operator
-	 * @param ex    the expression to choose columns
-	 * @return a select operator
-	 */
-	public Operator createSelectOp(Operator child, Expression ex) {
-		if (DatabaseCatalog.getInstance().useIndex()) {
-			return new IndexSelectOperator(child, ex);
-		} else {
-			return new SelectOperator(child, ex);
 		}
 	}
 

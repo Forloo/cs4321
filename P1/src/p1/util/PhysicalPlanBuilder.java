@@ -54,7 +54,6 @@ import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
 import p1.operator.IndexScanOperator;
-import p1.operator.IndexSelectOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
@@ -138,11 +137,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			Operator child = generatePhysicalTree(cpy.getChild());
 
-			if (DatabaseCatalog.getInstance().useIndex()) {
-				return new IndexSelectOperator(child, cpy.getExpression());
-			} else {
-				return new SelectOperator(child, cpy.getExpression());
-			}
+			return new SelectOperator(child, cpy.getExpression());
 		}
 
 		if (rootOperator instanceof LogicalProject) {
