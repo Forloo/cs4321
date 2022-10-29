@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import p1.io.BinaryTupleReader;
+import p1.io.FileConverter;
 import p1.operator.ExternalSortOperator;
 import p1.operator.ScanOperator;
 import p1.util.Aliases;
@@ -62,6 +63,7 @@ public class BTree {
 			// Reading from the input file to get all of the binary tuples
 			// Make the scan operator in here for now
 			ScanOperator scan = new ScanOperator(input);
+//			System.out.println(scan.getNextTuple());
 			// Get the schema so after that I can pass in the ordering that I want for the external sort operation
 			ArrayList<String> ordering = scan.getSchema();
 			ArrayList<String> newOrdering = new ArrayList<String>();
@@ -77,7 +79,13 @@ public class BTree {
 			
 			ExternalSortOperator external = new ExternalSortOperator(scan,newOrdering,DatabaseCatalog.getInstance().getSortPages(),DatabaseCatalog.getInstance().getTempDir(),0);
 			
+			external.dump();
+//			external.dump(DatabaseCatalog.getInstance().getNames().get(input));
+//			String humanPath= DatabaseCatalog.getInstance().getNames().get(input)+"_humanreadable";
+//			FileConverter.convertBinToHuman(DatabaseCatalog.getInstance().getNames().get(input),humanPath);
+//			
 			BinaryTupleReader reader= new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(input));
+//			this.reader=reader;
 			this.reader=reader;
 		}
 	}
