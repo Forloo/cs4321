@@ -50,11 +50,15 @@ public class BPTreeWriter {
 			bb.putInt(0, bpTree.getAddress());
 			bb.putInt(4, gpt.get(0).size()); //write number of leaves
 			bb.putInt(8, order);
+			fc.write(bb);
+			System.out.println(bb.getInt(0));
 			bb = ByteBuffer.allocate(4096);
+			System.out.println(bb.getInt(0));
 			for(ArrayList<BTreeNode> typeOfNode : gpt) {
 				for(BTreeNode eachNode : typeOfNode) {
 					if(eachNode instanceof BTreeLeafNode) {
 						idx = 0;
+//						System.out.println("writing to leaf");
 						writeLeafNode(eachNode);
 					} else { //index node, and root
 						idx = 0;
@@ -88,13 +92,31 @@ public class BPTreeWriter {
 			idx += 4;
 		}
 		
+//		int cc = 0;
 		//write child address
 		for(Map.Entry<Integer,ArrayList<Integer>> mp : idexN.getReferences()) {
 			for(int childAddr : mp.getValue()) {
+//				if (cc < 10) {
+//					System.out.println(cc);
+//					System.out.println("==========");
+//				}
 				bb.putInt(idx, childAddr);
+//				cc+= 1;
 				idx += 4;
 			}
-			
+		}
+		try {
+//			System.out.println("index of this node is : " + idx);
+//			System.out.println("=========");
+			while(idx < 4096) {
+				bb.putInt(idx, 0);
+				idx += 4;
+			}
+			fc.write(bb); //write one leaf node
+			bb = ByteBuffer.allocate(4096); //allocate space for more
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	/**
@@ -110,27 +132,40 @@ public class BPTreeWriter {
 		bb.putInt(idx,leafNd.getReferenceSize());
 		idx += 4;
 		//write key, number of pairs, and pairs in order
+		int ccc= 0 ;
 		for(Map.Entry<Integer, ArrayList<TupleIdentifier>> mp : leafNd.getReference() ) {
 			//write key
 			bb.putInt(idx, mp.getKey());
 			idx += 4;
 			//write number of pairs
+			if (ccc < 10) {
+//				System.out.println("TTTTTTTTTTTT");
+//				System.out.println(mp.getValue());
+//				ccc+=1;
+			}
+			ccc+=1;
 			bb.putInt(idx, mp.getValue().size());
 			idx += 4;
 			//write the pairs
 			for(TupleIdentifier tp : mp.getValue()) {
 				bb.putInt(idx, tp.getPageId());
 				idx += 4;
+//				System.out.println("the tuple id is: " + tp.getTupleId());
 				bb.putInt(idx, tp.getTupleId());
 				idx += 4;
 			}
-			try {
-				fc.write(bb); //write one leaf node
-				bb = ByteBuffer.allocate(4096); //allocate space for more
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		}
+		try {
+//			System.out.println(idx);
+			while(idx < 4096) {
+				bb.putInt(idx, 0);
+				idx += 4;
 			}
+			fc.write(bb); //write one leaf node
+			bb = ByteBuffer.allocate(4096); //allocate space for more
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

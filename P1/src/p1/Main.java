@@ -3,6 +3,7 @@ package p1;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -13,9 +14,12 @@ import p1.index.BTree;
 import p1.index.BTreeNode;
 import p1.io.BPTreeReader;
 import p1.io.BPTreeWriter;
+import p1.io.BinaryTupleReader;
 import p1.io.BPTreeReader;
 import p1.io.BinaryTupleWriter;
 import p1.io.FileConverter;
+import p1.operator.ExternalSortOperator;
+import p1.operator.ScanOperator;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
@@ -45,47 +49,50 @@ public class Main {
 
 
 //testing BPTreeWriter
-//		File file = new File("/Users/jinseokoh/git/cs4321/P1/expected_indexes/testingBPTreeWriter");
-//		BTree testingOne = new BTree(3,true,0,file,"/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors",0);
-//		BTreeNode root = testingOne.constructTree();
-////		System.out.println(testingOne.getAllLevels()); 
-//		testingOne.setRoot(root);
+		File file = new File("/Users/jinseokoh/git/cs4321/P1/expected_indexes/testingBPTreeWriter");
+		BTree testingOne = new BTree(15,true,0,file,"/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors",0);
+		BTreeNode root = testingOne.constructTree();
+//		System.out.println(testingOne.getAllLevels()); 
+		testingOne.setRoot(root);
 //		System.out.println(testingOne.getRoot());
-//		BPTreeWriter bptw = new BPTreeWriter(testingOne.getAllLevels(), file, testingOne.getRoot(),3);
-//		
-//		BPTreeReader btr = new BPTreeReader("/Users/jinseokoh/git/cs4321/P1/expected_indexes/Sailors.A");
-//		System.out.println("Header Page info: tree has order " + btr.getOrderOfTree() + ", a root at address " + btr.getAddressOfRoot()+ " and " +btr.getNumLeaves() + " leaf nodes");
-//		btr.checkNodeType();
+		BPTreeWriter bptw = new BPTreeWriter(testingOne.getAllLevels(), file, testingOne.getRoot(),15);
+		
+		BPTreeReader btr = new BPTreeReader("/Users/jinseokoh/git/cs4321/P1/expected_indexes/testingBPTreeWriter");
+		System.out.println("Header Page info: tree has order " + btr.getOrderOfTree() + ", a root at address " + btr.getAddressOfRoot()+ " and " +btr.getNumLeaves() + " leaf nodes");
+		btr.checkNodeType();
 //		btr.checkNodeType(); //try second leaf page
-//		btr.getNextDataEntryUnclus();
-//		btr.getNextDataEntryUnclus();
-//		btr.getNextDataEntryUnclus();
-//		btr.getNextDataEntryUnclus();
-//		
-//		int c = 0;
-//		Boolean v = btr.checkNodeType();
-//		while(v == true) {//reach index nodes
-//			c += 1;
-//			v = btr.checkNodeType();
-//		}
-//		btr.checkNodeType(); //try second page of index node
-//		int btrKey= btr.getNextKey();
-//		while(( btrKey  != -1)) {
-//			System.out.println(btrKey);
-//			btrKey = btr.getNextKey();
-//		}
-//		int child = btr.getNextAddrIN();
-//		while ((child) != -1) {
-//			System.out.println(child);
-//			child = btr.getNextAddrIN();
-//		}
-//		
-//		while(btr.checkNodeType() != null) {
-//		}
-//		System.out.println("works");
+		btr.getNextDataEntryUnclus();
+		btr.getNextDataEntryUnclus();
+		btr.getNextDataEntryUnclus();
+		btr.getNextDataEntryUnclus();
+		
+		int c = 0;
+		Boolean v = btr.checkNodeType();
+//		System.out.println(v);
+		while(v == true) {//reach index nodes
+			c += 1;
+			v = btr.checkNodeType();
+		}
+		btr.checkNodeType();
+		int btrKey= btr.getNextKey();
+//		System.out.println(btrKey);
+		while(( btrKey  != -1)) {
+			System.out.println(btrKey);
+			btrKey = btr.getNextKey();
+		}
+		int child = btr.getNextAddrIN();
+		while ((child) != -1) {
+			System.out.println(child);
+			child = btr.getNextAddrIN();
+		}
+		
+		while(btr.checkNodeType() != null) {
+		}
+		System.out.println("works");
 //testing BPTreeWriter
 		
 		
+//		
 
 		
 

@@ -39,6 +39,6 @@ public class TupleIdentifier {
 	 * of the page it is located on and the number of the tuple it is on that page.
 	 */
 	public String toString() {
-		return Integer.toString(pageId)+Integer.toString(tupleId);
+		return Integer.toString(pageId)+" "+ Integer.toString(tupleId);
 	}
 }
