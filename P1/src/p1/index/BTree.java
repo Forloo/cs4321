@@ -79,11 +79,9 @@ public class BTree {
 			
 			ExternalSortOperator external = new ExternalSortOperator(scan,newOrdering,DatabaseCatalog.getInstance().getSortPages(),DatabaseCatalog.getInstance().getTempDir(),0);
 			
-			external.dump();
-//			external.dump(DatabaseCatalog.getInstance().getNames().get(input));
-//			String humanPath= DatabaseCatalog.getInstance().getNames().get(input)+"_humanreadable";
-//			FileConverter.convertBinToHuman(DatabaseCatalog.getInstance().getNames().get(input),humanPath);
-//			
+			external.dump(DatabaseCatalog.getInstance().getNames().get(input));
+			String humanPath= DatabaseCatalog.getInstance().getNames().get(input)+"_humanreadable";
+			FileConverter.convertBinToHuman(DatabaseCatalog.getInstance().getNames().get(input),humanPath);
 			BinaryTupleReader reader= new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(input));
 //			this.reader=reader;
 			this.reader=reader;
