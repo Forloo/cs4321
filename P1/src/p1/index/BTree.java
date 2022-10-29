@@ -34,6 +34,8 @@ public class BTree {
 	private BinaryTupleReader reader;
 	// The next address for the next node
 	private int pageTracker;
+	// Each level of the tree structure represented as an arraylist of nodes.
+	private ArrayList<ArrayList<BTreeNode>> allNodeLevels;
 	
 	/**
 	 * The constructor for the B+ tree
@@ -50,6 +52,7 @@ public class BTree {
 		this.indexFile=indexFile;
 		this.inputTable=input;
 		this.pageTracker=pageTracker;
+		this.allNodeLevels= new ArrayList<ArrayList<BTreeNode>>();
 		
 		// If clustered then sort the relation table
 		if (this.clustered) {
@@ -88,8 +91,20 @@ public class BTree {
 		}
 	}
 	
+	/**
+	 * Set the root node of the B+ tree
+	 * @param rootNode
+	 */
 	public void setRoot(BTreeNode rootNode) {
 		this.root=rootNode;
+	}
+	
+	/**
+	 * Retrieves all levels of the B+ tree. The 0th level is the leaf index level
+	 * @return
+	 */
+	public ArrayList<ArrayList<BTreeNode>> getAllLevels(){
+		return allNodeLevels;
 	}
 	
 	/**
@@ -109,11 +124,14 @@ public class BTree {
 		
 		// Construct leaf node layer
 		ArrayList<BTreeNode> leafLayer = this.createLeafLayer(leafRef);
+		allNodeLevels.add(leafLayer);
 		ArrayList<BTreeNode> currIndexLayer= this.createIndexLayer(leafLayer);
+		allNodeLevels.add(currIndexLayer);
 		while(currIndexLayer.size()>1) {
 			ArrayList<BTreeNode> prev= currIndexLayer;
 //			System.out.println(currIndexLayer.size());
 			ArrayList<BTreeNode> upperLevel= this.createIndexLayer(prev);
+			allNodeLevels.add(upperLevel);
 			currIndexLayer=upperLevel;
 //			System.out.println(currIndexLayer.size());
 //			System.out.println("=======================");
