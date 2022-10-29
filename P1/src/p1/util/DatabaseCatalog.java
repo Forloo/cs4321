@@ -31,6 +31,8 @@ public class DatabaseCatalog {
 	private int sortMethod;
 	// Number of buffer pages to use for sort.
 	private int sortPages;
+	// 1 to use indexes, 0 to not use indexes.
+	private int useIndex;
 
 	/*
 	 * Constructor for a DatabaseCatalog: An object that gives us access to tables
@@ -83,6 +85,9 @@ public class DatabaseCatalog {
 			if (sortConfig.length > 1) {
 				sortPages = Integer.parseInt(sortConfig[1]);
 			}
+			String indexConfig = fileReader.nextLine();
+			useIndex = Integer.parseInt(indexConfig);
+
 			fileReader.close();
 		} catch (FileNotFoundException e) {
 			System.out.println("An error occurred while parsing the configuration file.");
@@ -172,31 +177,50 @@ public class DatabaseCatalog {
 	public int getSortPages() {
 		return sortPages;
 	}
-	
+
 	/**
 	 * Set the join method to use
+	 * 
 	 * @param joinMethod an int representing which join method to use
 	 */
 	public void setJoinMethod(int joinMethod) {
-		this.joinMethod=joinMethod;
+		this.joinMethod = joinMethod;
 	}
-	
+
 	/**
 	 * Set the number of pages to use for the bnlj
+	 * 
 	 * @param joinPages an integer specifying the number of pages to use for bnlj
 	 */
 	public void setJoinPages(int joinPages) {
-		this.joinPages=joinPages;
+		this.joinPages = joinPages;
 	}
 
+	/**
+	 * Set the sort method to use for SMJ
+	 * 
+	 * @param sortMethod an integer specifying the sort method
+	 */
 	public void setSortMethod(int sortMethod) {
-		this.sortMethod= sortMethod;
-
+		this.sortMethod = sortMethod;
 	}
 
+	/**
+	 * Set the number of pages to use for sorting
+	 * 
+	 * @param sortPages an integer specifying the number of pages to use for sorting
+	 */
 	public void setSortPages(int sortPages) {
 		this.sortPages = sortPages;
-		
+	}
+
+	/**
+	 * Returns whether or not to use indexes for scanning.
+	 * 
+	 * @return true for using indexes, false for not using indexes.
+	 */
+	public boolean useIndex() {
+		return useIndex == 1 ? true : false;
 	}
 
 }

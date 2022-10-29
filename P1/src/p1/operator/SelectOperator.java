@@ -36,17 +36,17 @@ public class SelectOperator extends Operator {
 	 * @return the selected tuples representing rows in a database
 	 */
 	public Tuple getNextTuple() {
-		Tuple nextTuple = scanObj.getNextTuple();
-		if (nextTuple == null) {
-			return null;
-		}
+		while (true) {
+			Tuple nextTuple = scanObj.getNextTuple();
+			if (nextTuple == null) {
+				return null;
+			}
 
-		ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, scanObj.getSchema());
-		where.accept(exprObj2);
-		if (Boolean.parseBoolean(exprObj2.getValue())) {
-			return nextTuple;
-		} else {
-			return getNextTuple();
+			ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, scanObj.getSchema());
+			where.accept(exprObj2);
+			if (Boolean.parseBoolean(exprObj2.getValue())) {
+				return nextTuple;
+			}
 		}
 	}
 
