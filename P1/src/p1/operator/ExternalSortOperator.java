@@ -37,6 +37,7 @@ public class ExternalSortOperator extends Operator {
 	 * @param tempDir    the file path for temporary directory
 	 */
 	public ExternalSortOperator(Operator op, List<String> list, int bufferSize, String tempDirPath, int id) {
+		System.out.println(tempDirPath);
 		Random rand = new Random();
 		id = rand.nextInt(1000000);
 		tempDir = tempDirPath + id;
@@ -44,6 +45,7 @@ public class ExternalSortOperator extends Operator {
 		schema = child.getSchema();
 		bufferPages = bufferSize;
 		order = list;
+		
 
 		// Get the indices of columns to order by
 		for (String col : order) {
@@ -56,6 +58,8 @@ public class ExternalSortOperator extends Operator {
 		}
 		try {
 			sort();
+//			System.out.println(this.reader);
+//			System.out.println("======================");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -79,6 +83,7 @@ public class ExternalSortOperator extends Operator {
 		int tuplesPerPage = 4088 / schema.size() / 4;
 //		System.out.println("schema size = " + schema.size());
 		int totalTuples = tuplesPerPage * bufferPages;
+//		System.out.println(totalTuples);
 
 		int run = 0;
 //		System.out.println("tuplesperpage:" + totalTuples);
@@ -92,10 +97,12 @@ public class ExternalSortOperator extends Operator {
 		while (true) {
 			sortList.clear();
 			int tuplesRemaining = totalTuples;
+//			System.out.println(tuplesRemaining);
 //			System.out.println(tup.toString());//debug
 //			System.out.println(tuplesRemaining);
 
-			while (tuplesRemaining-- > 0 && (tup = child.getNextTuple()) != null) {
+			while (tuplesRemaining--> 0 && (tup = child.getNextTuple()) != null) {
+//				System.out.println("adding: " + tup);
 				sortList.add(tup);
 			}
 
@@ -110,6 +117,7 @@ public class ExternalSortOperator extends Operator {
 			fileList.add(fileName);
 
 			for (Tuple t : sortList) {
+//				System.out.println(t.toString());
 				writer.writeTuple(t);
 			}
 			writer.close();
@@ -134,6 +142,7 @@ public class ExternalSortOperator extends Operator {
 	 *                      buffer for each step of merge.
 	 */
 	public void merge(int n, int b, List<String> fileList, int tuplesPerPage) {
+		System.out.println(fileList);
 		int numRunsAfterMerge = fileList.size() * (b - 1);// issue is when we start with n number of runs where n is not
 															// a power of 2
 		tuplesPerPage = tuplesPerPage * b;// initialize output buffer size or run size of merge step
@@ -257,9 +266,9 @@ public class ExternalSortOperator extends Operator {
 //					System.out.println("called?");
 					inputBufferTuple.set(minTupIndx, nextTupInBuff);
 				}
-
 				// write the disk and clear output buffer
 				if (outBufferNumTup == tuplesPerPage || inputBufferTuple.isEmpty()) {
+//					System.out.println("Anna should be doing this part");
 					String fileName = tempDir + "mergeStep_" + Integer.toString(ms) + "_run_" + Integer.toString(rn);
 //					fileList.set(currentNumRuns, fileName); //overwrite fileList and get first n elements next merge???
 					fileList.add(0, fileName); // try this?

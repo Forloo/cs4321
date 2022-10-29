@@ -25,15 +25,37 @@ public class ScanOperator extends Operator {
 	 * Constructor to scan rows of table fromTable (aliased).
 	 */
 	public ScanOperator(String fromTable) {
-		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
-		ArrayList<String> newSchema = new ArrayList<String>();
-		for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
-			String[] els = col.split("\\.");
-			String colName = els[els.length - 1];
-			newSchema.add(fromTable + "." + colName);
+		if (Aliases.getInstance()!=null) {
+			reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
+			ArrayList<String> newSchema = new ArrayList<String>();
+			for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
+				String[] els = col.split("\\.");
+				String colName = els[els.length - 1];
+				newSchema.add(fromTable + "." + colName);
+			}
+			schema = newSchema;
+			table = fromTable;
 		}
-		schema = newSchema;
-		table = fromTable;
+		else {
+			reader= new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(fromTable));
+			ArrayList<String> newSchema = new ArrayList<String>();
+			for (String col : DatabaseCatalog.getInstance().getSchema().get(fromTable)) {
+				String[] els = col.split("\\.");
+				String colName = els[els.length - 1];
+				newSchema.add(fromTable + "." + colName);
+			}
+			schema = newSchema;
+			table = fromTable;
+		}
+//		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
+//		ArrayList<String> newSchema = new ArrayList<String>();
+//		for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
+//			String[] els = col.split("\\.");
+//			String colName = els[els.length - 1];
+//			newSchema.add(fromTable + "." + colName);
+//		}
+//		schema = newSchema;
+//		table = fromTable;
 	}
 
 	/**
