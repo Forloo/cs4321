@@ -37,7 +37,7 @@ public class BPTreeReader{
 	 * @param file of the binary file to read from
 	 * @throws IOException
 	 */
-	public BinaryTreeReader(String file) {
+	public BPTreeReader(String file) {
 		try {
 			fin = new FileInputStream(file);
 			fc = fin.getChannel();

@@ -29,7 +29,6 @@ public class BTreeIndexNode extends BTreeNode {
 		this.childs=childs;
 		this.references=references;
 		this.address=address;
-		
 		int smallValue=Integer.MAX_VALUE;
 		for(int i=0;i<this.childs.size();i++) {
 			smallValue=Math.min(smallValue, childs.get(i).getSmallest());
@@ -37,6 +36,13 @@ public class BTreeIndexNode extends BTreeNode {
 		this.smallest=smallValue;
 	}
 
+	/**
+	 * returns the key value pairs for the index node
+	 * @return
+	 */
+	public ArrayList<Map.Entry<Integer, ArrayList<Integer>>> getReferences() {
+		return this.references;
+	}
 	@Override
 	/**
 	 * Retrieves the order for this node.

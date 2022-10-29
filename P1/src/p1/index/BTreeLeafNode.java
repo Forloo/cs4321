@@ -43,7 +43,7 @@ public class BTreeLeafNode extends BTreeNode{
 	 * Retrieves all of the keys for the leaf node and the data entries for 
 	 * @return
 	 */
-	public ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>>getReference(){
+	public ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>> getReference(){
 		return references;
 	}
 	
