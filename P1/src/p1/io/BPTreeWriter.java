@@ -44,16 +44,10 @@ public class BPTreeWriter {
 	 */
 	public BPTreeWriter(ArrayList<ArrayList<BTreeNode>> gpt, File indexFile, BTreeNode bpTree, int order) {
 		try {
+			//initialize fileoutputStream
 			fout = new FileOutputStream(indexFile);
 			fc = fout.getChannel();
-			bb = ByteBuffer.allocate(4096); //write header page
-			bb.putInt(0, bpTree.getAddress());
-			bb.putInt(4, gpt.get(0).size()); //write number of leaves
-			bb.putInt(8, order);
-			fc.write(bb);
-			System.out.println(bb.getInt(0));
-			bb = ByteBuffer.allocate(4096);
-			System.out.println(bb.getInt(0));
+			writeHeader(bpTree, gpt, order);
 			for(ArrayList<BTreeNode> typeOfNode : gpt) {
 				for(BTreeNode eachNode : typeOfNode) {
 					if(eachNode instanceof BTreeLeafNode) {
@@ -75,45 +69,63 @@ public class BPTreeWriter {
 		}
 	}
 	
+	public void writeHeader(BTreeNode bpTree, ArrayList<ArrayList<BTreeNode>> gpt, int order) {
+		bb = ByteBuffer.allocate(4096); 
+		//write header page
+		idx = 0;
+		bb.putInt(idx, bpTree.getAddress() + 1); //write address of root
+		idx += 4;
+		bb.putInt(idx, gpt.get(0).size()); //write number of leaves
+		idx += 4;
+		bb.putInt(idx, order); //writer order
+		idx += 4;
+		while(idx < 4096) { //fill with zeros
+			bb.putInt(idx, 0);
+			idx += 4;
+		}
+		try {
+			fc.write(bb);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//allocate bytebuffer
+	}
 	/**
 	 * writes the index node in the byte buffer
 	 * 
 	 * @param idxn is the index node
 	 */
 	public void writeIndexNode(BTreeNode idxn) {
+		bb = ByteBuffer.allocate(4096); //allocate space for more
 		BTreeIndexNode idexN = (BTreeIndexNode) idxn;
 		bb.putInt(idx, 1); //1 for index node
 		idx += 4;
-		bb.putInt(idx, idexN.getReferenceSize()); //num keys
+		bb.putInt(idx,idexN.getReferenceSize()); //num keys
 		idx += 4;
+		
 		//write keys
 		for(Map.Entry<Integer,ArrayList<Integer>> mp : idexN.getReferences()) {
 			bb.putInt(idx, mp.getKey());
 			idx += 4;
 		}
 		
-//		int cc = 0;
 		//write child address
 		for(Map.Entry<Integer,ArrayList<Integer>> mp : idexN.getReferences()) {
 			for(int childAddr : mp.getValue()) {
-//				if (cc < 10) {
-//					System.out.println(cc);
-//					System.out.println("==========");
-//				}
-				bb.putInt(idx, childAddr);
-//				cc+= 1;
+				bb.putInt(idx, childAddr + 1);
 				idx += 4;
 			}
 		}
+		
+			
 		try {
-//			System.out.println("index of this node is : " + idx);
-//			System.out.println("=========");
+			System.out.println(bb.getInt(idx));
 			while(idx < 4096) {
 				bb.putInt(idx, 0);
 				idx += 4;
 			}
 			fc.write(bb); //write one leaf node
-			bb = ByteBuffer.allocate(4096); //allocate space for more
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -124,6 +136,7 @@ public class BPTreeWriter {
 	 * @param lfn is the leaf node
 	 */
 	public void writeLeafNode(BTreeNode lfn) {
+		bb = ByteBuffer.allocate(4096); //allocate space for more
 		BTreeLeafNode leafNd = (BTreeLeafNode) lfn;
 		//write 0 first for leaf
 		bb.putInt(idx, 0);
@@ -132,37 +145,28 @@ public class BPTreeWriter {
 		bb.putInt(idx,leafNd.getReferenceSize());
 		idx += 4;
 		//write key, number of pairs, and pairs in order
-		int ccc= 0 ;
 		for(Map.Entry<Integer, ArrayList<TupleIdentifier>> mp : leafNd.getReference() ) {
 			//write key
+//			System.out.println(mp.getValue());
 			bb.putInt(idx, mp.getKey());
 			idx += 4;
 			//write number of pairs
-			if (ccc < 10) {
-//				System.out.println("TTTTTTTTTTTT");
-//				System.out.println(mp.getValue());
-//				ccc+=1;
-			}
-			ccc+=1;
 			bb.putInt(idx, mp.getValue().size());
 			idx += 4;
 			//write the pairs
 			for(TupleIdentifier tp : mp.getValue()) {
 				bb.putInt(idx, tp.getPageId());
 				idx += 4;
-//				System.out.println("the tuple id is: " + tp.getTupleId());
 				bb.putInt(idx, tp.getTupleId());
 				idx += 4;
 			}
 		}
-		try {
-//			System.out.println(idx);
+		try { 
 			while(idx < 4096) {
 				bb.putInt(idx, 0);
 				idx += 4;
 			}
 			fc.write(bb); //write one leaf node
-			bb = ByteBuffer.allocate(4096); //allocate space for more
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

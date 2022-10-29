@@ -38,7 +38,7 @@ public class BTreeIndexNode extends BTreeNode {
 
 	/**
 	 * returns the key value pairs for the index node
-	 * @return
+	 * @return references
 	 */
 	public ArrayList<Map.Entry<Integer, ArrayList<Integer>>> getReferences() {
 		return this.references;

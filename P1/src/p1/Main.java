@@ -50,7 +50,7 @@ public class Main {
 
 //testing BPTreeWriter
 		File file = new File("/Users/jinseokoh/git/cs4321/P1/expected_indexes/testingBPTreeWriter");
-		BTree testingOne = new BTree(15,true,0,file,"/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors",0);
+		BTree testingOne = new BTree(15,false,0,file,"/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors",0);
 		BTreeNode root = testingOne.constructTree();
 //		System.out.println(testingOne.getAllLevels()); 
 		testingOne.setRoot(root);
@@ -73,11 +73,11 @@ public class Main {
 			c += 1;
 			v = btr.checkNodeType();
 		}
-		btr.checkNodeType();
+//		btr.checkNodeType();
 		int btrKey= btr.getNextKey();
 //		System.out.println(btrKey);
 		while(( btrKey  != -1)) {
-			System.out.println(btrKey);
+			System.out.println(btrKey); //print the keys in the first indx node
 			btrKey = btr.getNextKey();
 		}
 		int child = btr.getNextAddrIN();
