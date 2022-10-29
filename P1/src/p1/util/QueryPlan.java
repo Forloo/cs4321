@@ -103,7 +103,7 @@ public class QueryPlan {
 						if (expressionInfo.containsKey(fromTable)) {
 							ArrayList<Expression> conditions = expressionInfo.get(fromTable);
 							Operator scanone = createScanOp(fromTable);
-							SelectOperator selectone = new SelectOperator(scanone, conditions.get(0));
+							Operator selectone = createSelectOp(scanone, conditions.get(0));
 							first = selectone;
 						} else {
 							Operator scanone = createScanOp(fromTable);
@@ -115,7 +115,7 @@ public class QueryPlan {
 							// Get the arraylist of conditions
 							ArrayList<Expression> conditions2 = expressionInfo.get(alias);
 							Operator scantwo = createScanOp(alias);
-							SelectOperator selecttwo = new SelectOperator(scantwo, conditions2.get(0));
+							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0));
 							second = selecttwo;
 						} else {
 							Operator scantwo = createScanOp(Aliases.getAlias(joins.get(0).toString()));
@@ -151,7 +151,7 @@ public class QueryPlan {
 					if (expressionInfo.containsKey(alias)) {
 						ArrayList<Expression> conditions = expressionInfo.get(alias);
 						Operator scanone = createScanOp(alias);
-						SelectOperator selectone = new SelectOperator(scanone, conditions.get(0));
+						Operator selectone = createSelectOp(scanone, conditions.get(0));
 						first = selectone;
 					} else {
 						Operator scanone = createScanOp(alias);
@@ -194,7 +194,7 @@ public class QueryPlan {
 			// Then check if there is some where condition. If there is then we need to make
 			// the select
 			if (where != null) {
-				SelectOperator selectop = new SelectOperator(scan, where);
+				Operator selectop = createSelectOp(scan, where);
 				child = selectop;
 			} else {
 				child = scan;
@@ -280,6 +280,20 @@ public class QueryPlan {
 		} else {
 			return new ScanOperator(from);
 		}
+	}
+
+	/**
+	 * Creates a select operator based on if we want to use indexes.
+	 *
+	 * @param child the child operator
+	 * @param ex    the expression to choose columns
+	 * @return a select operator
+	 */
+	public Operator createSelectOp(Operator child, Expression ex) {
+		if (DatabaseCatalog.getInstance().useIndex()) {
+			// TODO: copy from PhysicalPlanBuilder
+		}
+		return new SelectOperator(child, ex);
 	}
 
 	/**

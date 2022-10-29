@@ -137,6 +137,20 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			Operator child = generatePhysicalTree(cpy.getChild());
 
+			if (DatabaseCatalog.getInstance().useIndex()) {
+				// TODO
+				// 1. Find out whether there is an index on the relation in the selection, and
+				// whether that index is clustered or not; your trusted database catalog class
+				// should be able to help with that. Remember, for simplicity we are assuming
+				// that each relation has at most one index built on it.
+				// 2. Separate the selection into the part that can be handled via an index scan
+				// and the “remainder” that cannot. That is, your logical selection operator is
+				// potentially translated into two new operators: an index scan operator that
+				// handles a portion of the selection, and a full-scan physical selection
+				// operator that has the index scan as a child and handles the rest of the
+				// selection.
+			}
+
 			return new SelectOperator(child, cpy.getExpression());
 		}
 
