@@ -42,13 +42,13 @@ public class BPTreeWriter {
 	 * @param file the binary file to write to
 	 * @throws IOException
 	 */
-	public BPTreeWriter(ArrayList<ArrayList<BTreeNode>> gpt, File indexFile, BTreeNode bpTree, int numLeaf, int order) {
+	public BPTreeWriter(ArrayList<ArrayList<BTreeNode>> gpt, File indexFile, BTreeNode bpTree, int order) {
 		try {
 			fout = new FileOutputStream(indexFile);
 			fc = fout.getChannel();
 			bb = ByteBuffer.allocate(4096); //write header page
 			bb.putInt(0, bpTree.getAddress());
-			bb.putInt(4, numLeaf);
+			bb.putInt(4, gpt.get(0).size()); //write number of leaves
 			bb.putInt(8, order);
 			bb = ByteBuffer.allocate(4096);
 			for(ArrayList<BTreeNode> typeOfNode : gpt) {

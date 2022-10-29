@@ -60,7 +60,6 @@ public class BTree {
 //			ScanOperator scan = new ScanOperator(input);
 			BinaryTupleReader reader= new BinaryTupleReader(input);
 			this.reader=reader;
-			
 		}
 		else {
 			// Reading from the input file to get all of the binary tuples
@@ -97,6 +96,14 @@ public class BTree {
 	 */
 	public void setRoot(BTreeNode rootNode) {
 		this.root=rootNode;
+	}
+	
+	/**
+	 * Get the root node of the B+ tree
+	 * @return root node of B+ tree
+	 */
+	public BTreeNode getRoot() {
+		return root;
 	}
 	
 	/**
