@@ -53,6 +53,8 @@ import p1.logicaloperator.LogicalUnique;
 import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
+import p1.operator.IndexScanOperator;
+import p1.operator.IndexSelectOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
@@ -123,18 +125,24 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			// Cast the rootOperator to the logical scan and then get the field that we want
 			LogicalScan cpy = (LogicalScan) rootOperator;
 			// Make this into the physicalOperator
-			ScanOperator scanleaf = new ScanOperator(cpy.getFromTable());
-			return scanleaf;
+			if (DatabaseCatalog.getInstance().useIndex()) {
+				return new IndexScanOperator(cpy.getFromTable());
+			} else {
+				return new ScanOperator(cpy.getFromTable());
+			}
 		}
 
 		if (rootOperator instanceof LogicalFilter) {
 			// Cast the rootoperator to the logical filter
 			LogicalFilter cpy = (LogicalFilter) rootOperator;
 
-			ScanOperator child = (ScanOperator) generatePhysicalTree(cpy.getChild());
-			// The child for select is always scan so we need to cast it
-			SelectOperator select = new SelectOperator(child, cpy.getExpression());
-			return select;
+			Operator child = generatePhysicalTree(cpy.getChild());
+
+			if (DatabaseCatalog.getInstance().useIndex()) {
+				return new IndexSelectOperator(child, cpy.getExpression());
+			} else {
+				return new SelectOperator(child, cpy.getExpression());
+			}
 		}
 
 		if (rootOperator instanceof LogicalProject) {
@@ -160,7 +168,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
 				return new TNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
 			} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
-				return new BNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression(),DatabaseCatalog.getInstance().getJoinPages());
+				return new BNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression(),
+						DatabaseCatalog.getInstance().getJoinPages());
 			} else { // Sort merge join
 				return new SMJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
 			}
@@ -180,11 +189,12 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					orderBy.add(el.toString());
 				}
 			}
-			
+
 			if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
 				sort = new SortOperator(child, cpy.getOrderBy());
 			} else { // external sort
-				sort = new ExternalSortOperator(child, orderBy, DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),0);
+				sort = new ExternalSortOperator(child, orderBy, DatabaseCatalog.getInstance().getSortPages(),
+						DatabaseCatalog.getInstance().getTempDir(), 0);
 			}
 			return sort;
 		}

@@ -16,6 +16,8 @@ import net.sf.jsqlparser.statement.select.Select;
 import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
+import p1.operator.IndexScanOperator;
+import p1.operator.IndexSelectOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
@@ -91,8 +93,8 @@ public class QueryPlan {
 				if (!fromUsed) {
 					// If the expressionInfo is null then that means there is no where conditions
 					if (expressionInfo == null) {
-						ScanOperator first = new ScanOperator(fromTable);
-						ScanOperator second = new ScanOperator(alias);
+						Operator first = createScanOp(fromTable);
+						Operator second = createScanOp(alias);
 						String combinedName = fromTable + "," + alias;
 						Operator temp = createJoinOp(combinedName, first, second, null);
 						prev = temp;
@@ -101,11 +103,11 @@ public class QueryPlan {
 						Operator first = null;
 						if (expressionInfo.containsKey(fromTable)) {
 							ArrayList<Expression> conditions = expressionInfo.get(fromTable);
-							ScanOperator scanone = new ScanOperator(fromTable);
-							SelectOperator selectone = new SelectOperator(scanone, conditions.get(0));
+							Operator scanone = createScanOp(fromTable);
+							Operator selectone = createSelectOp(scanone, conditions.get(0));
 							first = selectone;
 						} else {
-							ScanOperator scanone = new ScanOperator(fromTable);
+							Operator scanone = createScanOp(fromTable);
 							first = scanone;
 						}
 
@@ -113,11 +115,11 @@ public class QueryPlan {
 						if (expressionInfo.containsKey(alias)) {
 							// Get the arraylist of conditions
 							ArrayList<Expression> conditions2 = expressionInfo.get(alias);
-							ScanOperator scantwo = new ScanOperator(alias);
-							SelectOperator selecttwo = new SelectOperator(scantwo, conditions2.get(0));
+							Operator scantwo = createScanOp(alias);
+							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0));
 							second = selecttwo;
 						} else {
-							ScanOperator scantwo = new ScanOperator(Aliases.getAlias(joins.get(0).toString()));
+							Operator scantwo = createScanOp(Aliases.getAlias(joins.get(0).toString()));
 							second = scantwo;
 						}
 						String combinedName = fromTable + "," + alias;
@@ -141,7 +143,7 @@ public class QueryPlan {
 						// used
 				// so this means that the left child is a join operator.
 				if (expressionInfo == null) {
-					ScanOperator first = new ScanOperator(alias);
+					Operator first = createScanOp(alias);
 					String combinedName = prev.getTable() + "," + alias;
 					Operator temp = createJoinOp(combinedName, prev, first, null);
 					prev = temp;
@@ -149,11 +151,11 @@ public class QueryPlan {
 					Operator first = null;
 					if (expressionInfo.containsKey(alias)) {
 						ArrayList<Expression> conditions = expressionInfo.get(alias);
-						ScanOperator scanone = new ScanOperator(alias);
-						SelectOperator selectone = new SelectOperator(scanone, conditions.get(0));
+						Operator scanone = createScanOp(alias);
+						Operator selectone = createSelectOp(scanone, conditions.get(0));
 						first = selectone;
 					} else {
-						ScanOperator scanone = new ScanOperator(alias);
+						Operator scanone = createScanOp(alias);
 						first = scanone;
 					}
 					String combinedName = prev.getTable() + "," + alias;
@@ -189,11 +191,11 @@ public class QueryPlan {
 		// Join tables handled the select and the scans for all of their own tables.
 		if (!joinUsed) {
 			// Make the scan operator since we will always need it
-			ScanOperator scan = new ScanOperator(fromTable);
+			Operator scan = createScanOp(fromTable);
 			// Then check if there is some where condition. If there is then we need to make
 			// the select
 			if (where != null) {
-				SelectOperator selectop = new SelectOperator(scan, where);
+				Operator selectop = createSelectOp(scan, where);
 				child = selectop;
 			} else {
 				child = scan;
@@ -244,7 +246,8 @@ public class QueryPlan {
 		if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
 			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
 		} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
-			return new BNLJOperator(tableNames,leftOp,rightOp,joinConditions,DatabaseCatalog.getInstance().getJoinPages());
+			return new BNLJOperator(tableNames, leftOp, rightOp, joinConditions,
+					DatabaseCatalog.getInstance().getJoinPages());
 		} else { // Sort merge join
 			return new SMJOperator(tableNames, leftOp, rightOp, joinConditions);
 		}
@@ -255,14 +258,44 @@ public class QueryPlan {
 	 *
 	 * @param child  the child operator
 	 * @param orders the order of columns to sort by
-	 * @return
+	 * @return a sort operator
 	 */
 	public Operator createSortOp(Operator child, List orders) {
 		if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
 			return new SortOperator(child, orders);
 		}
 		// else use external sort
-		return new ExternalSortOperator(child, (List<String>) orders, DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(),0);
+		return new ExternalSortOperator(child, (List<String>) orders, DatabaseCatalog.getInstance().getSortPages(),
+				DatabaseCatalog.getInstance().getTempDir(), 0);
+	}
+
+	/**
+	 * Creates a scan operator based on if we want to use indexes.
+	 *
+	 * @param from the name of the table to scan
+	 * @return a scan operator
+	 */
+	public Operator createScanOp(String from) {
+		if (DatabaseCatalog.getInstance().useIndex()) {
+			return new IndexScanOperator(from);
+		} else {
+			return new ScanOperator(from);
+		}
+	}
+
+	/**
+	 * Creates a select operator based on if we want to use indexes.
+	 *
+	 * @param child the child operator
+	 * @param ex    the expression to choose columns
+	 * @return a select operator
+	 */
+	public Operator createSelectOp(Operator child, Expression ex) {
+		if (DatabaseCatalog.getInstance().useIndex()) {
+			return new IndexSelectOperator(child, ex);
+		} else {
+			return new SelectOperator(child, ex);
+		}
 	}
 
 	/**
@@ -273,6 +306,5 @@ public class QueryPlan {
 	public Operator getOperator() {
 		return rootOperator;
 	}
-	
 
 }

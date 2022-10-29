@@ -1,5 +1,7 @@
 package p1.operator;
 
+TODO
+
 import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
@@ -12,7 +14,7 @@ import p1.util.Tuple;
  * output if ExpressionVisitor determines that the condition is true, and skip
  * the tuple if not.
  */
-public class SelectOperator extends Operator {
+public class IndexSelectOperator extends Operator {
 	// The child operator, scanning all rows.
 	private Operator scanObj;
 	// The expression to check rows on.
@@ -24,7 +26,7 @@ public class SelectOperator extends Operator {
 	 * @param op the child scan operator.
 	 * @param ex the expression to select tuples from.
 	 */
-	public SelectOperator(Operator op, Expression ex) {
+	public IndexSelectOperator(Operator op, Expression ex) {
 		where = ex;
 		scanObj = op;
 	}
