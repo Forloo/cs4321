@@ -9,6 +9,7 @@ import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import p1.io.BPTreeReader;
 import p1.io.BinaryTreeReader;
 import p1.io.BinaryTupleWriter;
 import p1.io.FileConverter;
@@ -40,7 +41,7 @@ public class Main {
 		}
 
 //Jason testing
-		BinaryTreeReader btr = new BinaryTreeReader("/Users/jinseokoh/git/cs4321/P1/expected_indexes/Sailors.A");
+		BPTreeReader btr = new BPTreeReader("/Users/jinseokoh/git/cs4321/P1/expected_indexes/Sailors.A");
 		System.out.println("Header Page info: tree has order " + btr.getOrderOfTree() + ", a root at address " + btr.getAddressOfRoot()+ " and " +btr.getNumLeaves() + " leaf nodes");
 		btr.checkNodeType();
 		btr.checkNodeType(); //try second leaf page

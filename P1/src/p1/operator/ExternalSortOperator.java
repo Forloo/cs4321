@@ -56,9 +56,6 @@ public class ExternalSortOperator extends Operator {
 		}
 		try {
 			sort();
-			File inputDir = new File(tempDirPath);
-			String[] allFiles = inputDir.list();
-			reader = new BinaryTupleReader(allFiles[0]);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
