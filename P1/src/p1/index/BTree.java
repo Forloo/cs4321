@@ -55,7 +55,7 @@ public class BTree {
 		this.allNodeLevels= new ArrayList<ArrayList<BTreeNode>>();
 		
 		// If clustered then sort the relation table
-		if (this.clustered) {
+		if (!this.clustered) {
 			// Do some sorting on the relation beforehand.
 //			ScanOperator scan = new ScanOperator(input);
 			BinaryTupleReader reader= new BinaryTupleReader(input);
@@ -367,12 +367,14 @@ public class BTree {
 			if (allTupleOrderings.containsKey(value)) {
 				TupleIdentifier temp = new TupleIdentifier(currentPage,currentTuple);
 				allTupleOrderings.get(value).add(temp);
+				currentTuple=currentTuple+1;
 			}
 			else {
 				TupleIdentifier temp= new TupleIdentifier(currentPage,currentTuple);
 				ArrayList<TupleIdentifier> temp2 = new ArrayList<TupleIdentifier>();
 				allTupleOrderings.put(value, temp2);
 				allTupleOrderings.get(value).add(temp);
+				currentTuple=currentTuple+1;
 			}
 			
 			if (this.reader.getTuplesLeft()==0) {
