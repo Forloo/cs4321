@@ -64,6 +64,7 @@ public class BPTreeReader{
 		//read new page.
 		try {
 			bb = ByteBuffer.allocate(4096); //skip the header page afterwards
+//			System.out.println(bb.getInt(8));
 			int end = fc.read(bb);
 			idx = 0;
 			curDatEnt = 0;
@@ -113,7 +114,6 @@ public class BPTreeReader{
 			dataEnt = bb.getInt(idx);
 			idx += 4;
 		}
-//		System.out.println(dataEnt);
 		if (curDatEnt < dataEnt) { //leaf node starts with 0 and num entries, then entries
 			key = bb.getInt(idx); //start by getting key
 			locations = new ArrayList<ArrayList<Integer>>();
@@ -146,16 +146,13 @@ public class BPTreeReader{
 	 * @return key of index node, -1 after returning all the keys.
 	 */
 	public int getNextKey() {
-//		System.out.println("current idx for next key is: " + idx);
 		if (idx == 4) {
 			numKeys = bb.getInt(idx);
-//			System.out.println("number of keys: "+numKeys);
 			idx += 4;
 		}
 		if (idx / 4 - 2 < numKeys) { //index node starts with 1 and num keys, then keys
 			int ret = bb.getInt(idx);
 			idx += 4;
-//			System.out.println(ret);
 			return ret;
 		} else { //done returning the keys
 			idx -= 4;
@@ -168,8 +165,6 @@ public class BPTreeReader{
 	 * @return address of child node.
 	 */
 	public int getNextAddrIN() {
-//		System.out.println("start idx: " + idx);
-//		System.out.println("cur idx is: "+ idx);
 		if(idx>=4096) {
 //			idx = 0;
 			return -1;
