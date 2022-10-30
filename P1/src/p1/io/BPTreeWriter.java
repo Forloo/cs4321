@@ -120,7 +120,6 @@ public class BPTreeWriter {
 		
 			
 		try {
-			System.out.println(bb.getInt(idx));
 			while(idx < 4096) {
 				bb.putInt(idx, 0);
 				idx += 4;
