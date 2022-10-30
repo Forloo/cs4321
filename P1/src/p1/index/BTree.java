@@ -67,14 +67,13 @@ public class BTree {
 			// Reading from the input file to get all of the binary tuples
 			// Make the scan operator in here for now
 			ScanOperator scan = new ScanOperator(tableName);
-//			System.out.println(scan.getNextTuple());
+
 			// Get the schema so after that I can pass in the ordering that I want for the
 			// external sort operation
 			ArrayList<String> ordering = scan.getSchema();
 			ArrayList<String> newOrdering = new ArrayList<String>();
 			// Make a deep copy of the schema
 			for (String element : ordering) {
-				String curr = element;
 				newOrdering.add(element);
 			}
 
@@ -86,10 +85,9 @@ public class BTree {
 					DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(), 0);
 
 			external.dump(input);
-			String humanPath = DatabaseCatalog.getInstance().getNames().get(input) + "_humanreadable";
+			String humanPath = input + "_humanreadable";
 			FileConverter.convertBinToHuman(input, humanPath);
 			BinaryTupleReader reader = new BinaryTupleReader(input);
-//			this.reader=reader;
 			this.reader = reader;
 			// Clean temp directory
 			for (File tempFile : new File(tempDir).listFiles())

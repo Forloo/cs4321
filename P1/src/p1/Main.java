@@ -56,8 +56,7 @@ public class Main {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
 					String[] idxInfo = db.getIndexInfo().get(key);
 					File indexFileLocation = new File(indexDir + File.separator + key + "." + idxInfo[0]);
-//						System.out.println(indexDir + File.separator + key + "."+column);
-					Boolean clus = idxInfo[1].equals("1"); // true if clustered index
+					boolean clus = idxInfo[1].equals("1"); // true if clustered index
 					String tablePath = db.getNames().get(key);
 					int order = Integer.valueOf(idxInfo[2]);
 					String tableName = key;
@@ -79,7 +78,7 @@ public class Main {
 						// Parse statement
 						Select select = (Select) statement;
 						PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-//						System.out.println(plainSelect);
+						System.out.println(plainSelect);
 
 						// Create results file in output file directory
 						String queriesOutputFile = queriesOutput + File.separator + "query" + queryCount;

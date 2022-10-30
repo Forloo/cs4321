@@ -7,7 +7,6 @@ import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.CaseExpression;
 import net.sf.jsqlparser.expression.DateValue;
 import net.sf.jsqlparser.expression.DoubleValue;
-import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.InverseExpression;
@@ -111,6 +110,21 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	}
 
 	/**
+	 * Checks if a string is an integer.
+	 * 
+	 * @param s the string to check
+	 * @return true if s is an integer, false if not
+	 */
+	private boolean isInt(String s) {
+		try {
+			Integer.parseInt(s);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/**
 	 * Generates the physical tree given the root node for the Logicaltree After we
 	 * get more than one join working we will also pass into this an object telling
 	 * us the configuration of what joins that we want.
@@ -150,12 +164,50 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				// handles a portion of the selection, and a full-scan physical selection
 				// operator that has the index scan as a child and handles the rest of the
 				// selection.
+				String[] validExpr = { "<", "<=", ">", ">=", "=" };
 				String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
-				IndexExpressionVisitor exv = new IndexExpressionVisitor(idxCol);
-				Expression ex = cpy.getExpression();
-				ex.accept(exv);
-				int highkey = exv.getHigh();
-				int lowkey = exv.getLow();
+				String[] exps = cpy.getExpression().toString().split(" AND ");
+				int lowkey = Integer.MIN_VALUE;
+				int highkey = Integer.MAX_VALUE;
+				for (String e : exps) {
+					String[] exp = e.split(" ");
+					String[] left = exp[0].split("\\.");
+					String[] right = exp[2].split("\\.");
+					if ((left.length > 1 && left[1].equals(idxCol) && isInt(right[0]))
+							|| (right.length > 1 && right[1].equals(idxCol) && isInt(left[0]))) {
+						String comparator = exp[1];
+						if (isInt(right[0])) {
+							if (comparator.equals("<")) {
+								highkey = Math.min(Integer.parseInt(right[0]), highkey);
+								// TODO once scan is done: inclusive or exclusive keys?
+							} else if (comparator.equals("<=")) {
+								highkey = Math.min(Integer.parseInt(right[0]), highkey);
+							} else if (comparator.equals(">")) {
+								lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+							} else if (comparator.equals(">=")) {
+								lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+							} else if (comparator.equals("=")) {
+								lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+								highkey = Math.min(Integer.parseInt(right[0]), highkey);
+							}
+						} else {
+							if (comparator.equals("<")) {
+								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+							} else if (comparator.equals("<=")) {
+								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+							} else if (comparator.equals(">")) {
+								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+							} else if (comparator.equals(">=")) {
+								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+							} else if (comparator.equals("=")) {
+								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+							}
+						}
+					}
+				}
+				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
+				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
 				child = new IndexScanOperator(child.getTable());
 			}
 

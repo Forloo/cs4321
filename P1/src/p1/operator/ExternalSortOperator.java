@@ -1,6 +1,5 @@
 package p1.operator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +44,6 @@ public class ExternalSortOperator extends Operator {
 		schema = child.getSchema();
 		bufferPages = bufferSize;
 		order = list;
-		
 
 		// Get the indices of columns to order by
 		for (String col : order) {
@@ -101,7 +99,7 @@ public class ExternalSortOperator extends Operator {
 //			System.out.println(tup.toString());//debug
 //			System.out.println(tuplesRemaining);
 
-			while (tuplesRemaining--> 0 && (tup = child.getNextTuple()) != null) {
+			while (tuplesRemaining-- > 0 && (tup = child.getNextTuple()) != null) {
 //				System.out.println("adding: " + tup);
 				sortList.add(tup);
 			}
