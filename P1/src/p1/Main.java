@@ -54,20 +54,18 @@ public class Main {
 
 			if (buildIndexes.equals("1")) {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
-					for (String column : db.getIndexInfo().get(key).keySet()) { // this will loop once
-						File indexFileLocation = new File(indexDir + File.separator + key + "." + column);
+					String[] idxInfo = db.getIndexInfo().get(key);
+					File indexFileLocation = new File(indexDir + File.separator + key + "." + idxInfo[0]);
 //						System.out.println(indexDir + File.separator + key + "."+column);
-						Boolean clus = db.getIndexInfo().get(key).get(column).get(0) == 1; // true if clustered index
-						String tablePath = db.getNames().get(key);
-						int order = db.getIndexInfo().get(key).get(column).get(1);
-						String tableName = key;
-						BTree bTree = new BTree(order, clus, 0, indexFileLocation, tablePath, 0, tableName, tempDir);
-						BTreeNode root = bTree.constructTree();
-						bTree.setRoot(root);
-						BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
-								order);
-					}
-
+					Boolean clus = idxInfo[1].equals("1"); // true if clustered index
+					String tablePath = db.getNames().get(key);
+					int order = Integer.valueOf(idxInfo[2]);
+					String tableName = key;
+					BTree bTree = new BTree(order, clus, 0, indexFileLocation, tablePath, 0, tableName, tempDir);
+					BTreeNode root = bTree.constructTree();
+					bTree.setRoot(root);
+					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
+							order);
 				}
 			}
 

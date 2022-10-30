@@ -7,6 +7,7 @@ import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.CaseExpression;
 import net.sf.jsqlparser.expression.DateValue;
 import net.sf.jsqlparser.expression.DoubleValue;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.InverseExpression;
@@ -149,6 +150,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				// handles a portion of the selection, and a full-scan physical selection
 				// operator that has the index scan as a child and handles the rest of the
 				// selection.
+				String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
+				IndexExpressionVisitor exv = new IndexExpressionVisitor(idxCol);
+				Expression ex = cpy.getExpression();
+				ex.accept(exv);
+				int highkey = exv.getHigh();
+				int lowkey = exv.getLow();
+				child = new IndexScanOperator(child.getTable());
 			}
 
 			return new SelectOperator(child, cpy.getExpression());
