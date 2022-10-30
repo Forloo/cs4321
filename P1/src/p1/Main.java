@@ -10,7 +10,6 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.index.BTree;
 import p1.index.BTreeNode;
-import p1.io.BPTreeReader;
 import p1.io.BPTreeWriter;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
@@ -33,12 +32,13 @@ public class Main {
 
 			String queriesFile = input + File.separator + "queries.sql";
 			String dataDir = input + File.separator + "db" + File.separator;
-			String indexDir = "/Users/jinseokoh/git/cs4321/P1/indexes";
+			String indexDir = dataDir + "indexes" + File.separator;
 
 			fileReader.close();
 
 			// Get the file list containing all file inputs
 			File inputDir = new File(dataDir + "data");
+			System.out.println(inputDir);
 			String[] allFiles = inputDir.list();
 			File[] fileList = new File[allFiles.length];
 			File schema = new File(dataDir + "schema.txt");
@@ -54,8 +54,8 @@ public class Main {
 
 			if (buildIndexes.equals("1")) {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
-					for(String column : db.getIndexInfo().get(key).keySet()) { //this will loop once
-						File indexFileLocation = new File(indexDir + File.separator + key +"."+ column);
+					for (String column : db.getIndexInfo().get(key).keySet()) { // this will loop once
+						File indexFileLocation = new File(indexDir + File.separator + key + "." + column);
 //						System.out.println(indexDir + File.separator + key + "."+column);
 						Boolean clus = db.getIndexInfo().get(key).get(column).get(0) == 1; // true if clustered index
 						String tablePath = db.getNames().get(key);
@@ -64,9 +64,10 @@ public class Main {
 						BTree bTree = new BTree(order, clus, 0, indexFileLocation, tablePath, 0, tableName, tempDir);
 						BTreeNode root = bTree.constructTree();
 						bTree.setRoot(root);
-						BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),order);
+						BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
+								order);
 					}
-					
+
 				}
 			}
 
