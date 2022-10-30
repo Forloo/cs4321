@@ -10,6 +10,8 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.index.BTree;
+import p1.index.BTreeNode;
+import p1.io.BPTreeWriter;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
@@ -57,7 +59,11 @@ public class Main {
 					Boolean clus = db.getIndexInfo().get(key).get(0) == 1; //true if clustered index
 					String[] getIndexFName = key.split("\\."); //split index file name by period 
 					String tablePath = db.getNames().get(getIndexFName[0]);
-					BTree bTree = new BTree(db.getIndexInfo().get(key).get(1), clus, 0, indexFileLocation, tablePath, 0);
+					int order = db.getIndexInfo().get(key).get(1);
+					BTree bTree = new BTree(order, clus, 0, indexFileLocation, tablePath, 0);
+					BTreeNode root = bTree.constructTree();
+					bTree.setRoot(root);
+					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),order);
 				}
 				
 			}
