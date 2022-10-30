@@ -2,7 +2,6 @@ package p1;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.HashMap;
 import java.util.Scanner;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -30,10 +29,10 @@ public class Main {
 			String tempDir = fileReader.nextLine() + File.separator;
 			String buildIndexes = fileReader.nextLine();
 			String evalQueries = fileReader.nextLine();
-			
-			String indexDir = "/Users/jinseokoh/git/cs4321/P1/indexes"; //TODO: Change path such that it works for everyone
+
 			String queriesFile = input + File.separator + "queries.sql";
 			String dataDir = input + File.separator + "db" + File.separator;
+			String indexDir = dataDir + "indexes" + File.separator;
 
 			fileReader.close();
 
@@ -48,16 +47,15 @@ public class Main {
 				fileList[i] = file;
 			}
 
-			
-			File indexInfo = new File (dataDir + "index_info.txt");
+			File indexInfo = new File(dataDir + "index_info.txt");
 			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema,
 					new File(input + File.separator + "plan_builder_config.txt"), tempDir, indexInfo);
 
 			if (buildIndexes.equals("1")) {
-				for (String key : db.getIndexInfo().keySet()) { //generate all indexes specified
+				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
 					File indexFileLocation = new File(indexDir + File.separator + key);
-					Boolean clus = db.getIndexInfo().get(key).get(0) == 1; //true if clustered index
-					String[] getIndexFName = key.split("\\."); //split index file name by period 
+					Boolean clus = db.getIndexInfo().get(key).get(0) == 1; // true if clustered index
+					String[] getIndexFName = key.split("\\."); // split index file name by period
 					String tablePath = db.getNames().get(getIndexFName[0]);
 					int order = db.getIndexInfo().get(key).get(1);
 					BTree bTree = new BTree(order, clus, 0, indexFileLocation, tablePath, 0);
@@ -65,9 +63,8 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),order);
 				}
-				
 			}
-			
+
 			try {
 				CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
 				Statement statement;

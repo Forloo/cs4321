@@ -34,8 +34,9 @@ public class DatabaseCatalog {
 	private int sortPages;
 	// 1 to use indexes, 0 to not use indexes.
 	private int useIndex;
-	//for index information
-	private HashMap<String,ArrayList<Integer>> indexInfo;
+	// for index information
+	private HashMap<String, ArrayList<Integer>> indexInfo;
+
 	//
 	/*
 	 * Constructor for a DatabaseCatalog: An object that gives us access to tables
@@ -46,29 +47,30 @@ public class DatabaseCatalog {
 		tableNames = new HashMap<String, String>();
 		schema = new HashMap<String, ArrayList<String>>();
 		this.tempDir = tempDir;
-		
-		//add index file names to use (key is the file name, first element of array list is the clustered variable, second for order
+		this.indexInfo = new HashMap<String, ArrayList<Integer>>();
+
+		// add index file names to use (key is the file name, first element of array
+		// list is the clustered variable, second for order
 		try {
 			Scanner fileReader1 = new Scanner(indexInfo);
-			String nextL = fileReader1.nextLine(); 
-			while ( nextL != null) {
-				String[] splitStr = nextL.split("\\s+");//split by spaces
+			String nextL = fileReader1.nextLine();
+			while (nextL != null) {
+				String[] splitStr = nextL.split("\\s+");// split by spaces
 				ArrayList<Integer> clusAndOrder = new ArrayList<Integer>();
-				clusAndOrder.add(Integer.parseInt(splitStr[1]));
 				clusAndOrder.add(Integer.parseInt(splitStr[2]));
+				clusAndOrder.add(Integer.parseInt(splitStr[3]));
 				this.indexInfo.put(splitStr[0] + "." + splitStr[1], clusAndOrder);
 				nextL = fileReader1.nextLine();
-				
+
 			}
 			fileReader1.close();
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		} catch (NoSuchElementException e2) {//thrown by calling nexLine
-			
+		} catch (NoSuchElementException e2) {// thrown by calling nexLine
+
 		}
-		
-		
+
 		// Get all tables and paths
 		for (int i = 0; i < fileList.length; i++) {
 			File currFile = fileList[i];
@@ -122,11 +124,14 @@ public class DatabaseCatalog {
 
 	/**
 	 * Return the index info: table name and attribute for naming index files
-	 * @return list of table name concatenated by a period followed by the attribute for index files
+	 * 
+	 * @return list of table name concatenated by a period followed by the attribute
+	 *         for index files
 	 */
-	public HashMap<String,ArrayList<Integer>> getIndexInfo(){
+	public HashMap<String, ArrayList<Integer>> getIndexInfo() {
 		return this.indexInfo;
 	}
+
 	/**
 	 * Return the DatabaseCatalog object
 	 *
@@ -144,7 +149,8 @@ public class DatabaseCatalog {
 	 * @param schema:   A file specifying the structure of tables.
 	 * @return A DatabaseCatalog object
 	 */
-	public static DatabaseCatalog getInstance(File[] fileList, File schema, File configFile, String tempDir, File indexInfo) {
+	public static DatabaseCatalog getInstance(File[] fileList, File schema, File configFile, String tempDir,
+			File indexInfo) {
 		// write code that allows us to create only one object
 		// access the object as per our need
 		if (catalogObject == null) {
