@@ -291,9 +291,69 @@ public class QueryPlan {
 	 */
 	public Operator createSelectOp(Operator child, Expression ex) {
 		if (DatabaseCatalog.getInstance().useIndex()) {
-			// TODO: copy from PhysicalPlanBuilder
+			String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
+			String[] exps = ex.toString().split(" AND ");
+			int lowkey = Integer.MIN_VALUE;
+			int highkey = Integer.MAX_VALUE;
+			for (String e : exps) {
+				String[] exp = e.split(" ");
+				String[] left = exp[0].split("\\.");
+				String[] right = exp[2].split("\\.");
+				if ((left.length > 1 && left[1].equals(idxCol) && isInt(right[0]))
+						|| (right.length > 1 && right[1].equals(idxCol) && isInt(left[0]))) {
+					String comparator = exp[1];
+					if (isInt(right[0])) {
+						if (comparator.equals("<")) {
+							highkey = Math.min(Integer.parseInt(right[0]), highkey);
+							// TODO once scan is done: inclusive or exclusive keys?
+						} else if (comparator.equals("<=")) {
+							highkey = Math.min(Integer.parseInt(right[0]), highkey);
+						} else if (comparator.equals(">")) {
+							lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+						} else if (comparator.equals(">=")) {
+							lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+						} else if (comparator.equals("=")) {
+							lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+							highkey = Math.min(Integer.parseInt(right[0]), highkey);
+						}
+					} else {
+						if (comparator.equals("<")) {
+							highkey = Math.min(Integer.parseInt(left[0]), highkey);
+						} else if (comparator.equals("<=")) {
+							highkey = Math.min(Integer.parseInt(left[0]), highkey);
+						} else if (comparator.equals(">")) {
+							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+						} else if (comparator.equals(">=")) {
+							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+						} else if (comparator.equals("=")) {
+							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+							highkey = Math.min(Integer.parseInt(left[0]), highkey);
+						}
+					}
+				}
+			}
+			Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
+			Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
+			if (high != null || low != null)
+				child = new IndexScanOperator(child.getTable());
 		}
+
 		return new SelectOperator(child, ex);
+	}
+
+	/**
+	 * Checks if a string is an integer.
+	 * 
+	 * @param s the string to check
+	 * @return true if s is an integer, false if not
+	 */
+	private boolean isInt(String s) {
+		try {
+			Integer.parseInt(s);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	/**
