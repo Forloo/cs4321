@@ -8,8 +8,8 @@ import java.util.TreeMap;
 
 import p1.io.BinaryTupleReader;
 import p1.io.FileConverter;
+import p1.operator.ExternalSortOperator;
 import p1.operator.ScanOperator;
-import p1.operator.SortOperator;
 import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
@@ -82,7 +82,8 @@ public class BTree {
 				Collections.swap(newOrdering, 0, indexedColumn);
 			}
 
-			SortOperator external = new SortOperator(scan, newOrdering);
+			ExternalSortOperator external = new ExternalSortOperator(scan, newOrdering,
+					DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(), 0);
 
 			external.dump(input);
 			String humanPath = DatabaseCatalog.getInstance().getNames().get(input) + "_humanreadable";
