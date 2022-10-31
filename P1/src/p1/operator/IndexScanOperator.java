@@ -1,7 +1,5 @@
 package p1.operator;
 
-//TODO
-
 import java.util.ArrayList;
 
 import p1.index.BTree;
