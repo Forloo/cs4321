@@ -36,7 +36,6 @@ public class ExternalSortOperator extends Operator {
 	 * @param tempDir    the file path for temporary directory
 	 */
 	public ExternalSortOperator(Operator op, List<String> list, int bufferSize, String tempDirPath, int id) {
-		System.out.println(tempDirPath);
 		Random rand = new Random();
 		id = rand.nextInt(1000000);
 		tempDir = tempDirPath + id;
@@ -140,7 +139,6 @@ public class ExternalSortOperator extends Operator {
 	 *                      buffer for each step of merge.
 	 */
 	public void merge(int n, int b, List<String> fileList, int tuplesPerPage) {
-		System.out.println(fileList);
 		int numRunsAfterMerge = fileList.size() * (b - 1);// issue is when we start with n number of runs where n is not
 															// a power of 2
 		tuplesPerPage = tuplesPerPage * b;// initialize output buffer size or run size of merge step

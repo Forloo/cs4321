@@ -59,7 +59,8 @@ public class Main {
 					String tablePath = db.getNames().get(key);
 					int order = Integer.valueOf(idxInfo[2]);
 					String tableName = key;
-					BTree bTree = new BTree(order, clus, 0, indexFileLocation, tablePath, 0, tableName, tempDir);
+					int colIdx = DatabaseCatalog.getInstance().getSchema().get(key).indexOf(key + "." + idxInfo[0]);
+					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
 					BTreeNode root = bTree.constructTree();
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
