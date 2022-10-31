@@ -81,8 +81,8 @@ public class BTree {
 				Collections.swap(newOrdering, 0, indexedColumn);
 			}
 
-			ExternalSortOperator external = new ExternalSortOperator(scan, newOrdering,
-					DatabaseCatalog.getInstance().getSortPages(), DatabaseCatalog.getInstance().getTempDir(), 0);
+			ExternalSortOperator external = new ExternalSortOperator(scan, newOrdering, 3,
+					DatabaseCatalog.getInstance().getTempDir(), 0);
 
 			external.dump(input);
 			String humanPath = input + "_humanreadable";
