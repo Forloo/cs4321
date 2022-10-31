@@ -4,6 +4,7 @@ package p1.operator;
 
 import java.util.ArrayList;
 
+import p1.index.BTree;
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
 import p1.util.Aliases;
@@ -14,7 +15,7 @@ import p1.util.Tuple;
  * An operator that opens a file scan on the appropriate data file to return all
  * rows in that table.
  */
-public class IndexScanOperator extends Operator {
+public class IndexScanOperator extends ScanOperator {
 
 	// Binary file reader.
 	BinaryTupleReader reader;
@@ -27,37 +28,8 @@ public class IndexScanOperator extends Operator {
 	 * Constructor to scan rows of table fromTable (aliased).
 	 */
 	public IndexScanOperator(String fromTable) {
-		if (Aliases.getInstance()!=null) {
-			reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
-			ArrayList<String> newSchema = new ArrayList<String>();
-			for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
-				String[] els = col.split("\\.");
-				String colName = els[els.length - 1];
-				newSchema.add(fromTable + "." + colName);
-			}
-			schema = newSchema;
-			table = fromTable;
-		}
-		else {
-			reader= new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(fromTable));
-			ArrayList<String> newSchema = new ArrayList<String>();
-			for (String col : DatabaseCatalog.getInstance().getSchema().get(fromTable)) {
-				String[] els = col.split("\\.");
-				String colName = els[els.length - 1];
-				newSchema.add(fromTable + "." + colName);
-			}
-			schema = newSchema;
-			table = fromTable;
-		}
-//		reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
-//		ArrayList<String> newSchema = new ArrayList<String>();
-//		for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
-//			String[] els = col.split("\\.");
-//			String colName = els[els.length - 1];
-//			newSchema.add(fromTable + "." + colName);
-//		}
-//		schema = newSchema;
-//		table = fromTable;
+		super(fromTable);
+
 	}
 
 	/**
@@ -74,7 +46,7 @@ public class IndexScanOperator extends Operator {
 	 * from the beginning
 	 */
 	public void reset() {
-		reader.reset();
+		super.reset();
 	}
 
 	/**
@@ -108,10 +80,7 @@ public class IndexScanOperator extends Operator {
 	 * more output) and writes each tuple to System.out.
 	 */
 	public void dump() {
-		Tuple next = getNextTuple();
-		while (next != null) {
-			System.out.println(next.toString());
-		}
+		super.dump();
 	}
 
 	/**
@@ -121,18 +90,7 @@ public class IndexScanOperator extends Operator {
 	 * @param outputFile the file to write the tuples to
 	 */
 	public void dump(String outputFile) {
-		Tuple nextTuple = getNextTuple();
-		try {
-			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
-			while (nextTuple != null) {
-				out.writeTuple(nextTuple);
-				nextTuple = getNextTuple();
-			}
-			out.close();
-		} catch (Exception e) {
-			System.out.println("Exception occurred: ");
-			e.printStackTrace();
-		}
+		super.dump(outputFile);
 	}
 
 }
