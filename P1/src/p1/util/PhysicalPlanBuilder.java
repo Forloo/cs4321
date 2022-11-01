@@ -180,13 +180,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 							}
 						} else {
 							if (comparator.equals("<")) {
-								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 							} else if (comparator.equals("<=")) {
-								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 							} else if (comparator.equals(">")) {
-								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+								highkey = Math.min(Integer.parseInt(left[0]), highkey);
 							} else if (comparator.equals(">=")) {
-								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+								highkey = Math.min(Integer.parseInt(left[0]), highkey);
 							} else if (comparator.equals("=")) {
 								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 								highkey = Math.min(Integer.parseInt(left[0]), highkey);
@@ -196,6 +196,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
 				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
+				System.out.println("Bounds: " + low + " to " + high);
 				if (high != null || low != null)
 					child = new IndexScanOperator(child.getTable());
 			}
