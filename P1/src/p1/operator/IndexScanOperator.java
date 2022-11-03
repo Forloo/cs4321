@@ -1,13 +1,14 @@
 package p1.operator;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import p1.index.BTree;
+import p1.index.BTreeLeafNode;
 import p1.io.BinaryTupleReader;
-import p1.io.BinaryTupleWriter;
-import p1.util.Aliases;
 import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
+import p1.io.BPTreeReader;
 
 /**
  * An operator that opens a file scan on the appropriate data file to return all
@@ -15,19 +16,46 @@ import p1.util.Tuple;
  */
 public class IndexScanOperator extends ScanOperator {
 
-	// Binary file reader.
-	BinaryTupleReader reader;
 	// Column names.
 	ArrayList<String> schema;
 	// Table name.
 	String table;
+	private Integer highkey;
+	private Integer lowkey;
+	private BTree btree;
+	private BTreeLeafNode currLeafNode;
+	private File indexFile;
+	private Boolean isClustered;
+	private int colIdx;	// index of the attribute column.
+	private int currRid;
+	private int currKey;
+	private int currTuple; // curr tuple within key 
+	//index file reader
+	BPTreeReader reader;
+	private int idx;
 
 	/**
-	 * Constructor to scan rows of table fromTable (aliased).
+	 * Constructor to scan rows of table fromTable using indexes.
 	 */
-	public IndexScanOperator(String fromTable) {
+	public IndexScanOperator(String fromTable, Integer lowkey, Integer highkey, Boolean clustered, int colIdx, File indexFile) {
 		super(fromTable);
-
+		this.highkey = highkey;
+		this.lowkey = lowkey;
+		this.isClustered = clustered;
+		this.indexFile = indexFile;
+		this.colIdx = colIdx;
+		reader = new BPTreeReader(indexFile.toString());
+		
+		if (lowkey == null) {
+			currLeafNode = null; // smallest leaf node 
+		} else {
+			// start at lowkey --> while currKey < lowkey currKey ++
+//			currKey = reader.getNextKey();
+		}
+		
+		
+		currTuple = 0;
+				
 	}
 
 	/**
@@ -36,7 +64,38 @@ public class IndexScanOperator extends ScanOperator {
 	 * @return the tuples representing rows in a database
 	 */
 	public Tuple getNextTuple() {
-		return reader.nextTuple();
+		Tuple tuple = null;
+		
+		while (true) {
+			if (isClustered) {
+				tuple = super.getNextTuple();
+				if (tuple == null) {
+					return null;
+				}
+				if (highkey != null && colIdx > highkey) {
+					return null;	
+				}
+				return tuple;
+			}
+			else { //unclustered 
+				if (currKey >= reader.getNumKeys()) {
+					if (reader.getNextAddrIN() + 1 > reader.getNumLeaves()) { //read all leaves already 
+						return null;
+					}
+					for (int i = 0; i < reader.getNumKeys(); i++) {
+						for (int j = 0; j < reader.getNumLeaves(); j ++) {
+//							currLeafNode = (BTreeLeafNode) reader.getNextDataEntryUnclus().get();
+							// help
+						}
+					}
+					reader.getNextKey();
+					currKey++;
+					
+				}
+				if (tuple != null) return tuple;
+				
+			}		
+		}
 	}
 
 	/**

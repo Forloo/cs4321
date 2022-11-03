@@ -2,6 +2,7 @@ package p1;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -10,8 +11,11 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.index.BTree;
 import p1.index.BTreeNode;
+import p1.io.BPTreeReader;
 import p1.io.BPTreeWriter;
 import p1.io.FileConverter;
+import p1.operator.IndexScanOperator;
+import p1.operator.ScanOperator;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
@@ -65,6 +69,8 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
+					BPTreeReader reader = new BPTreeReader(indexFileLocation.toString());
+					System.out.println(reader.getNextDataEntryUnclus());
 				}
 			}
 

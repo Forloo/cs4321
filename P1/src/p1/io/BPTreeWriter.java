@@ -35,7 +35,6 @@ public class BPTreeWriter {
 	// The 0th index is the leaf node and all other indexes following that will be
 	// index layer nodes
 	
-	
 	/**
 	 * Creates a ByteBuffer that writes to the output file.
 	 *
