@@ -25,7 +25,6 @@ public class BinaryTupleReader implements TupleReader {
 	private int numTuplesLeft;
 	// Current buffer index.
 	private int idx;
-	private int currPage = 0;
 
 	/**
 	 * Creates a ByteBuffer that reads from the input file.
@@ -58,7 +57,6 @@ public class BinaryTupleReader implements TupleReader {
 		try {
 			// Reset buffer when it has read an entire page.
 			if (numTuplesLeft == 0) {
-				currPage++;
 				bb = ByteBuffer.allocate(4096);
 				int end;
 				end = fc.read(bb);
@@ -82,6 +80,27 @@ public class BinaryTupleReader implements TupleReader {
 			return null;
 		}
 	}
+	
+	/**
+	 * Read the next tuple given pageID and tupleID.
+	 *
+	 * @return the next tuple.
+	 * @throws IOException
+	 */
+	@Override
+	public Tuple nextTupleIndex(ArrayList<Integer> rid, int pageId, int tupleId) throws IOException {
+        if (rid == null) {
+        	return null;
+        }
+        
+        long position = 4096 * (long) pageId; // set page location
+        fc.position(position);
+        
+        int pagepos = (tupleId * numAttr + 2) * 4; // set position on page 
+        bb.position(pagepos);        
+        
+        return nextTuple();
+    } 
 
 	/**
 	 * Closes the reader.
@@ -107,7 +126,6 @@ public class BinaryTupleReader implements TupleReader {
 		try {
 			fc.position(0);
 			numTuplesLeft = 0;
-			currPage = 0;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -123,7 +141,6 @@ public class BinaryTupleReader implements TupleReader {
 			for (int i = 0; i < idx; i++) {
 				nextTuple();
 			}
-			currPage = 0;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

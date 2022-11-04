@@ -1,5 +1,6 @@
 package p1.operator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import p1.io.BinaryTupleReader;
@@ -65,6 +66,15 @@ public class ScanOperator extends Operator {
 	 */
 	public Tuple getNextTuple() {
 		return reader.nextTuple();
+	}
+	
+	/**
+	 * Retrieves the next tuples. If there is no next tuple then null is returned.
+	 *
+	 * @return the tuples representing rows in a database
+	 */
+	public Tuple getNextTupleIndex(ArrayList<Integer> rid, int pageId, int tupleId) throws IOException {
+		return reader.nextTupleIndex(rid, pageId, tupleId);
 	}
 
 	/**

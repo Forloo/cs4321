@@ -1,6 +1,7 @@
 package p1.operator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import p1.index.BTree;
@@ -112,14 +113,14 @@ public class IndexScanOperator extends ScanOperator {
 					currRid = rids.get(i);
 					int currPageID = rids.get(i).get(0);
 					int currTupleID = rids.get(i).get(1);
-					currTuple++; 
-
-					// TODO: need to change scan operator and then call next tuple here i think 
-
+					try {
+						super.getNextTupleIndex(currRid, currPageID, currTupleID);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 				
 			} 
-			return tuple;		
 		}
 	}
 

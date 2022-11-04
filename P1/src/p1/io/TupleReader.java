@@ -1,5 +1,8 @@
 package p1.io;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
 import p1.util.Tuple;
 
 /**
@@ -28,4 +31,12 @@ public interface TupleReader {
 	 * Resets the reader to the ith tuple.
 	 */
 	public abstract void reset(int idx);
+
+	/**
+	 * Read the next tuple given pageID and tupleID.
+	 *
+	 * @return the next tuple.
+	 * @throws IOException
+	 */
+	public Tuple nextTupleIndex(ArrayList<Integer> rid, int pageId, int tupleId) throws IOException;
 }
