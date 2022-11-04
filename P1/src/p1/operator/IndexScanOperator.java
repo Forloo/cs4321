@@ -110,6 +110,9 @@ public class IndexScanOperator extends ScanOperator {
 				currTuple++; 
 				
 				for (int i = 0; i < rids.size(); i++) {
+					int currPageID = rids.get(i).get(0);
+					int currTupleID = rids.get(i).get(1);
+					
 					// TODO: need to change scan operator and then call next tuple here i think 
 
 				}
