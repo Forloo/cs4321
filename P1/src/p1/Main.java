@@ -2,6 +2,7 @@ package p1;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -20,6 +21,7 @@ import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
+import p1.util.RandomDataGenerator;
 
 public class Main {
 
@@ -70,7 +72,7 @@ public class Main {
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
 					BPTreeReader reader = new BPTreeReader(indexFileLocation.toString());
-					System.out.println(reader.getNextDataEntryUnclus());
+					System.out.println(reader.getOrderOfTree());
 				}
 			}
 
@@ -130,7 +132,7 @@ public class Main {
 	}
 
 	private void testing() {
-// ===================================== testing B tree writer =================================
+//// ===================================== testing B tree writer =================================
 //		File file = new File("/Users/jinseokoh/git/cs4321/P1/expected_indexes/testingBPTreeWriter");
 //		BTree testingOne = new BTree(15,false,0,file,"/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors",0);
 //		BTreeNode root = testingOne.constructTree();
@@ -171,9 +173,9 @@ public class Main {
 //		while(btr.checkNodeType() != null) {
 //		}
 //		System.out.println("works");
-// ===================================== testing B tree writer =================================
-
-// ============================= debugging by generating random data ===========================
+//// ===================================== testing B tree writer =================================
+//
+//// ============================= debugging by generating random data ===========================
 //		String fileName = "/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/input/db/data/Boats";
 //		ArrayList<Tuple> rdg = new RandomDataGenerator(3,10000).generate();
 //		BinaryTupleWriter writer = new BinaryTupleWriter(fileName); 

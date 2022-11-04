@@ -86,22 +86,22 @@ public class BPTreeReader{
 	 * @return data entry of leaf node, null after returning all the entries.
 	 */
 	public HashMap<Integer, ArrayList<ArrayList<Integer>>> getNextDataEntryClus() {
-		if (idx == 4) {
-			dataEnt = bb.getInt(idx);
-			idx += 4;
-		}
-		
-		if (curDatEnt < dataEnt) {
-			key = bb.getInt(idx); //start by getting key
-			locations = new ArrayList<ArrayList<Integer>>(); //stores tuples
-			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
-			System.out.println("key: " + key);
-			idx += 4;
-			numEl = bb.getInt(idx); //then num elements
-			System.out.println("numEl: " + numEl);
-			idx += 4;
-		}
-		
+//		if (idx == 4) {
+//			dataEnt = bb.getInt(idx);
+//			idx += 4;
+//		}
+//		
+//		if (curDatEnt < dataEnt) {
+//			key = bb.getInt(idx); //start by getting key
+//			locations = new ArrayList<ArrayList<Integer>>(); //stores tuples
+//			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
+//			System.out.println("key: " + key);
+//			idx += 4;
+//			numEl = bb.getInt(idx); //then num elements
+//			System.out.println("numEl: " + numEl);
+//			idx += 4;
+//		}
+//		
 		return null;
 	}
 	

@@ -33,6 +33,7 @@ public class IndexScanOperator extends ScanOperator {
 	//index file reader
 	BPTreeReader reader;
 	private int idx;
+	private int currPage;
 
 	/**
 	 * Constructor to scan rows of table fromTable using indexes.
@@ -44,19 +45,27 @@ public class IndexScanOperator extends ScanOperator {
 		this.isClustered = clustered;
 		this.indexFile = indexFile;
 		this.colIdx = colIdx;
-		reader = new BPTreeReader(indexFile.toString());
 		
-		if (lowkey == null) {
-			currLeafNode = null; // smallest leaf node 
-		} else {
-			// start at lowkey --> while currKey < lowkey currKey ++
-//			currKey = reader.getNextKey();
+		reader = new BPTreeReader(indexFile.toString());
+		int order = reader.getOrderOfTree();
+		int rootAddy = reader.getAddressOfRoot();
+		int numLeaves = reader.getNumLeaves();
+		currKey = 0;
+
+		for (int i = 0; i < rootAddy; i++) { 
+			reader.checkNodeType(); // get to root node? 
+		} 
+		currKey = reader.getNextKey(); 
+		
+		while((currKey  != -1)) {
+			currKey = reader.getNextKey();
 		}
 		
-		
-		currTuple = 0;
-				
-	}
+		int child = reader.getNextAddrIN();
+		while ((child) != -1) {
+			child = reader.getNextAddrIN(); 
+		} 
+	} 
 
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
@@ -67,7 +76,7 @@ public class IndexScanOperator extends ScanOperator {
 		Tuple tuple = null;
 		
 		while (true) {
-			if (isClustered) {
+			if (isClustered) { // need to keep track of current page 
 				tuple = super.getNextTuple();
 				if (tuple == null) {
 					return null;
@@ -76,25 +85,12 @@ public class IndexScanOperator extends ScanOperator {
 					return null;	
 				}
 				return tuple;
-			}
+			} 
 			else { //unclustered 
-				if (currKey >= reader.getNumKeys()) {
-					if (reader.getNextAddrIN() + 1 > reader.getNumLeaves()) { //read all leaves already 
-						return null;
-					}
-					for (int i = 0; i < reader.getNumKeys(); i++) {
-						for (int j = 0; j < reader.getNumLeaves(); j ++) {
-//							currLeafNode = (BTreeLeafNode) reader.getNextDataEntryUnclus().get();
-							// help
-						}
-					}
-					reader.getNextKey();
-					currKey++;
-					
-				}
-				if (tuple != null) return tuple;
 				
-			}		
+				
+			} 
+			return null;		
 		}
 	}
 
