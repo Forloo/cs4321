@@ -104,11 +104,16 @@ public class IndexScanOperator extends ScanOperator {
 					currKey++;
 					currTuple = 0; // start reading from first tuple on next page
 				}
-				reader.getNextDataEntryUnclus().get(currKey); // list of rids i think??
-				// rid = (pageid, tupleid)
-				currTuple++;
 				
-				// TODO: need to change scan operator and then call it here i think 
+				ArrayList<ArrayList<Integer>> rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids i think??
+				// rid = (pageid, tupleid) 
+				currTuple++; 
+				
+				for (int i = 0; i < rids.size(); i++) {
+					// TODO: need to change scan operator and then call next tuple here i think 
+
+				}
+				
 			} 
 			return tuple;		
 		}
