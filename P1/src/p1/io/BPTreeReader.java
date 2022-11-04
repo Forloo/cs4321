@@ -223,4 +223,18 @@ public class BPTreeReader{
 		return header.get(2);
 	}
 	
+	/**
+	 * Resets the reader to the ith page.
+	 */
+	public void reset(int idx) {
+		try {
+			fc.position(0);
+			for (int i = 0; i < idx; i++) {
+				checkNodeType();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }

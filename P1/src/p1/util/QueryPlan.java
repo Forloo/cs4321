@@ -318,13 +318,13 @@ public class QueryPlan {
 						}
 					} else {
 						if (comparator.equals("<")) {
-							highkey = Math.min(Integer.parseInt(left[0]), highkey);
+							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 						} else if (comparator.equals("<=")) {
-							highkey = Math.min(Integer.parseInt(left[0]), highkey);
+							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 						} else if (comparator.equals(">")) {
-							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+							highkey = Math.min(Integer.parseInt(left[0]), highkey);
 						} else if (comparator.equals(">=")) {
-							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+							highkey = Math.min(Integer.parseInt(left[0]), highkey);
 						} else if (comparator.equals("=")) {
 							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 							highkey = Math.min(Integer.parseInt(left[0]), highkey);

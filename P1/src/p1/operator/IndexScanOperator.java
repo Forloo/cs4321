@@ -51,19 +51,23 @@ public class IndexScanOperator extends ScanOperator {
 		int rootAddy = reader.getAddressOfRoot();
 		int numLeaves = reader.getNumLeaves();
 		currKey = 0;
-
+		currTuple = 0;
+		
 		for (int i = 0; i < rootAddy; i++) { 
 			reader.checkNodeType(); // get to root node? 
 		} 
 		currKey = reader.getNextKey(); 
 		
-		while((currKey  != -1)) {
-			currKey = reader.getNextKey();
-		}
-		
-		int child = reader.getNextAddrIN();
-		while ((child) != -1) {
-			child = reader.getNextAddrIN(); 
+		while (reader.checkNodeType() == false) { // until reach leaf node 
+			while((currKey  != -1)) {
+				currKey = reader.getNextKey();
+			}
+			
+			int child = reader.getNextAddrIN();
+			while ((child) != -1) {
+				child = reader.getNextAddrIN(); 
+			} 
+			reader.reset(child); // jump to page of child address 
 		} 
 	} 
 
@@ -76,21 +80,37 @@ public class IndexScanOperator extends ScanOperator {
 		Tuple tuple = null;
 		
 		while (true) {
-			if (isClustered) { // need to keep track of current page 
+			if (isClustered) { // TODO: need to keep track of current page 
 				tuple = super.getNextTuple();
 				if (tuple == null) {
 					return null;
 				}
-				if (highkey != null && colIdx > highkey) {
+				if (highkey != null && currKey > highkey) {
 					return null;	
 				}
 				return tuple;
 			} 
 			else { //unclustered 
+				if (currKey >= reader.getNumKeys()) { //read next page 
+					currKey = 0; 
+					currTuple = 0;
+					reader.getNextDataEntryUnclus();
+					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
+				}
 				
+				if (highkey != null && currKey > highkey) return null;
 				
+				if (currTuple >= reader.getNextDataEntryUnclus().get(currKey).size()) { // read all tuples for currKey?
+					currKey++;
+					currTuple = 0; // start reading from first tuple on next page
+				}
+				reader.getNextDataEntryUnclus().get(currKey); // list of rids i think??
+				// rid = (pageid, tupleid)
+				currTuple++;
+				
+				// TODO: need to change scan operator and then call it here i think 
 			} 
-			return null;		
+			return tuple;		
 		}
 	}
 

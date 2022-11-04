@@ -1,6 +1,5 @@
 package p1.util;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
@@ -44,7 +43,6 @@ import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.SubSelect;
-import p1.index.BTree;
 import p1.logicaloperator.LogicalFilter;
 import p1.logicaloperator.LogicalJoin;
 import p1.logicaloperator.LogicalOperator;
@@ -136,17 +134,17 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	 */
 	public Operator generatePhysicalTree(LogicalOperator rootOperator) {
 
-//		// Logical scan base case check
-//		if (rootOperator instanceof LogicalScan) {
-//			// Cast the rootOperator to the logical scan and then get the field that we want
-//			LogicalScan cpy = (LogicalScan) rootOperator;
-//			// Make this into the physicalOperator
-//			if (DatabaseCatalog.getInstance().useIndex()) {
-//				return new IndexScanOperator(cpy.getFromTable());
-//			} else {
-//				return new ScanOperator(cpy.getFromTable());
-//			}
-//		}
+		// Logical scan base case check
+		if (rootOperator instanceof LogicalScan) {
+			// Cast the rootOperator to the logical scan and then get the field that we want
+			LogicalScan cpy = (LogicalScan) rootOperator;
+			// Make this into the physicalOperator
+			if (DatabaseCatalog.getInstance().useIndex()) {
+				return new IndexScanOperator(cpy.getFromTable());
+			} else {
+				return new ScanOperator(cpy.getFromTable());
+			}
+		}
 
 		if (rootOperator instanceof LogicalFilter) {
 			// Cast the rootoperator to the logical filter
@@ -182,13 +180,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 							}
 						} else {
 							if (comparator.equals("<")) {
-								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 							} else if (comparator.equals("<=")) {
-								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 							} else if (comparator.equals(">")) {
-								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+								highkey = Math.min(Integer.parseInt(left[0]), highkey);
 							} else if (comparator.equals(">=")) {
-								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+								highkey = Math.min(Integer.parseInt(left[0]), highkey);
 							} else if (comparator.equals("=")) {
 								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 								highkey = Math.min(Integer.parseInt(left[0]), highkey);
@@ -198,33 +196,12 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
 				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
-				
-				DatabaseCatalog db = DatabaseCatalog.getInstance();
-				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
-					String[] idxInfo = db.getIndexInfo().get(key);
-					String tableName = key;
-					boolean clus = idxInfo[1].equals("1"); // true if clustered index
-					int colIdx = DatabaseCatalog.getInstance().getSchema().get(key).indexOf(key + "." + idxInfo[0]);
-
-					
-				
+				System.out.println("Bounds: " + low + " to " + high);
 				if (high != null || low != null)
-					// Logical scan base case check
-					if (rootOperator instanceof LogicalScan) {
-						// Cast the rootOperator to the logical scan and then get the field that we want
-						LogicalScan copy = (LogicalScan) rootOperator;
-						// Make this into the physicalOperator
-						if (DatabaseCatalog.getInstance().useIndex()) {
-							return new IndexScanOperator(copy.getFromTable(), low, high, clus, );
-						} else {
-							return new ScanOperator(copy.getFromTable());
-						}
-					}
-					child = new IndexScanOperator(child.getTable(), low, high, clus, colIdx,);
+					child = new IndexScanOperator(child.getTable());
 			}
 
 			return new SelectOperator(child, cpy.getExpression());
-		}
 		}
 
 		if (rootOperator instanceof LogicalProject) {
