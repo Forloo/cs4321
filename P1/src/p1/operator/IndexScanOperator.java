@@ -27,7 +27,7 @@ public class IndexScanOperator extends ScanOperator {
 	private File indexFile;
 	private Boolean isClustered;
 	private int colIdx;	// index of the attribute column.
-	private int currRid;
+	private ArrayList<Integer> currRid;
 	private int currKey;
 	private int currTuple; // curr tuple within key 
 	//index file reader
@@ -107,12 +107,13 @@ public class IndexScanOperator extends ScanOperator {
 				
 				ArrayList<ArrayList<Integer>> rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids i think??
 				// rid = (pageid, tupleid) 
-				currTuple++; 
 				
 				for (int i = 0; i < rids.size(); i++) {
+					currRid = rids.get(i);
 					int currPageID = rids.get(i).get(0);
 					int currTupleID = rids.get(i).get(1);
-					
+					currTuple++; 
+
 					// TODO: need to change scan operator and then call next tuple here i think 
 
 				}
