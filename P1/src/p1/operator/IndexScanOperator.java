@@ -99,6 +99,7 @@ public class IndexScanOperator extends ScanOperator {
 					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
 				}
 				
+				//reached upper bound
 				if (highkey != null && currKey > highkey) return null;
 				
 				if (currTuple >= reader.getNextDataEntryUnclus().get(currKey).size()) { // read all tuples for currKey?
@@ -106,7 +107,7 @@ public class IndexScanOperator extends ScanOperator {
 					currTuple = 0; // start reading from first tuple on next page
 				}
 				
-				ArrayList<ArrayList<Integer>> rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids i think??
+				ArrayList<ArrayList<Integer>> rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids for currKey
 				// rid = (pageid, tupleid) 
 				
 				for (int i = 0; i < rids.size(); i++) {
