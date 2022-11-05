@@ -2,7 +2,6 @@ package p1;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -16,12 +15,10 @@ import p1.io.BPTreeReader;
 import p1.io.BPTreeWriter;
 import p1.io.FileConverter;
 import p1.operator.IndexScanOperator;
-import p1.operator.ScanOperator;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
-import p1.util.RandomDataGenerator;
 
 public class Main {
 
@@ -38,13 +35,16 @@ public class Main {
 
 			String queriesFile = input + File.separator + "queries.sql";
 			String dataDir = input + File.separator + "db" + File.separator;
+
 			String indexDir = dataDir + "indexes" + File.separator;
 
 			fileReader.close();
 
 			// Get the file list containing all file inputs
 			File inputDir = new File(dataDir + "data");
+
 			String[] allFiles = inputDir.list();
+
 			File[] fileList = new File[allFiles.length];
 			File schema = new File(dataDir + "schema.txt");
 
@@ -55,14 +55,24 @@ public class Main {
 
 			File indexInfo = new File(dataDir + "index_info.txt");
 			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema,
-					new File(input + File.separator + "plan_builder_config.txt"), tempDir, indexInfo);
+					new File(input + File.separator + "plan_builder_config.txt"), tempDir, indexInfo, indexDir);
+			
+			System.out.println("db filelist: " + Arrays.deepToString(fileList));
+			System.out.println("db tempdir: " + tempDir);
+			System.out.println("db indexInfo: " + indexInfo);
+			System.out.println("db indexDir: " + indexDir);
+
 
 			if (buildIndexes.equals("1")) {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
+					System.out.println("keyset: " + db.getIndexInfo().keySet());					
+					System.out.println("key: " + key);
+
 					String[] idxInfo = db.getIndexInfo().get(key);
 					File indexFileLocation = new File(indexDir + File.separator + key + "." + idxInfo[0]);
 					boolean clus = idxInfo[1].equals("1"); // true if clustered index
 					String tablePath = db.getNames().get(key);
+
 					int order = Integer.valueOf(idxInfo[2]);
 					String tableName = key;
 					int colIdx = DatabaseCatalog.getInstance().getSchema().get(key).indexOf(key + "." + idxInfo[0]);
@@ -71,7 +81,12 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
-					IndexScanOperator scan = new IndexScanOperator(tableName, 0, 50, clus, colIdx, indexFileLocation);
+					System.out.println("loc: " + indexFileLocation.toString());
+					BPTreeReader reader = new BPTreeReader(indexFileLocation.toString());
+					System.out.println("addr root: " + reader.getNextAddrIN());
+
+					IndexScanOperator scan = new IndexScanOperator(tableName, 0, 50, clus, colIdx, indexFileLocation.toString());
+
 				}
 			}
 
@@ -132,7 +147,7 @@ public class Main {
 
 	private static void testing(String tempDir) {
 //// ===================================== testing B tree writer =================================
-//		File file = new File("/Users/annazhang/git/cs4321/P1/expected_indexes/testing");
+//		File file = new File("/Users/annazhang/git/cs4321/P1/temp");
 //		BTree testingOne = new BTree(15,false,0,file,"/Users/annazhang/db/cs4321/P1/input/db/data/Sailors",0, "Sailors", tempDir);
 //		BTreeNode root = testingOne.constructTree();
 //		System.out.println(testingOne.getAllLevels()); 
@@ -140,7 +155,7 @@ public class Main {
 //		System.out.println(testingOne.getRoot());
 //		BPTreeWriter bptw = new BPTreeWriter(testingOne.getAllLevels(), file, testingOne.getRoot(),15);
 //		
-//		BPTreeReader btr = new BPTreeReader("/Users/annazhang/git/cs4321/P1/expected_indexes/testing");
+//		BPTreeReader btr = new BPTreeReader("/Users/annazhang/git/cs4321/P1/temp");
 //		System.out.println("Header Page info: tree has order " + btr.getOrderOfTree() + ", a root at address " + btr.getAddressOfRoot()+ " and " +btr.getNumLeaves() + " leaf nodes");
 //		btr.checkNodeType();
 //		btr.checkNodeType(); //try second leaf page

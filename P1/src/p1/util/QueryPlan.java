@@ -276,7 +276,11 @@ public class QueryPlan {
 	 */
 	public Operator createScanOp(String from) {
 		if (DatabaseCatalog.getInstance().useIndex()) {
-			return new IndexScanOperator(from);
+			String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(from);
+			boolean clustered = indexInfo[1].equals("1") ? true : false;
+			int indexIdx = DatabaseCatalog.getInstance().getSchema().get(from).indexOf(indexInfo[0]);
+			String idxFile = DatabaseCatalog.getInstance().getIndexDir() + from + "." + indexInfo[0];
+			return new IndexScanOperator(from, null, null, clustered, indexIdx, idxFile);
 		} else {
 			return new ScanOperator(from);
 		}
@@ -304,12 +308,11 @@ public class QueryPlan {
 					String comparator = exp[1];
 					if (isInt(right[0])) {
 						if (comparator.equals("<")) {
-							highkey = Math.min(Integer.parseInt(right[0]), highkey);
-							// TODO once scan is done: inclusive or exclusive keys?
+							highkey = Math.min(Integer.parseInt(right[0]) - 1, highkey);
 						} else if (comparator.equals("<=")) {
 							highkey = Math.min(Integer.parseInt(right[0]), highkey);
 						} else if (comparator.equals(">")) {
-							lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+							lowkey = Math.max(Integer.parseInt(right[0]) + 1, lowkey);
 						} else if (comparator.equals(">=")) {
 							lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
 						} else if (comparator.equals("=")) {
@@ -318,11 +321,11 @@ public class QueryPlan {
 						}
 					} else {
 						if (comparator.equals("<")) {
-							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+							lowkey = Math.max(Integer.parseInt(left[0]) + 1, lowkey);
 						} else if (comparator.equals("<=")) {
 							lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 						} else if (comparator.equals(">")) {
-							highkey = Math.min(Integer.parseInt(left[0]), highkey);
+							highkey = Math.min(Integer.parseInt(left[0]) - 1, highkey);
 						} else if (comparator.equals(">=")) {
 							highkey = Math.min(Integer.parseInt(left[0]), highkey);
 						} else if (comparator.equals("=")) {
@@ -334,8 +337,13 @@ public class QueryPlan {
 			}
 			Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
 			Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
-			if (high != null || low != null)
-				child = new IndexScanOperator(child.getTable());
+			if (high != null || low != null) {
+				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
+				boolean clustered = indexInfo[1].equals("1") ? true : false;
+				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(indexInfo[0]);
+				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + child.getTable() + "." + indexInfo[0];
+				child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
+			}
 		}
 
 		return new SelectOperator(child, ex);

@@ -1,5 +1,5 @@
 /Users/annazhang/db/cs4321/P1/input
-/Users/annazhang/db/cs4321/P1/output
+/Users/annazhang/db/cs4321/P1/expected_output
 /Users/annazhang/db/cs4321/P1/temp
 1
-0
+1

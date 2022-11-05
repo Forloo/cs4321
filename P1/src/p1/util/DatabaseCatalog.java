@@ -37,18 +37,22 @@ public class DatabaseCatalog {
 	private int useIndex;
 	// for index information
 	private HashMap<String, String[]> indexInfo;
+	// index file locations
+	private String indexDir;
 
 	//
 	/*
 	 * Constructor for a DatabaseCatalog: An object that gives us access to tables
 	 * and their schemas
 	 */
-	private DatabaseCatalog(File[] fileList, File schemaFile, File configFile, String tempDir, File indexInfo) {
+	private DatabaseCatalog(File[] fileList, File schemaFile, File configFile, String tempDir, File indexInfo,
+			String indexDir) {
 
 		tableNames = new HashMap<String, String>();
 		schema = new HashMap<String, ArrayList<String>>();
 		this.tempDir = tempDir;
 		this.indexInfo = new HashMap<String, String[]>();
+		this.indexDir = indexDir;
 		// add index file names to use (key is the file name, first element of array
 		// list is the clustered variable, second for order
 		try {
@@ -146,11 +150,11 @@ public class DatabaseCatalog {
 	 * @return A DatabaseCatalog object
 	 */
 	public static DatabaseCatalog getInstance(File[] fileList, File schema, File configFile, String tempDir,
-			File indexInfo) {
+			File indexInfo, String indexDir) {
 		// write code that allows us to create only one object
 		// access the object as per our need
 		if (catalogObject == null) {
-			catalogObject = new DatabaseCatalog(fileList, schema, configFile, tempDir, indexInfo);
+			catalogObject = new DatabaseCatalog(fileList, schema, configFile, tempDir, indexInfo, indexDir);
 		}
 
 		// returns the singleton object
@@ -255,6 +259,15 @@ public class DatabaseCatalog {
 	 */
 	public boolean useIndex() {
 		return useIndex == 1 ? true : false;
+	}
+
+	/**
+	 * Gets the path of the folder with indexes.
+	 * 
+	 * @return the path of the index directory
+	 */
+	public String getIndexDir() {
+		return indexDir;
 	}
 
 }
