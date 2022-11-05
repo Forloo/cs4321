@@ -140,7 +140,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			LogicalScan cpy = (LogicalScan) rootOperator;
 			// Make this into the physicalOperator
 			if (DatabaseCatalog.getInstance().useIndex()) {
-				return new IndexScanOperator(cpy.getFromTable());
+				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(cpy.getFromTable());
+				boolean clustered = indexInfo[1].equals("1") ? true : false;
+				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(cpy.getFromTable()).indexOf(indexInfo[0]);
+				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + cpy.getFromTable() + "." + indexInfo[0];
+				return new IndexScanOperator(cpy.getFromTable(), null, null, clustered, indexIdx, idxFile);
 			} else {
 				return new ScanOperator(cpy.getFromTable());
 			}
@@ -166,12 +170,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						String comparator = exp[1];
 						if (isInt(right[0])) {
 							if (comparator.equals("<")) {
-								highkey = Math.min(Integer.parseInt(right[0]), highkey);
-								// TODO once scan is done: inclusive or exclusive keys?
+								highkey = Math.min(Integer.parseInt(right[0]) - 1, highkey);
 							} else if (comparator.equals("<=")) {
 								highkey = Math.min(Integer.parseInt(right[0]), highkey);
 							} else if (comparator.equals(">")) {
-								lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+								lowkey = Math.max(Integer.parseInt(right[0]) + 1, lowkey);
 							} else if (comparator.equals(">=")) {
 								lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
 							} else if (comparator.equals("=")) {
@@ -180,11 +183,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 							}
 						} else {
 							if (comparator.equals("<")) {
-								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+								lowkey = Math.max(Integer.parseInt(left[0]) + 1, lowkey);
 							} else if (comparator.equals("<=")) {
 								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
 							} else if (comparator.equals(">")) {
-								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+								highkey = Math.min(Integer.parseInt(left[0]) - 1, highkey);
 							} else if (comparator.equals(">=")) {
 								highkey = Math.min(Integer.parseInt(left[0]), highkey);
 							} else if (comparator.equals("=")) {
@@ -197,8 +200,16 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
 				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
 				System.out.println("Bounds: " + low + " to " + high);
-				if (high != null || low != null)
-					child = new IndexScanOperator(child.getTable());
+				// Assuming inclusive keys
+				if (high != null || low != null) {
+					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
+					boolean clustered = indexInfo[1].equals("1") ? true : false;
+					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable())
+							.indexOf(indexInfo[0]);
+					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + child.getTable() + "."
+							+ indexInfo[0];
+					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
+				}
 			}
 
 			return new SelectOperator(child, cpy.getExpression());

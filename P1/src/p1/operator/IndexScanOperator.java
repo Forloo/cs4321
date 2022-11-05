@@ -1,15 +1,13 @@
 package p1.operator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import p1.index.BTree;
 import p1.index.BTreeLeafNode;
-import p1.io.BinaryTupleReader;
+import p1.io.BPTreeReader;
 import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
-import p1.io.BPTreeReader;
 
 /**
  * An operator that opens a file scan on the appropriate data file to return all
@@ -25,13 +23,13 @@ public class IndexScanOperator extends ScanOperator {
 	private Integer lowkey;
 	private BTree btree;
 	private BTreeLeafNode currLeafNode;
-	private File indexFile;
+	private String indexFile;
 	private Boolean isClustered;
-	private int colIdx;	// index of the attribute column.
+	private int colIdx; // index of the attribute column.
 	private ArrayList<Integer> currRid;
 	private int currKey;
-	private int currTuple; // curr tuple within key 
-	//index file reader
+	private int currTuple; // curr tuple within key
+	// index file reader
 	BPTreeReader reader;
 	private int idx;
 	private int currPage;
@@ -39,38 +37,40 @@ public class IndexScanOperator extends ScanOperator {
 	/**
 	 * Constructor to scan rows of table fromTable using indexes.
 	 */
-	public IndexScanOperator(String fromTable, Integer lowkey, Integer highkey, Boolean clustered, int colIdx, File indexFile) {
+	public IndexScanOperator(String fromTable, Integer lowkey, Integer highkey, Boolean clustered, int colIdx,
+			String indexFile) {
 		super(fromTable);
 		this.highkey = highkey;
 		this.lowkey = lowkey;
 		this.isClustered = clustered;
 		this.indexFile = indexFile;
 		this.colIdx = colIdx;
-		
-		reader = new BPTreeReader(indexFile.toString());
+
+		reader = new BPTreeReader(indexFile);
 		int order = reader.getOrderOfTree();
 		int rootAddy = reader.getAddressOfRoot();
 		int numLeaves = reader.getNumLeaves();
 		currKey = 0;
 		currTuple = 0;
-		
-		for (int i = 0; i < rootAddy; i++) { 
-			reader.checkNodeType(); // get to root node? 
-		} 
-		currKey = reader.getNextKey(); 
-		
-		while (reader.checkNodeType() == false) { // until reach leaf node 
-			while((currKey  != -1)) {
+
+		for (int i = 0; i < rootAddy; i++) {
+			reader.checkNodeType(); // get to root node?
+		}
+		currKey = reader.getNextKey();
+
+		while (reader.checkNodeType() == false) { // until reach leaf node
+			while ((currKey != -1)) {
 				currKey = reader.getNextKey();
 			}
-			
+
 			int child = reader.getNextAddrIN();
 			while ((child) != -1) {
-				child = reader.getNextAddrIN(); 
-			} 
-			reader.reset(child); // jump to page of child address 
-		} 
-	} 
+				child = reader.getNextAddrIN();
+			}
+			reader.reset(child); // jump to page of child address
+		}
+		schema = DatabaseCatalog.getInstance().getSchema().get(fromTable);
+	}
 
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
@@ -79,37 +79,39 @@ public class IndexScanOperator extends ScanOperator {
 	 */
 	public Tuple getNextTuple() {
 		Tuple tuple = null;
-		
+
 		while (true) {
-			if (isClustered) { // TODO: need to keep track of current page 
+			if (isClustered) { // TODO: need to keep track of current page
 				tuple = super.getNextTuple();
 				if (tuple == null) {
 					return null;
 				}
 				if (highkey != null && currKey > highkey) {
-					return null;	
+					return null;
 				}
 				return tuple;
-			} 
-			else { //unclustered 
-				if (currKey >= reader.getNumKeys()) { //read next page 
-					currKey = 0; 
+			} else { // unclustered
+				if (currKey >= reader.getNumKeys()) { // read next page
+					currKey = 0;
 					currTuple = 0;
 					reader.getNextDataEntryUnclus();
-					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
+					if (reader.checkNodeType() == false)
+						return null; // finished traversing all leaves
 				}
-				
-				//reached upper bound
-				if (highkey != null && currKey > highkey) return null;
-				
+
+				// reached upper bound
+				if (highkey != null && currKey > highkey)
+					return null;
+
 				if (currTuple >= reader.getNextDataEntryUnclus().get(currKey).size()) { // read all tuples for currKey?
 					currKey++;
 					currTuple = 0; // start reading from first tuple on next page
 				}
-				
-				ArrayList<ArrayList<Integer>> rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids for currKey
-				// rid = (pageid, tupleid) 
-				
+
+				ArrayList<ArrayList<Integer>> rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids for
+																									// currKey
+				// rid = (pageid, tupleid)
+
 				for (int i = 0; i < rids.size(); i++) {
 					currRid = rids.get(i);
 					int currPageID = rids.get(i).get(0);
@@ -120,8 +122,8 @@ public class IndexScanOperator extends ScanOperator {
 						e.printStackTrace();
 					}
 				}
-				
-			} 
+
+			}
 		}
 	}
 

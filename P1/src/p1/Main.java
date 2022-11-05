@@ -2,8 +2,6 @@ package p1;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -15,13 +13,10 @@ import p1.index.BTreeNode;
 import p1.io.BPTreeReader;
 import p1.io.BPTreeWriter;
 import p1.io.FileConverter;
-import p1.operator.IndexScanOperator;
-import p1.operator.ScanOperator;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
-import p1.util.RandomDataGenerator;
 
 public class Main {
 
@@ -55,7 +50,7 @@ public class Main {
 
 			File indexInfo = new File(dataDir + "index_info.txt");
 			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema,
-					new File(input + File.separator + "plan_builder_config.txt"), tempDir, indexInfo);
+					new File(input + File.separator + "plan_builder_config.txt"), tempDir, indexInfo, indexDir);
 
 			if (buildIndexes.equals("1")) {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
@@ -72,7 +67,6 @@ public class Main {
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
 					BPTreeReader reader = new BPTreeReader(indexFileLocation.toString());
-					System.out.println(reader.getOrderOfTree());
 				}
 			}
 
