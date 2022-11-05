@@ -35,42 +35,48 @@ public class IndexScanOperator extends ScanOperator {
 	BPTreeReader reader;
 	private int idx;
 	private int currPage;
+	ArrayList<ArrayList<Integer>> rids;
 
 	/**
 	 * Constructor to scan rows of table fromTable using indexes.
 	 */
 	public IndexScanOperator(String fromTable, Integer lowkey, Integer highkey, Boolean clustered, int colIdx, File indexFile) {
 		super(fromTable);
+
 		this.highkey = highkey;
 		this.lowkey = lowkey;
 		this.isClustered = clustered;
 		this.indexFile = indexFile;
 		this.colIdx = colIdx;
 		
-		reader = new BPTreeReader(indexFile.toString());
-		int order = reader.getOrderOfTree();
-		int rootAddy = reader.getAddressOfRoot();
-		int numLeaves = reader.getNumLeaves();
-		currKey = 0;
-		currTuple = 0;
+		reader = new BPTreeReader(indexFile.toString()); 
+		int order = reader.getOrderOfTree(); 
+		int rootAddy = reader.getAddressOfRoot(); 
+		int numLeaves = reader.getNumLeaves(); 
+		currKey = 0; 
+		currTuple = 0; 
 		
-		for (int i = 0; i < rootAddy; i++) { 
-			reader.checkNodeType(); // get to root node? 
-		} 
-		currKey = reader.getNextKey(); 
 		
-		while (reader.checkNodeType() == false) { // until reach leaf node 
-			while((currKey  != -1)) {
-				currKey = reader.getNextKey();
-			}
-			
-			int child = reader.getNextAddrIN();
-			while ((child) != -1) {
-				child = reader.getNextAddrIN(); 
+		if (lowkey == null) { 
+			reader.reset(1); //start at first page if no lower bound 
+			currKey = reader.getNextKey();
+		} else { 
+			for (int i = 0; i < rootAddy; i++) { 
+				reader.checkNodeType(); // get to root node
 			} 
-			reader.reset(child); // jump to page of child address 
+			
+			currKey = reader.getNextKey(); // first index node 	
+			while((currKey  < lowkey)) { 
+				currKey = reader.getNextKey(); 
+			} 
+			
+			while (reader.checkNodeType() == false) {
+				int child = reader.getNextAddrIN();
+				reader.reset(child); 	
+			} 
 		} 
-	} 
+		rids = reader.getNextDataEntryUnclus().get(currKey); 
+	}
 
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
@@ -81,23 +87,24 @@ public class IndexScanOperator extends ScanOperator {
 		Tuple tuple = null;
 		
 		while (true) {
-			if (isClustered) { // TODO: need to keep track of current page 
+			if (isClustered) { 
 				tuple = super.getNextTuple();
 				if (tuple == null) {
 					return null;
-				}
-				if (highkey != null && currKey > highkey) {
-					return null;	
+				} 
+				if (highkey != null && Integer.valueOf(tuple.getTuple().get(colIdx)) > highkey) {
+					return null;
 				}
 				return tuple;
 			} 
+			
 			else { //unclustered 
 				if (currKey >= reader.getNumKeys()) { //read next page 
+					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
 					currKey = 0; 
 					currTuple = 0;
-					reader.getNextDataEntryUnclus();
-					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
-				}
+					reader.getNextDataEntryUnclus(); 
+				} 
 				
 				//reached upper bound
 				if (highkey != null && currKey > highkey) return null;
@@ -105,10 +112,7 @@ public class IndexScanOperator extends ScanOperator {
 				if (currTuple >= reader.getNextDataEntryUnclus().get(currKey).size()) { // read all tuples for currKey?
 					currKey++;
 					currTuple = 0; // start reading from first tuple on next page
-				}
-				
-				ArrayList<ArrayList<Integer>> rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids for currKey
-				// rid = (pageid, tupleid) 
+				} 
 				
 				for (int i = 0; i < rids.size(); i++) {
 					currRid = rids.get(i);
@@ -116,6 +120,7 @@ public class IndexScanOperator extends ScanOperator {
 					int currTupleID = rids.get(i).get(1);
 					try {
 						super.getNextTupleIndex(currRid, currPageID, currTupleID);
+						currTuple++;
 					} catch (IOException e) {
 						e.printStackTrace();
 					}

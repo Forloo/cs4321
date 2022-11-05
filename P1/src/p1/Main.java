@@ -71,8 +71,7 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
-					BPTreeReader reader = new BPTreeReader(indexFileLocation.toString());
-					System.out.println(reader.getOrderOfTree());
+					IndexScanOperator scan = new IndexScanOperator(tableName, 0, 50, clus, colIdx, indexFileLocation);
 				}
 			}
 
@@ -128,20 +127,20 @@ public class Main {
 		} catch (Exception e) {
 			System.err.println("Exception occurred during config file parsing");
 			e.printStackTrace();
-		}
+		} 
 	}
 
-	private void testing() {
+	private static void testing(String tempDir) {
 //// ===================================== testing B tree writer =================================
-//		File file = new File("/Users/jinseokoh/git/cs4321/P1/expected_indexes/testingBPTreeWriter");
-//		BTree testingOne = new BTree(15,false,0,file,"/Users/jinseokoh/git/cs4321/P1/input/db/data/Sailors",0);
+//		File file = new File("/Users/annazhang/git/cs4321/P1/expected_indexes/testing");
+//		BTree testingOne = new BTree(15,false,0,file,"/Users/annazhang/db/cs4321/P1/input/db/data/Sailors",0, "Sailors", tempDir);
 //		BTreeNode root = testingOne.constructTree();
 //		System.out.println(testingOne.getAllLevels()); 
 //		testingOne.setRoot(root);
 //		System.out.println(testingOne.getRoot());
 //		BPTreeWriter bptw = new BPTreeWriter(testingOne.getAllLevels(), file, testingOne.getRoot(),15);
 //		
-//		BPTreeReader btr = new BPTreeReader("/Users/jinseokoh/git/cs4321/P1/expected_indexes/testingBPTreeWriter");
+//		BPTreeReader btr = new BPTreeReader("/Users/annazhang/git/cs4321/P1/expected_indexes/testing");
 //		System.out.println("Header Page info: tree has order " + btr.getOrderOfTree() + ", a root at address " + btr.getAddressOfRoot()+ " and " +btr.getNumLeaves() + " leaf nodes");
 //		btr.checkNodeType();
 //		btr.checkNodeType(); //try second leaf page
@@ -201,6 +200,7 @@ public class Main {
 //		//for debugging
 //		FileConverter.convertBinToHuman(fileName3, fileName3 + "_humanreadable");
 // ============================= debugging by generating random data ===========================
-	}
+//	}
 
+}
 }

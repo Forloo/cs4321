@@ -2,6 +2,7 @@ package p1.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import p1.util.Tuple;
@@ -89,6 +90,12 @@ public class HumanTupleReader implements TupleReader {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public Tuple nextTupleIndex(ArrayList<Integer> rid, int pageId, int tupleId) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
