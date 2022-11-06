@@ -77,7 +77,7 @@ public class Main {
 					
 					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 
-					IndexScanOperator scan = new IndexScanOperator(tableName, 1043, 757, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					IndexScanOperator scan = new IndexScanOperator(tableName, 41, 757, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 				}
 			}
 
