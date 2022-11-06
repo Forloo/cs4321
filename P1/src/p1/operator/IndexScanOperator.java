@@ -86,37 +86,12 @@ public class IndexScanOperator extends ScanOperator {
 			System.out.println("first key in root: " + currKey);
 			
 			System.out.println("lowkey: " + lowkey);
-					
-			if (lowkey < currKey) {			
-				while (lowkey <= currKey) { 
-					while (currKey != -1) {
-						currKey = reader.getNextKey();
-						System.out.println("currKey: " + currKey); 	
-						keys.add(currKey);
-					} 
-	
-					currKey = reader.getNextKey();
-					child = reader.getNextAddrIN(); // first child address
-					System.out.println("child: " + child); 
-					
-					if (lowkey <= child) { 
-						reader.reset(child);
-						reader.checkNodeType(); //goes to next index page 
-						currKey = reader.getNextKey(); 
-						System.out.println("currKey in loop: " + currKey); 
-					}		
-					
-					reader.reset(child);
-					System.out.println(reader.checkNodeType()); 
-					currKey = reader.getNextKey(); 
-					System.out.println("currKey: " + currKey); 				
-				} 
-				
-			} else if (lowkey >= currKey) {
-				while (lowkey > currKey) {
+						
+			while (lowkey != currKey) {
 				int temp = 0;
 				int pos = 0;;
 				keys.add(currKey);
+				
 				while (currKey != -1) {
 					temp++;
 					if (lowkey >= currKey) pos = temp;
@@ -124,29 +99,30 @@ public class IndexScanOperator extends ScanOperator {
 					if (currKey != -1) keys.add(currKey);
 					System.out.println(keys);					
 				} 
-				System.out.println("pos" + pos);
-								
-				currKey = reader.getNextKey();
-							
-				for (int i = 0; i < pos + 1; i++) {
-						child = reader.getNextAddrIN(); 
-						System.out.println("child: " + child);
-					}
-				
-				}
-				currKey = child;
-				System.out.println("reset to: " + currKey); 				
-
-				
-				reader.reset(currKey);
-				reader.checkNodeType();
-				currKey = reader.getNextKey();
-				System.out.println("currKey: " + currKey); 	
 			
-				
+			System.out.println("pos" + pos);
+							
+			currKey = reader.getNextKey();
+						
+			for (int i = 0; i < pos + 1; i++) {
+					child = reader.getNextAddrIN(); 
+					System.out.println("child: " + child);
+				}
+			
+			currKey = child;
+			System.out.println("reset to: " + currKey); 				
+
+			
+			reader.reset(currKey);
+			reader.checkNodeType();
+			currKey = reader.getNextKey();
+			System.out.println("currKey: " + currKey); 
+			
+			keys.clear();
+
 			}
-			}
-		
+
+		}
 			}			
 	
 	/**
