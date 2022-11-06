@@ -33,10 +33,11 @@ public class IndexScanOperator extends ScanOperator {
 	BPTreeReader reader;
 	private int idx;
 	private int currPage;
-	ArrayList<ArrayList<Integer>> rids;
+	ArrayList<ArrayList<Integer>> rids = new ArrayList<ArrayList<Integer>>();
 	int keyPos;
 	ArrayList<ArrayList<ArrayList<Integer>>> ridList;
 	int child;
+	ArrayList<Integer> keys = new ArrayList<Integer>();
 
 	/**
 	 * Constructor to scan rows of table fromTable using indexes.
@@ -69,62 +70,84 @@ public class IndexScanOperator extends ScanOperator {
 
 		if (lowkey == null) { 
 			reader.reset(1); //start at first page if no lower bound 
-			reader.checkNodeType();
+//			reader.checkNodeType();
 			currKey = reader.getNextKey(); // smallest leaf node 
 			System.out.println("currKey: " + currKey); 
-
+			System.out.println(reader.checkNodeType()); 
+			System.out.println(reader.getNextDataEntryUnclus().get(currKey)); // smallest leaf node 
+			System.out.println(reader.getNextDataEntryUnclus().get(reader.getNextKey())); // smallest leaf node 
+		
 		} else { 
 			for (int i = 0; i < rootAddy; i++) { 
 				reader.checkNodeType(); // get to root node	
 			} 			
 			currKey = reader.getNextKey();
+		
 			System.out.println("first key in root: " + currKey);
 			
 			System.out.println("lowkey: " + lowkey);
-
-						
-			while (lowkey <= currKey) { 
-				while (currKey != -1) {
+					
+			if (lowkey < currKey) {			
+				while (lowkey <= currKey) { 
+					while (currKey != -1) {
+						currKey = reader.getNextKey();
+						System.out.println("currKey: " + currKey); 	
+						keys.add(currKey);
+					} 
+	
 					currKey = reader.getNextKey();
-				} 
-
-				currKey = reader.getNextKey();
-				child = reader.getNextAddrIN(); // first child address
-				System.out.println("child: " + child); 
-				
-				if (lowkey <= child) { 
-					reader.reset(child);
-					reader.checkNodeType(); //goes to next index page 
-					currKey = reader.getNextKey(); 
-					System.out.println("currKey: " + currKey); 
-
-				}
-				while (lowkey >= child) {
-					child = reader.getNextAddrIN();
+					child = reader.getNextAddrIN(); // first child address
 					System.out.println("child: " + child); 
 					
-					if (lowkey == child) {
-						break;
-					}
-				}
-			} 
-			
-			if (lowkey > currKey) {
-				while (currKey != -1) {
-					currKey = reader.getNextKey();
-					if (lowkey >= currKey) {
-						break;
-					}
+					if (lowkey <= child) { 
+						reader.reset(child);
+						reader.checkNodeType(); //goes to next index page 
+						currKey = reader.getNextKey(); 
+						System.out.println("currKey in loop: " + currKey); 
+					}		
+					
+					reader.reset(child);
+					System.out.println(reader.checkNodeType()); 
+					currKey = reader.getNextKey(); 
+					System.out.println("currKey: " + currKey); 				
 				} 
-			}
-			
-			reader.reset(child);
-			currKey = reader.getNextKey(); 
-			System.out.println("currKey: " + currKey); 
+				
+			} else if (lowkey >= currKey) {
+				while (lowkey > currKey) {
+				int temp = 0;
+				int pos = 0;;
+				keys.add(currKey);
+				while (currKey != -1) {
+					temp++;
+					if (lowkey >= currKey) pos = temp;
+					currKey = reader.getNextKey();
+					if (currKey != -1) keys.add(currKey);
+					System.out.println(keys);					
+				} 
+				System.out.println("pos" + pos);
+								
+				currKey = reader.getNextKey();
+							
+				for (int i = 0; i < pos + 1; i++) {
+						child = reader.getNextAddrIN(); 
+						System.out.println("child: " + child);
+					}
+				
+				}
+				currKey = child;
+				System.out.println("reset to: " + currKey); 				
 
-		}
-		}
+				
+				reader.reset(currKey);
+				reader.checkNodeType();
+				currKey = reader.getNextKey();
+				System.out.println("currKey: " + currKey); 	
 			
+				
+			}
+			}
+		
+			}			
 	
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
@@ -133,7 +156,6 @@ public class IndexScanOperator extends ScanOperator {
 	 */
 	public Tuple getNextTuple() {
 		Tuple tuple = null;
-
 
 		while (true) {
 			if (isClustered) { 
@@ -158,16 +180,17 @@ public class IndexScanOperator extends ScanOperator {
 				//reached upper bound
 				if (highkey != null && currKey > highkey) return null;
 				
+				
 				rids = reader.getNextDataEntryUnclus().get(currKey); // list of rids for currKey 
 				System.out.println("rids: " + rids);
-				
-				if (currTuple >= rids.size()) { // read all tuples for currKey?
+
+
+				if (currTuple >= keys.size()) { // read all tuples for currKey
 					keyPos++;
 					currTuple = 0; // start reading from first tuple on next page
 				} 
-				
-				
-				for (int i = 0; i < ridList.size(); i++) {
+								
+				for (int i = 0; i < keys.size(); i++) {
 					currRid = rids.get(i);
 					int currPageID = rids.get(i).get(0);
 					int currTupleID = rids.get(i).get(1);
@@ -181,8 +204,8 @@ public class IndexScanOperator extends ScanOperator {
 						e.printStackTrace();
 					}
 				}
+				currKey = reader.getNextKey();
 				
-
 			}
 		}
 	}
