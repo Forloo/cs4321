@@ -56,17 +56,10 @@ public class Main {
 			File indexInfo = new File(dataDir + "index_info.txt");
 			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema,
 					new File(input + File.separator + "plan_builder_config.txt"), tempDir, indexInfo, indexDir);
-			
-			System.out.println("db filelist: " + Arrays.deepToString(fileList));
-			System.out.println("db tempdir: " + tempDir);
-			System.out.println("db indexInfo: " + indexInfo);
-			System.out.println("db indexDir: " + indexDir);
-
 
 			if (buildIndexes.equals("1")) {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
-					System.out.println("keyset: " + db.getIndexInfo().keySet());					
-					System.out.println("key: " + key);
+
 
 					String[] idxInfo = db.getIndexInfo().get(key);
 					File indexFileLocation = new File(indexDir + File.separator + key + "." + idxInfo[0]);
@@ -81,12 +74,10 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
-					System.out.println("loc: " + indexFileLocation.toString());
-					BPTreeReader reader = new BPTreeReader(indexFileLocation.toString());
-					System.out.println("addr root: " + reader.getNextAddrIN());
+					
+					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 
-					IndexScanOperator scan = new IndexScanOperator(tableName, 0, 50, clus, colIdx, indexFileLocation.toString());
-
+					IndexScanOperator scan = new IndexScanOperator(tableName, 41, 757, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 				}
 			}
 
