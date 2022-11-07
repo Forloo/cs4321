@@ -8,7 +8,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import p1.index.TupleIdentifier;
 import p1.util.Tuple;
 
 /**
@@ -43,6 +45,7 @@ public class BPTreeReader {
 	 */
 	public BPTreeReader(String file) {
 		try {
+			System.out.println(file);
 			this.file = file;
 			fin = new FileInputStream(file);
 			fc = fin.getChannel();
@@ -152,6 +155,20 @@ public class BPTreeReader {
 		}
 	}
 
+	/**
+	 * deserializes one leaf. Call this method while on the leaf to deserialize.
+	 * 
+	 * @return deserialized leaf 
+	 */
+	public ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> deserializeLeaf() {
+		ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> leaf = new ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>>();
+		HashMap<Integer, ArrayList<ArrayList<Integer>>> element;
+		while((element = getNextDataEntryUnclus()) != null) {
+			leaf.add(element);
+		}
+		return leaf;
+	}
+	
 	/**
 	 * gets the next key for the node. Call this after checkNodeType(). After
 	 * calling this, call getNextAddrIN.

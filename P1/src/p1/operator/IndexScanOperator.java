@@ -51,7 +51,8 @@ public class IndexScanOperator extends ScanOperator {
 		this.colIdx = colIdx; 
 		
 		reader = new BPTreeReader(indexFile); 
-
+		reader.checkNodeType();
+		System.out.println(reader.getNextDataEntryUnclus());
 		int rootAddy = reader.getAddressOfRoot(); 
 		
 		currKey = 0; 
@@ -62,7 +63,7 @@ public class IndexScanOperator extends ScanOperator {
 
 			reader.reset(1); 
 			reader.checkNodeType(); 
-			System.out.println(reader.getNextDataEntryUnclus());
+//			System.out.println(reader.getNextDataEntryUnclus());
 
 			for (Integer i : reader.getNextDataEntryUnclus().keySet()) {
 				currKey = i;

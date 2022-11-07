@@ -74,8 +74,17 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
-										
-					IndexScanOperator scan = new IndexScanOperator(tableName, null, 900, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+									
+					
+					BPTreeReader btr = new BPTreeReader("/Users/jinseokoh/git/cs4321/P1/input/db/indexes/Boats.E");
+					System.out.println("Header Page info: tree has order " + btr.getOrderOfTree() + ", a root at address " + btr.getAddressOfRoot()+ " and " +btr.getNumLeaves() + " leaf nodes");
+					btr.checkNodeType();
+					btr.checkNodeType(); //try second leaf page
+					System.out.println(btr.getNextDataEntryUnclus()); 
+					System.out.println("==================");
+					
+					
+					IndexScanOperator scan = new IndexScanOperator(tableName, null, 900, clus, colIdx, "/Users/jinseokoh/git/cs4321/P1/expected_indexes/Boats.E");
 				}
 			} 
 
