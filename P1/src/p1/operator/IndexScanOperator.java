@@ -60,7 +60,8 @@ public class IndexScanOperator extends ScanOperator {
 		this.colIdx = colIdx; 
 		
 		reader = new BPTreeReader(indexFile); 
-
+		reader.checkNodeType();
+		System.out.println(reader.getNextDataEntryUnclus());
 		int rootAddy = reader.getAddressOfRoot(); 
 		
 		currKey = 0; 

@@ -76,6 +76,7 @@ public class Main {
 //							order);
 //										
 					IndexScanOperator scan = new IndexScanOperator(tableName, null, 41, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+
 				}
 			} 
 
