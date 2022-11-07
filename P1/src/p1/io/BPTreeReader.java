@@ -9,7 +9,11 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
+import p1.index.BTreeIndexNode;
+import p1.index.BTreeLeafNode;
+import p1.index.BTreeNode;
 import p1.index.TupleIdentifier;
 import p1.util.Tuple;
 
@@ -167,6 +171,120 @@ public class BPTreeReader {
 			leaf.add(element);
 		}
 		return leaf;
+	}
+	
+	/**
+	 * Retrieves a BTreeNode given the page to deserialize 
+	 * @return BTreeNode for the given page.
+	 */
+	public BTreeNode deserializeNode() {
+		int type = bb.getInt();
+		
+		if (type==0) {
+			BTreeNode leaf = deserializeLeafNode();
+			return leaf;
+		}
+		else {
+			BTreeNode index= deserializeIndexNode();
+			return index;
+		}
+	}
+	
+	/**
+	 * Constructs a BTreeIndexNode from the binary file given thatt the type of 
+	 * the page being represented is a leaf node.
+	 * @return
+	 */
+	public BTreeIndexNode deserializeIndexNode() {
+		// Do not take in the first byte instead read from the second byte for the page
+		
+		// The first byte here tells us the number of keys that we have in the table
+		
+		int numKeys=bb.getInt();
+		ArrayList<Integer> allKeys= new ArrayList<Integer>();
+		TreeMap<Integer,ArrayList<Integer>> mappingInformation= new TreeMap<Integer,ArrayList<Integer>>();
+		for(int i=0;i<numKeys;i++) {
+			int curr=bb.getInt();
+			allKeys.add(curr);
+		}
+		
+		// Given the number of keys then we know that there is always one more address then the number 
+		// of keys that we have
+		
+		for(int j=0;j<numKeys+1;j++) {
+			// If the entry is not the last one then put it in the  map a
+			if (j!=numKeys) {
+				ArrayList<Integer> addressValues = new ArrayList<Integer>();
+				addressValues.add(bb.getInt());
+				mappingInformation.put(allKeys.get(j), addressValues);
+			}
+			else {
+				mappingInformation.get(allKeys.get(j-1)).add(bb.getInt());
+			}
+		}
+		
+		// After getting all of the values we make the node with all the referencing information that we need.
+		ArrayList<Map.Entry<Integer, ArrayList<Integer>>> ret = new ArrayList<Map.Entry<Integer, ArrayList<Integer>>>(
+				mappingInformation.entrySet());
+		
+		// This value does not matter since wee only need the reference for this information
+		int order=0;
+		int address=0;
+		BTreeIndexNode curr = new BTreeIndexNode(order,null,ret,address);
+		
+		return curr;
+		
+	}
+	
+	/**
+	 * Constructs a BTreeleafNode from the binary file given that the type of the 
+	 * node being represented is a leaf node
+	 * @return BTreeLeafNode for the given page.
+	 * Pre-Condition: The precondition for this is that the page must be on a 
+	 * leaf page.
+	 */
+	public BTreeLeafNode deserializeLeafNode() {
+		// Other method will check the node type of the file. So we can start by 
+		// Checking the second byte of the page and getting the information starting
+		// from that point
+		
+		// The number of keys for the references in the leaf node
+		int numKeys= bb.getInt();
+		
+		TreeMap<Integer, ArrayList<TupleIdentifier>> allTupleOrderings= new TreeMap<Integer,ArrayList<TupleIdentifier>>();
+		
+		for(int i=0;i<numKeys;i++) {
+			// Get the current key for the current entry
+			int key=bb.getInt();
+			// Get the number of data entries for this current entry
+			int numData= bb.getInt();
+			ArrayList<TupleIdentifier> currEntry= new ArrayList<TupleIdentifier>();
+			for(int j=0;j<numData;j++) {
+				// For each of the data entries read two values to get the pageId and the tupleid
+				int page=bb.getInt();
+				int tupleNumber=bb.getInt();
+				TupleIdentifier curr= new TupleIdentifier(page,tupleNumber);
+				currEntry.add(curr);
+			}
+			
+			allTupleOrderings.put(key, currEntry);
+		}
+		ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>> ret = new ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>>(
+				allTupleOrderings.entrySet());
+		
+		// Information here does not matter since the clustering is done beforehand.
+		boolean clustered= true;
+		// The order here does not matter since we have already made the tree
+		int ordering=0;
+		// The smallest value in the given subtree does not matter since that is only for construciton
+		int smallest=0;
+		// Getting the address does not matter here since we will have that when we are traversing the tree
+		int address=0;
+		
+		BTreeLeafNode currentLeafNode= new BTreeLeafNode(clustered,ordering,ret,null,smallest,address);
+		
+		return currentLeafNode;
+		
 	}
 	
 	/**
