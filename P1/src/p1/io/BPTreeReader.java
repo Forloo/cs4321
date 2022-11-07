@@ -9,7 +9,11 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
+import p1.index.BTreeIndexNode;
+import p1.index.BTreeLeafNode;
+import p1.index.BTreeNode;
 import p1.index.TupleIdentifier;
 import p1.util.Tuple;
 
@@ -45,7 +49,7 @@ public class BPTreeReader {
 	 */
 	public BPTreeReader(String file) {
 		try {
-			System.out.println(file);
+//			System.out.println(file);
 			this.file = file;
 			fin = new FileInputStream(file);
 			fc = fin.getChannel();
@@ -62,9 +66,134 @@ public class BPTreeReader {
 			e.printStackTrace();
 		}
 	}
-
-	public Boolean check() {
-		return bb.getInt(0) == 0;
+	
+	public void goToFirstLeaf() {
+		reset(1);
+		checkNodeType();
+	}
+	
+	/**
+	 * Retrieves a BTreeNode given the page to deserialize 
+	 * @return BTreeNode for the given page.
+	 */
+	public BTreeNode deserializeNode() {
+		int type = bb.getInt(0);
+		System.out.println("enter");
+		if (type==0) {
+			BTreeNode leaf = deserializeLeafNode();
+			return leaf;
+		}
+		else {
+			BTreeNode index= deserializeIndexNode();
+			return index;
+		}
+	}
+	
+	/**
+	 * Constructs a BTreeIndexNode from the binary file given thatt the type of 
+	 * the page being represented is a leaf node.
+	 * @return
+	 */
+	public BTreeIndexNode deserializeIndexNode() {
+		// Do not take in the first byte instead read from the second byte for the page
+		
+		// The first byte here tells us the number of keys that we have in the table
+		int pos=4;
+		int numKeys=bb.getInt(pos);
+		pos+=4;
+		ArrayList<Integer> allKeys= new ArrayList<Integer>();
+		TreeMap<Integer,ArrayList<Integer>> mappingInformation= new TreeMap<Integer,ArrayList<Integer>>();
+		for(int i=0;i<numKeys;i++) {
+			int curr=bb.getInt(pos);
+			allKeys.add(curr);
+			pos+=4;
+		}
+		
+		// Given the number of keys then we know that there is always one more address then the number 
+		// of keys that we have
+		
+		for(int j=0;j<numKeys+1;j++) {
+			// If the entry is not the last one then put it in the  map a
+			if (j!=numKeys) {
+				ArrayList<Integer> addressValues = new ArrayList<Integer>();
+				addressValues.add(bb.getInt(pos));
+				pos+=4;
+				mappingInformation.put(allKeys.get(j), addressValues);
+			}
+			else {
+				mappingInformation.get(allKeys.get(j-1)).add(bb.getInt(pos));
+				pos+=4;
+			}
+		}
+		
+		// After getting all of the values we make the node with all the referencing information that we need.
+		ArrayList<Map.Entry<Integer, ArrayList<Integer>>> ret = new ArrayList<Map.Entry<Integer, ArrayList<Integer>>>(
+				mappingInformation.entrySet());
+		
+		// This value does not matter since wee only need the reference for this information
+		int order=0;
+		int address=0;
+		BTreeIndexNode curr = new BTreeIndexNode(order,null,ret,address);
+		
+		return curr;
+		
+	}
+	
+	/**
+	 * Constructs a BTreeleafNode from the binary file given that the type of the 
+	 * node being represented is a leaf node
+	 * @return BTreeLeafNode for the given page.
+	 * Pre-Condition: The precondition for this is that the page must be on a 
+	 * leaf page.
+	 */
+	public BTreeLeafNode deserializeLeafNode() {
+		// Other method will check the node type of the file. So we can start by 
+		// Checking the second byte of the page and getting the information starting
+		// from that point
+		
+		// The number of keys for the references in the leaf node
+		int pos=4;
+		int numKeys= bb.getInt(pos);
+		pos+=4;
+		
+		TreeMap<Integer, ArrayList<TupleIdentifier>> allTupleOrderings= new TreeMap<Integer,ArrayList<TupleIdentifier>>();
+		
+		for(int i=0;i<numKeys;i++) {
+			// Get the current key for the current entry
+			int key=bb.getInt(pos);
+			pos+=4;
+			// Get the number of data entries for this current entry
+			int numData= bb.getInt(pos);
+			pos+=4;
+			ArrayList<TupleIdentifier> currEntry= new ArrayList<TupleIdentifier>();
+			for(int j=0;j<numData;j++) {
+				// For each of the data entries read two values to get the pageId and the tupleid
+				int page=bb.getInt(pos);
+				pos+=4;
+				int tupleNumber=bb.getInt(pos);
+				pos+=4;
+				TupleIdentifier curr= new TupleIdentifier(page,tupleNumber);
+				currEntry.add(curr);
+			}
+			
+			allTupleOrderings.put(key, currEntry);
+		}
+		ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>> ret = new ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>>(
+				allTupleOrderings.entrySet());
+		
+		// Information here does not matter since the clustering is done beforehand.
+		boolean clustered= true;
+		// The order here does not matter since we have already made the tree
+		int ordering=0;
+		// The smallest value in the given subtree does not matter since that is only for construciton
+		int smallest=0;
+		// Getting the address does not matter here since we will have that when we are traversing the tree
+		int address=0;
+		
+		BTreeLeafNode currentLeafNode= new BTreeLeafNode(clustered,ordering,ret,null,smallest,address);
+		
+		return currentLeafNode;
+		
 	}
 	/**
 	 * returns the node type (either leaf or inner). Call this first for each node.
@@ -72,7 +201,10 @@ public class BPTreeReader {
 	 * @return true if the node is the leaf node, false otherwise
 	 */
 	public Boolean checkNodeType() {
-		// read new page.
+		
+//		return bb.getInt(0) == 0;
+		
+//		 read new page.
 		try {
 			bb = ByteBuffer.allocate(4096); // skip the header page afterwards
 //			System.out.println(bb.getInt(8));
@@ -92,31 +224,6 @@ public class BPTreeReader {
 		return bb.getInt(0) == 0;
 	}
 
-	/**
-	 * gets the next data entry for the leaf node (clustered type). Call this after
-	 * checkNodeType()
-	 * 
-	 * @return data entry of leaf node, null after returning all the entries.
-	 */
-	public HashMap<Integer, ArrayList<ArrayList<Integer>>> getNextDataEntryClus() {
-//		if (idx == 4) {
-//			dataEnt = bb.getInt(idx);
-//			idx += 4;
-//		}
-//		
-//		if (curDatEnt < dataEnt) {
-//			key = bb.getInt(idx); //start by getting key
-//			locations = new ArrayList<ArrayList<Integer>>(); //stores tuples
-//			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
-//			System.out.println("key: " + key);
-//			idx += 4;
-//			numEl = bb.getInt(idx); //then num elements
-//			System.out.println("numEl: " + numEl);
-//			idx += 4;
-//		}
-//		
-		return null;
-	}
 
 	/**
 	 * gets the next data entry for the leaf node (unclustered tpye). Call this
@@ -161,25 +268,18 @@ public class BPTreeReader {
 	 * @return deserialized leaf 
 	 */
 	public ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> deserializeLeaf() {
+		idx = 0;
 		ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> leaf = new ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>>();
-		HashMap<Integer, ArrayList<ArrayList<Integer>>> element;
-		while((element = getNextDataEntryUnclus()) != null) {
+		HashMap<Integer, ArrayList<ArrayList<Integer>>> element = getNextDataEntryUnclus();
+		int i = 0;
+		while( element != null) {
+			i ++;
 			leaf.add(element);
+			element = getNextDataEntryUnclus();
 		}
-		return leaf;
-	}
-
-	/**
-	 * deserializes one leaf. Call this method while on the leaf to deserialize.
-	 * 
-	 * @return deserialized leaf 
-	 */
-	public ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> deserializeLeaf() {
-		ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> leaf = new ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>>();
-		HashMap<Integer, ArrayList<ArrayList<Integer>>> element;
-		while((element = getNextDataEntryUnclus()) != null) {
-			leaf.add(element);
-		}
+		System.out.println(i);
+//		System.out.println(getNextDataEntryUnclus());
+		idx = 4;
 		return leaf;
 	}
 	
@@ -287,9 +387,5 @@ public class BPTreeReader {
 		}
 	}
 	
-	public void resetIdx() {
-		idx = 4;
-		
-	}
 
 }

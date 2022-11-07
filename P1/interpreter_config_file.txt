@@ -1,5 +1,5 @@
-/Users/jinseokoh/git/cs4321/P1/input
-/Users/jinseokoh/git/cs4321/P1/expected_output
-/Users/jinseokoh/db/cs4321/P1/temp
+/Users/annazhang/db/cs4321/P1/input
+/Users/annazhang/db/cs4321/P1/output
+/Users/annazhang/db/cs4321/P1/temp
 1
 1

@@ -2,6 +2,7 @@ package p1.index;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class BTreeIndexNode extends BTreeNode {
 	// Min number of elements for each node unless root
@@ -81,6 +82,12 @@ public class BTreeIndexNode extends BTreeNode {
 	 */
 	public ArrayList<BTreeNode> getChildren() {
 		return this.childs;
+	}
+
+	@Override
+	public ArrayList<Entry<Integer, ArrayList<TupleIdentifier>>> getReference() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	

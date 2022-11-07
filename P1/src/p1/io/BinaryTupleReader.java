@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
+import p1.index.TupleIdentifier;
 import p1.util.Tuple;
 
 /**
@@ -25,6 +26,10 @@ public class BinaryTupleReader implements TupleReader {
 	private int numTuplesLeft;
 	// Current buffer index.
 	private int idx;
+	// The current page 
+	private int currPage;
+	// /The current tuple
+	private int currTuple;
 
 	/**
 	 * Creates a ByteBuffer that reads from the input file.
@@ -41,6 +46,8 @@ public class BinaryTupleReader implements TupleReader {
 			numAttr = bb.getInt(0);
 			numTuplesLeft = bb.getInt(4);
 			idx = 8;
+			currPage=0;
+			currTuple=0;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -66,6 +73,8 @@ public class BinaryTupleReader implements TupleReader {
 				numAttr = bb.getInt(0);
 				numTuplesLeft = bb.getInt(4);
 				idx = 8;
+//				currPage+=1;
+//				currTuple=0;
 			}
 			// Read the next tuple.
 			ArrayList<String> attr = new ArrayList<String>();
@@ -74,6 +83,7 @@ public class BinaryTupleReader implements TupleReader {
 				idx += 4;
 			}
 			numTuplesLeft--;
+//			currTuple+=1;
 			return new Tuple(String.join(",", attr));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -88,13 +98,21 @@ public class BinaryTupleReader implements TupleReader {
 	 * @throws IOException
 	 */
 	@Override
-	public Tuple nextTupleIndex(ArrayList<Integer> rid, int pageId, int tupleId) throws IOException {
-        if (rid == null) {
+	public Tuple nextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
+		System.out.println("currRid: " + currRid + " pageID: " + pageId + " tupleId: " + tupleId);
+        if (currRid == null) {
         	return null;
+        }       
+        
+        if (currPage > pageId) {
+        	reset();
+        } 
+        else if (currPage == pageId) {
+        	if (currTuple > tupleId) {
+        		reset();
+        	}
         }
         
-        long position = 4096 * (long) pageId; // set page location
-        fc.position(position);
         
         int pagepos = (tupleId * numAttr + 2) * 4; // set position on page 
         bb.position(pagepos);        
@@ -126,6 +144,8 @@ public class BinaryTupleReader implements TupleReader {
 		try {
 			fc.position(0);
 			numTuplesLeft = 0;
+			currPage=0;
+			currTuple=0;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -153,5 +173,6 @@ public class BinaryTupleReader implements TupleReader {
 	public int getTuplesLeft() {
 		return numTuplesLeft;
 	}
+
 
 }

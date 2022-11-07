@@ -1,6 +1,7 @@
 package p1.index;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public abstract class BTreeNode {
 	
@@ -14,4 +15,6 @@ public abstract class BTreeNode {
 	public abstract int getAddress();
 	// Children for the node
 	public abstract ArrayList<BTreeNode> getChildren();
+	// Returns the content of BTreeNode
+	public abstract ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>> getReference();
 }

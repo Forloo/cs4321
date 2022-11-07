@@ -7,10 +7,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import p1.index.BTree;
 import p1.index.BTreeLeafNode;
+import p1.index.TupleIdentifier;
 import p1.io.BPTreeReader;
+import p1.io.BinaryTupleWriter;
 import p1.util.DatabaseCatalog;
 import p1.util.Tuple;
 
@@ -28,7 +31,7 @@ public class IndexScanOperator extends ScanOperator {
 	private String indexFile;
 	private Boolean isClustered;
 	private int colIdx; // index of the attribute column.
-	private ArrayList<Integer> currRid;
+	private TupleIdentifier currRid;
 	private int currKey;
 	private int currTuple; // curr tuple within key
 	// index file reader
@@ -44,6 +47,10 @@ public class IndexScanOperator extends ScanOperator {
 	private Object[] valueSet;
 	private Object[] valueArray;
 	private List<Object> valueList;
+	private ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> templeaf;
+	private ArrayList<Entry<Integer, ArrayList<TupleIdentifier>>> currLeafNode;
+	private Entry<Integer, ArrayList<TupleIdentifier>> currRow;
+	private int currPage;
 
 	/**
 	 * Constructor to scan rows of table fromTable using indexes.
@@ -52,7 +59,7 @@ public class IndexScanOperator extends ScanOperator {
 			String indexFile) {
 		
 		super(fromTable);
-
+		
 		this.highkey = highkey;
 		this.lowkey = lowkey;
 		this.isClustered = clustered;
@@ -61,7 +68,6 @@ public class IndexScanOperator extends ScanOperator {
 		
 		reader = new BPTreeReader(indexFile); 
 		reader.checkNodeType();
-		System.out.println(reader.getNextDataEntryUnclus());
 		int rootAddy = reader.getAddressOfRoot(); 
 		
 		currKey = 0; 
@@ -110,6 +116,8 @@ public class IndexScanOperator extends ScanOperator {
 			reader.reset(currKey);	
 			
 			}
+			
+			keyPos = -1;
 			if (currKey < lowkey) {
 				while (currKey < lowkey) {
 					for (Integer i : reader.getNextDataEntryUnclus().keySet()) currKey = i; keyPos++;
@@ -119,9 +127,8 @@ public class IndexScanOperator extends ScanOperator {
 				currKey = lowkey;
 			}
 		} 
-		System.out.println(currKey);
-		System.out.println(reader.getNextDataEntryUnclus());
-																		
+				
+//		getNextTuple();	
 		System.out.println("---------------------------");
 		}
 	
@@ -131,74 +138,91 @@ public class IndexScanOperator extends ScanOperator {
 	 * @return the tuples representing rows in a database
 	 */
 	public Tuple getNextTuple() {
+//		System.out.println("avav;abjdvbadjb");
 		Tuple tuple = null;
-
+		
 		while (true) {
 			if (isClustered) { 
 				tuple = super.getNextTuple();
+
 				if (tuple == null) {
 					return null;
 				} 
-				if (highkey != null && currKey > highkey) {
+				if (highkey != null && currRow.getKey() > highkey) {
+					System.out.println("__________");
 					return null;
 				} 
 			} 
 			
 			else { //unclustered 
-				reader.resetIdx();
-				leaf = reader.deserializeLeaf();
-				System.out.println("leaf: " + leaf);
-
-				
-				currRid = leaf.get(keyPos).get(currKey).get(currTuple);
-
-				System.out.println("leaf: " + leaf);
-
-				System.out.println("keyPos: " + keyPos);
-				System.out.println("key: " + leaf.get(keyPos).get(5).get(currTuple));
-				System.out.println("currTuple: " + currTuple);
-																		
-																
-				if (keyPos > leaf.size()) { //read all keys on page 
-					System.out.println("2");
-
-					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
-					reader.checkNodeType(); // go to next page 
-					keyPos = 0; 
-					currTuple = 0; 
-					continue;
+//				System.out.println("Entered thsi loop");
+				currLeafNode = reader.deserializeLeafNode().getReference();				
+				System.out.println("currLeafNode: " + currLeafNode);				
+//				System.out.println("keyPos: " + keyPos);
+//				System.out.println("currTuple: " + currTuple);
+//				
+				currRow = currLeafNode.get(keyPos);				
+//				System.out.println("currRow: " + currRow);
+																																	
+				if (keyPos >= currLeafNode.size() - 1) { //read all keys on page 
+//					System.out.println("read all keys on page ");
+					if(reader.checkNodeType() == true) {
+//						System.out.println("going to next page");
+						keyPos = 0; 
+						currTuple = 0; 
+					} else {
+						return null;
+					}
+//					nextPage = reader.checkNodeType();
+//					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
+					
+					
+//					reader.checkNodeType(); // go to next page 
+					
 				} 				
-								
+				
 				//reached highkey 
-				if (highkey != null && currKey >= highkey) return null;
-		
-				if (currTuple >= rids.size()) { //read all tuples in key
-					System.out.println("3");
+				if (highkey != null && currRow.getKey() >= highkey) {
+//					System.out.println("reached highkey");
+					return null;
+				} 
+								
+//				System.out.println("tuples in row: " + currRow.getValue().size());
+//				System.out.println("currTuple2: " + currTuple);
+
+				if (currTuple >= currRow.getValue().size() - 1) { //read all tuples in row
+//					System.out.println("read all tuples in key");
 
                     keyPos++;
                     currTuple = 0;
-                    continue;
                 }
+				
+				currRid = currRow.getValue().get(currTuple);
+//				System.out.println("currRid: " + currRid);	
 			
-				System.out.println("4");
+				currPageID = currRid.getPageId();
+//				System.out.println("currPageID: " + currPageID);
 
-								
-				currRid = rids.get(currTuple);
-				currPageID = rids.get(currTuple).get(0);
-				currTupleID = rids.get(currTuple).get(1);
+				currTupleID = currRid.getTupleId();
+//				System.out.println("currTupleID: " + currTupleID);
+				
+//				System.out.println("currTuple: " + currTuple);
 
+//				System.out.println("calling next tuple");
 				try {
-					System.out.println("5");
-
 					tuple = super.getNextTupleIndex(currRid, currPageID, currTupleID);
-					currTuple++;
-				} catch (IOException e) {
-					e.printStackTrace();					
-				}				
-			}					
-			System.out.println("6");
+					System.out.println(tuple);
+					currTuple++;		
 
-			System.out.println("TUPLE: " + tuple);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				System.out.println("TUPLE: " + tuple);
+								
+				System.out.println("done");
+
+			}	
+			
 			return tuple;
 		}
 	}
@@ -235,6 +259,7 @@ public class IndexScanOperator extends ScanOperator {
 	 */
 	public void dump() {
 		super.dump();
+
 	}
 
 	/**
@@ -244,7 +269,21 @@ public class IndexScanOperator extends ScanOperator {
 	 * @param outputFile the file to write the tuples to
 	 */
 	public void dump(String outputFile) {
-		super.dump(outputFile);
+		Tuple nextTuple = getNextTuple();
+		while (nextTuple != null) {
+			try {
+				BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
+				while (nextTuple != null) {
+					out.writeTuple(nextTuple);
+					nextTuple = getNextTuple();
+				}
+				out.close();
+			} catch (Exception e) {
+				System.out.println("Exception occurred: ");
+				e.printStackTrace();
+			}
+			
+		}
 	}
 
 }

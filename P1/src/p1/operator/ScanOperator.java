@@ -3,6 +3,7 @@ package p1.operator;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import p1.index.TupleIdentifier;
 import p1.io.BinaryTupleReader;
 import p1.io.BinaryTupleWriter;
 import p1.util.Aliases;
@@ -73,8 +74,9 @@ public class ScanOperator extends Operator {
 	 *
 	 * @return the tuples representing rows in a database
 	 */
-	public Tuple getNextTupleIndex(ArrayList<Integer> rid, int pageId, int tupleId) throws IOException {
-		return reader.nextTupleIndex(rid, pageId, tupleId);
+	public Tuple getNextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
+		System.out.println("called scan operator");
+		return reader.nextTupleIndex(currRid, pageId, tupleId);
 	}
 
 	/**
@@ -142,5 +144,7 @@ public class ScanOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
+
+
 
 }

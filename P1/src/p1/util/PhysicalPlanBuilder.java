@@ -1,6 +1,8 @@
 package p1.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
@@ -142,6 +144,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			if (DatabaseCatalog.getInstance().useIndex()) {
 				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(cpy.getFromTable());
 				boolean clustered = indexInfo[1].equals("1") ? true : false;
+				System.out.println(indexInfo);
 				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(cpy.getFromTable()).indexOf(indexInfo[0]);
 				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + cpy.getFromTable() + "." + indexInfo[0];
 				return new IndexScanOperator(cpy.getFromTable(), null, null, clustered, indexIdx, idxFile);
@@ -156,8 +159,26 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			Operator child = generatePhysicalTree(cpy.getChild());
 
+
 			if (DatabaseCatalog.getInstance().useIndex()) {
+				System.out.println("index info" + (DatabaseCatalog.getInstance().getIndexInfo()));
+				System.out.println("child" + child);
+				
+				System.out.println("child table" + child.getTable());
+
+
+				HashMap<String,String[]> information = DatabaseCatalog.getInstance().getIndexInfo();
+				
+				System.out.println("-=====================");
+				for (String key: information.keySet()) {
+					System.out.println(key);
+				}
+				System.out.println("full" + DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0]);
+
+
+
 				String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
+
 				String[] exps = cpy.getExpression().toString().split(" AND ");
 				int lowkey = Integer.MIN_VALUE;
 				int highkey = Integer.MAX_VALUE;

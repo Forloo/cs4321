@@ -44,7 +44,8 @@ public class Main {
 			File inputDir = new File(dataDir + "data");
 
 			String[] allFiles = inputDir.list();
-
+			
+			
 			File[] fileList = new File[allFiles.length];
 			File schema = new File(dataDir + "schema.txt");
 
@@ -69,16 +70,17 @@ public class Main {
 					int order = Integer.valueOf(idxInfo[2]);
 					String tableName = key;
 					int colIdx = DatabaseCatalog.getInstance().getSchema().get(key).indexOf(key + "." + idxInfo[0]);
-//					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
-//					BTreeNode root = bTree.constructTree();
-//					bTree.setRoot(root);
-//					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
-//							order);
-//										
-					IndexScanOperator scan = new IndexScanOperator(tableName, null, 41, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
+					BTreeNode root = bTree.constructTree();
+					bTree.setRoot(root);
+					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
+							order);
+					
+					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 
+//					IndexScanOperator scan = new IndexScanOperator(tableName, 4, 69, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 				}
-			} 
+			}
 
 			try {
 				CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
@@ -133,7 +135,6 @@ public class Main {
 			System.err.println("Exception occurred during config file parsing");
 			e.printStackTrace();
 		} 
-		
 	}
 
 	private static void testing(String tempDir) {
