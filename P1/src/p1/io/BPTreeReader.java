@@ -33,6 +33,7 @@ public class BPTreeReader {
 	private ArrayList<ArrayList<Integer>> locations = new ArrayList<ArrayList<Integer>>();
 	private Tuple tuples = new Tuple("");
 	private int key;
+	private String file;
 
 	/**
 	 * Creates a ByteBuffer that reads from the input file
@@ -42,6 +43,7 @@ public class BPTreeReader {
 	 */
 	public BPTreeReader(String file) {
 		try {
+			this.file = file;
 			fin = new FileInputStream(file);
 			fc = fin.getChannel();
 			bb = ByteBuffer.allocate(4096);
@@ -58,6 +60,9 @@ public class BPTreeReader {
 		}
 	}
 
+	public Boolean check() {
+		return bb.getInt(0) == 0;
+	}
 	/**
 	 * returns the node type (either leaf or inner). Call this first for each node.
 	 * 
@@ -125,10 +130,10 @@ public class BPTreeReader {
 			key = bb.getInt(idx); // start by getting key
 			locations = new ArrayList<ArrayList<Integer>>();
 			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
-			System.out.println("key: " + key);
+//			System.out.println("key: " + key);
 			idx += 4;
 			numEl = bb.getInt(idx); // then num elements
-			System.out.println("numEl: " + numEl);
+//			System.out.println("numEl: " + numEl);
 			idx += 4;
 			for (int i = 0; i < numEl; i++) { // number of pairs
 				ArrayList<Integer> onePair = new ArrayList<Integer>();
@@ -140,7 +145,7 @@ public class BPTreeReader {
 			}
 			curDatEnt += 1;
 			pair.put(key, locations);
-			System.out.println(pair.toString());
+//			System.out.println(pair.toString());
 			return pair;
 		} else { // done returning the key value pairs
 			return null;
@@ -241,7 +246,8 @@ public class BPTreeReader {
 	 */
 	public void reset(int idx) {
 		try {
-			fc.position(0);
+			fin = new FileInputStream(file);
+			fc = fin.getChannel();
 			for (int i = 0; i < idx; i++) {
 				checkNodeType();
 			}

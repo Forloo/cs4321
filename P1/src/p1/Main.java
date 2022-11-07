@@ -74,10 +74,10 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
-					
+										
 					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 
-					IndexScanOperator scan = new IndexScanOperator(tableName, 41, 757, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					IndexScanOperator scan = new IndexScanOperator(tableName, 5, 69, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 				}
 			}
 
@@ -134,6 +134,7 @@ public class Main {
 			System.err.println("Exception occurred during config file parsing");
 			e.printStackTrace();
 		} 
+		
 	}
 
 	private static void testing(String tempDir) {
