@@ -59,8 +59,6 @@ public class Main {
 
 			if (buildIndexes.equals("1")) {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
-
-
 					String[] idxInfo = db.getIndexInfo().get(key);
 					File indexFileLocation = new File(indexDir + File.separator + key + "." + idxInfo[0]);
 					boolean clus = idxInfo[1].equals("1"); // true if clustered index
@@ -69,14 +67,38 @@ public class Main {
 					int order = Integer.valueOf(idxInfo[2]);
 					String tableName = key;
 					int colIdx = DatabaseCatalog.getInstance().getSchema().get(key).indexOf(key + "." + idxInfo[0]);
-//					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
-//					BTreeNode root = bTree.constructTree();
-//					bTree.setRoot(root);
-//					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
-//							order);
-//										
-					IndexScanOperator scan = new IndexScanOperator(tableName, null, 41, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
-
+					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
+					BTreeNode root = bTree.constructTree();
+					bTree.setRoot(root);
+					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
+							order);
+//					BPTreeReader btr = new BPTreeReader(indexFileLocation.toString());
+//					System.out.println("==========");
+//					System.out.println(indexFileLocation.toString());
+//					btr.checkNodeType();
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+//					System.out.println(btr.getNextDataEntryUnclus());
+					
+					IndexScanOperator scan = new IndexScanOperator(tableName, null, 41, clus, colIdx, "/Users/jinseokoh/git/cs4321/P1/expected_indexes/Boats.E");
 				}
 			} 
 
