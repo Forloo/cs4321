@@ -46,7 +46,7 @@ public class IndexScanOperator extends ScanOperator {
 
 		this.highkey = highkey;
 		this.lowkey = lowkey;
-		this.isClustered = false;
+		this.isClustered = clustered;
 		this.indexFile = indexFile;
 		this.colIdx = colIdx; 
 		
@@ -56,62 +56,62 @@ public class IndexScanOperator extends ScanOperator {
 		
 		currKey = 0; 
 		currTuple = 0; 
-		
 		keyPos = 0;
 		
-		if (lowkey == null) { // WORKS 		
-			reader.reset(1); 
-			reader.checkNodeType();
-			
-			for (Integer i : reader.getNextDataEntryUnclus().keySet()) currKey = i;			
+		if (lowkey == null) { 	
 
+			reader.reset(1); 
+			reader.checkNodeType(); 
+			System.out.println(reader.getNextDataEntryUnclus());
+
+			for (Integer i : reader.getNextDataEntryUnclus().keySet()) {
+				currKey = i;
+			} 
+			
 		} else { 
 			for (int i = 0; i < rootAddy; i++) { // WORKS
 				reader.checkNodeType(); 
 			} 			
 			currKey = reader.getNextKey(); 			
 			
-				reader.reset(rootAddy);
-				while (!(reader.checkNodeType())) {
-					currKey = reader.getNextKey();
-					keys.clear();
-					int temp = 0;
-					int pos = 0;;
-					keys.add(currKey);
-					Boolean found = false;
-					while ((currKey) != -1) {
-						keys.add(currKey);
-						temp++;
-						if (lowkey < currKey && !found) {pos = temp; found = true;}
-						currKey = reader.getNextKey();
-					} 
-					if (!found) {
-						pos = temp;
-					}					
+			reader.reset(rootAddy);
+			while (!(reader.checkNodeType())) {
 				currKey = reader.getNextKey();
+				keys.clear();
+				int temp = 0;
+				int pos = 0;;
+				keys.add(currKey);
+				Boolean found = false;
+				while ((currKey) != -1) {
+					keys.add(currKey);
+					temp++;
+					if (lowkey < currKey && !found) {pos = temp; found = true;}
+					currKey = reader.getNextKey();
+				} 
+				if (!found) {
+					pos = temp;
+				}					
+			currKey = reader.getNextKey();
+			
+			for (int i = 0; i < pos; i++) {
+				child = reader.getNextAddrIN(); 
+			}
 				
-				for (int i = 0; i < pos; i++) {
-						child = reader.getNextAddrIN(); 
-					}
-				
-				currKey = child;
-				reader.reset(currKey);					
+			currKey = child;
+			reader.reset(currKey);	
+			
+			}
+			if (currKey < lowkey) {
+				while (currKey < lowkey) {
+					for (Integer i : reader.getNextDataEntryUnclus().keySet()) currKey = i; keyPos++;
+					if (currKey == lowkey) currKey = lowkey;
 				}
-				if (currKey < lowkey) {
-					while (currKey < lowkey) {
-						for (Integer i : reader.getNextDataEntryUnclus().keySet()) currKey = i; keyPos++;
-						if (currKey == lowkey) currKey = lowkey;
-					}
-				} else {
-					currKey = lowkey;
-				}
-			} 
-		
-		System.out.println("keyPos: " + keyPos);
-		System.out.println("num keys: " + reader.getNumKeys());
-
-		getNextTuple();
-															
+			} else {
+				currKey = lowkey;
+			}
+		} 
+		System.out.println(currKey);
+																		
 		System.out.println("---------------------------");
 		}
 	
@@ -167,7 +167,6 @@ public class IndexScanOperator extends ScanOperator {
 			System.out.println("TUPLE: " + tuple);
 			currKey = reader.getNextKey();	
 			return tuple;
-
 		}
 	}
 
@@ -180,20 +179,12 @@ public class IndexScanOperator extends ScanOperator {
 	}
 
 	/**
-	 * Resets the Operator to the ith tuple.
-	 *
-	 * @param idx the index to reset the Operator to
-	 */
-	public void reset(int idx) {
-	}
-
-	/**
 	 * Gets the column names corresponding to the tuples.
 	 *
 	 * @return a list of all column names for the scan table.
 	 */
 	public ArrayList<String> getSchema() {
-		return schema;
+		return super.getSchema();
 	}
 
 	/**

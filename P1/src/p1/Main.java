@@ -75,11 +75,9 @@ public class Main {
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
 										
-					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
-
-					IndexScanOperator scan = new IndexScanOperator(tableName, 5, 69, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					IndexScanOperator scan = new IndexScanOperator(tableName, null, 900, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 				}
-			}
+			} 
 
 			try {
 				CCJSqlParser parser = new CCJSqlParser(new FileReader(queriesFile));
