@@ -151,6 +151,20 @@ public class BPTreeReader {
 			return null;
 		}
 	}
+	
+	/**
+	 * deserializes one leaf. Call this method while on the leaf to deserialize.
+	 * 
+	 * @return deserialized leaf 
+	 */
+	public ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> deserializeLeaf() {
+		ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> leaf = new ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>>();
+		HashMap<Integer, ArrayList<ArrayList<Integer>>> element;
+		while((element = getNextDataEntryUnclus()) != null) {
+			leaf.add(element);
+		}
+		return leaf;
+	}
 
 	/**
 	 * gets the next key for the node. Call this after checkNodeType(). After
@@ -215,7 +229,7 @@ public class BPTreeReader {
 	}
 
 	/**
-	 * Gets the number of keys
+	 * Gets the number of keys in one page 
 	 * 
 	 * @return number of keys
 	 */
@@ -254,6 +268,11 @@ public class BPTreeReader {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void resetIdx() {
+		idx = 4;
+		
 	}
 
 }

@@ -69,13 +69,13 @@ public class Main {
 					int order = Integer.valueOf(idxInfo[2]);
 					String tableName = key;
 					int colIdx = DatabaseCatalog.getInstance().getSchema().get(key).indexOf(key + "." + idxInfo[0]);
-					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
-					BTreeNode root = bTree.constructTree();
-					bTree.setRoot(root);
-					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
-							order);
-										
-					IndexScanOperator scan = new IndexScanOperator(tableName, null, 900, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+//					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
+//					BTreeNode root = bTree.constructTree();
+//					bTree.setRoot(root);
+//					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
+//							order);
+//										
+					IndexScanOperator scan = new IndexScanOperator(tableName, null, 41, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 				}
 			} 
 
