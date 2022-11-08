@@ -1,7 +1,6 @@
 package p1.util;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
@@ -163,20 +162,9 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			Operator child = generatePhysicalTree(cpy.getChild());
 
 			if (DatabaseCatalog.getInstance().useIndex()) {
-				System.out.println("index info" + (DatabaseCatalog.getInstance().getIndexInfo()));
-				System.out.println("child" + child);
+				String childTable = Aliases.getTable(child.getTable());
 
-				System.out.println("child table" + child.getTable());
-
-				HashMap<String, String[]> information = DatabaseCatalog.getInstance().getIndexInfo();
-
-				System.out.println("-=====================");
-				for (String key : information.keySet()) {
-					System.out.println(key);
-				}
-				System.out.println("full" + DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0]);
-
-				String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
+				String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(childTable)[0];
 
 				String[] exps = cpy.getExpression().toString().split(" AND ");
 				int lowkey = Integer.MIN_VALUE;
@@ -222,12 +210,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				System.out.println("Bounds: " + low + " to " + high);
 				// Assuming inclusive keys
 				if (high != null || low != null) {
-					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
+					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
 					boolean clustered = indexInfo[1].equals("1") ? true : false;
-					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable())
-							.indexOf(indexInfo[0]);
-					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + child.getTable() + "."
-							+ indexInfo[0];
+					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(childTable).indexOf(indexInfo[0]);
+					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable + "." + indexInfo[0];
 					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
 				}
 			}
