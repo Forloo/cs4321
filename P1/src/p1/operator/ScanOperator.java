@@ -132,12 +132,15 @@ public class ScanOperator extends Operator {
 	 */
 	public void dump(String outputFile) {
 		Tuple nextTuple = getNextTuple();
+		int counter=0;
 		try {
 			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
 			while (nextTuple != null) {
 				out.writeTuple(nextTuple);
 				nextTuple = getNextTuple();
-			}
+				System.out.println(counter);
+				counter+=1;
+				}
 			out.close();
 		} catch (Exception e) {
 			System.out.println("Exception occurred: ");

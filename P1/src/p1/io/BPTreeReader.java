@@ -201,7 +201,7 @@ public class BPTreeReader {
 	 * @return true if the node is the leaf node, false otherwise
 	 */
 	public Boolean checkNodeType() {
-		
+//		System.out.println("new node");
 //		return bb.getInt(0) == 0;
 		
 //		 read new page.
