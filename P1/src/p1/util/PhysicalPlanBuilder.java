@@ -1,7 +1,6 @@
 package p1.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
@@ -142,14 +141,15 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			LogicalScan cpy = (LogicalScan) rootOperator;
 			// Make this into the physicalOperator
 			if (DatabaseCatalog.getInstance().useIndex()) {
-				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(cpy.getFromTable());
+				String tableName = Aliases.getTable(cpy.getFromTable());
+				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(tableName);
 				System.out.println("indexInfo: " + indexInfo[1]);
 
 				boolean clustered = indexInfo[1].equals("1") ? true : false;
 				System.out.println("clus: " + clustered);
 
-				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(cpy.getFromTable()).indexOf(indexInfo[0]);
-				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + cpy.getFromTable() + "." + indexInfo[0];
+				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(tableName).indexOf(indexInfo[0]);
+				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + tableName + "." + indexInfo[0];
 				return new IndexScanOperator(cpy.getFromTable(), null, null, clustered, indexIdx, idxFile);
 			} else {
 				return new ScanOperator(cpy.getFromTable());
@@ -162,23 +162,19 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			Operator child = generatePhysicalTree(cpy.getChild());
 
-
 			if (DatabaseCatalog.getInstance().useIndex()) {
 				System.out.println("index info" + (DatabaseCatalog.getInstance().getIndexInfo()));
 				System.out.println("child" + child);
-				
+
 				System.out.println("child table" + child.getTable());
 
+				HashMap<String, String[]> information = DatabaseCatalog.getInstance().getIndexInfo();
 
-				HashMap<String,String[]> information = DatabaseCatalog.getInstance().getIndexInfo();
-				
 				System.out.println("-=====================");
-				for (String key: information.keySet()) {
+				for (String key : information.keySet()) {
 					System.out.println(key);
 				}
 				System.out.println("full" + DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0]);
-
-
 
 				String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
 
