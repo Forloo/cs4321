@@ -1,6 +1,6 @@
 -- SELECT * FROM Sailors;
 -- SELECT Sailors.A FROM Sailors;
--- SELECT * FROM Boats;
+SELECT * FROM Boats;
 -- SELECT Reserves.G, Reserves.H FROM Reserves;
 -- SELECT * FROM Sailors WHERE Sailors.B >= Sailors.C;
 -- SELECT Sailors.A FROM Sailors WHERE Sailors.B >= Sailors.C

@@ -25,7 +25,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		File configFile = new File(args[0]);
-
+		
 		try {
 			Scanner fileReader = new Scanner(configFile);
 			String input = fileReader.nextLine();
@@ -74,15 +74,15 @@ public class Main {
 					bTree.setRoot(root);
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
+//					BPTreeReader tr = new BPTreeReader("/Users/jinseokoh/git/cs4321/P1/expected_indexes/Boats.E");
+//					tr.checkNodeType();
+//					System.out.println(tr.getNextDataEntryUnclus()); 
+//					IndexScanOperator scan = new IndexScanOperator(tableName, 4, 71, clus, colIdx, "/Users/jinseokoh/git/cs4321/P1/expected_indexes/Boats.E");
 					
-					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
-
-					IndexScanOperator scan = new IndexScanOperator(tableName, 4, 71, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
-					
-					Tuple a;
-					while ((a = scan.getNextTuple()) != null) {
-						System.out.println(a);
-					}
+//					Tuple a;
+//					while ((a = scan.getNextTuple()) != null) {
+//						System.out.println(a);
+//					}
 				}
 			}
 

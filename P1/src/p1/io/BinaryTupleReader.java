@@ -105,56 +105,27 @@ public class BinaryTupleReader implements TupleReader {
 	 */
 	@Override
 	public Tuple nextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
-
-//		int thisPos = pageId * ? + tupleId;
+//		debug += 1;
+//		System.out.println();
         if (currRid == null) {
         	return null;
         }       
-//        System.out.println("currPage is at: " + currPage);
         if (currPage > pageId) {
-//        	System.out.println("inside condition 1");
         	factoryReset();
-//        	System.out.println("Resetted the value");
         } 
         else if (currPage == pageId) {
         	if (currTuple > tupleId) {
-//        		System.out.println("inside condition 2");
         		factoryReset();
-//        		System.out.println("Resetted the value");
         	}
-        } 
-//        reset
-//        factoryReset();
-        
-        //calculate number of tuples per page to get to the right page
-        //then tuple id
-        
+        }
         while (currPage < pageId) {
         	nextTuple();
         }
-//        System.out.println(currPage);
-//        System.out.println("we are at page: " + currPage);
         for(int i = 0; i < tupleId-1; i++) {
         	nextTuple();
         }
-//       System.out.println(nextTuple());
         Tuple finalTuple = nextTuple();
-//        System.out.println(finalTuple);
-//        System.out.println("We are at tuple: " + currTuple);
-//        reset();
         return finalTuple;
-//        
-//        while (currTuple < tupleId) {
-//        	
-//        }
-//        
-//        // Loop until we reach the right page
-//        // Once we get to the right page iterate until we get the right tuple number
-//        
-//        
-//                
-        
-//        return nextTuple();
     } 
 
 	/**
