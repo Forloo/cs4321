@@ -19,6 +19,7 @@ import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
+import p1.util.Tuple;
 
 public class Main {
 
@@ -76,7 +77,12 @@ public class Main {
 					
 					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
 
-//					IndexScanOperator scan = new IndexScanOperator(tableName, 4, 71, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					IndexScanOperator scan = new IndexScanOperator(tableName, 4, 71, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					
+					Tuple a;
+					while ((a = scan.getNextTuple()) != null) {
+						System.out.println(a);
+					}
 				}
 			}
 

@@ -131,6 +131,7 @@ public class IndexScanOperator extends ScanOperator {
 				currKey = lowkey;
 			}
 		} 
+		
 				
 //		getNextTuple();			
 //		getNextTuple();	
@@ -151,11 +152,9 @@ public class IndexScanOperator extends ScanOperator {
 		Tuple tuple = null;	
 		
 		if (isClustered) { 
-			System.out.println("entered");
 
 			
 			tuple = super.getNextTuple();
-			System.out.println(tuple);
 
 
 			if (tuple == null) {
@@ -210,8 +209,7 @@ public class IndexScanOperator extends ScanOperator {
 				}
 				
 				//check if we reached the highkey
-				if (highkey != null && currRow.getKey() >= highkey) {
-//					System.out.println("reached highkey");
+				if (highkey != null && currRow.getKey() > highkey) {
 					done = true;
 					return tuple;
 				} 
@@ -224,7 +222,7 @@ public class IndexScanOperator extends ScanOperator {
 				return null;
 			}
 				}
-			
+			System.out.println(tuple);
 
 			
 		}
