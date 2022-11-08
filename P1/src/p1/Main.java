@@ -45,7 +45,6 @@ public class Main {
 
 			String[] allFiles = inputDir.list();
 			
-			
 			File[] fileList = new File[allFiles.length];
 			File schema = new File(dataDir + "schema.txt");
 
@@ -60,7 +59,6 @@ public class Main {
 
 			if (buildIndexes.equals("1")) {
 				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
-
 
 					String[] idxInfo = db.getIndexInfo().get(key);
 					File indexFileLocation = new File(indexDir + File.separator + key + "." + idxInfo[0]);

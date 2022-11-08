@@ -148,20 +148,24 @@ public class IndexScanOperator extends ScanOperator {
 	 * @return the tuples representing rows in a database
 	 */
 	public Tuple getNextTuple() {
-//		System.out.println("Get Next Tuple ======================================================");
-		Tuple tuple = null;
-				
+		Tuple tuple = null;	
 		
 		if (isClustered) { 
+			System.out.println("entered");
+
+			
 			tuple = super.getNextTuple();
+			System.out.println(tuple);
+
 
 			if (tuple == null) {
 				return null;
 			} 
 			if (highkey != null && currRow.getKey() > highkey) {
-//				System.out.println("__________");
+				System.out.println("__________");
 				return null;
 			} 
+			return tuple;
 		} 
 		
 		else { //unclustered 
@@ -226,8 +230,6 @@ public class IndexScanOperator extends ScanOperator {
 		}
 		return null;	
 			
-			
-			
 		
 	}
 
@@ -262,7 +264,10 @@ public class IndexScanOperator extends ScanOperator {
 	 * more output) and writes each tuple to System.out.
 	 */
 	public void dump() {
-		super.dump();
+		Tuple next = this.getNextTuple();
+		while (next != null) {
+			System.out.println(next.toString());
+		}
 
 	}
 
@@ -273,23 +278,22 @@ public class IndexScanOperator extends ScanOperator {
 	 * @param outputFile the file to write the tuples to
 	 */
 	public void dump(String outputFile) {
-		super.dump(outputFile);
-//		Tuple nextTuple = getNextTuple();
-//		while (nextTuple != null) {
-//			try {
-//				BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
-//				while (nextTuple != null) {
-//					out.writeTuple(nextTuple);
-//					nextTuple = getNextTuple();
-//				}
-//				out.close();
-//			} catch (Exception e) {
-//				System.out.println("Exception occurred: ");
-//				e.printStackTrace();
-//			}
-//			
-//		} 		reader.close();
-//
+		Tuple nextTuple = this.getNextTuple();
+		while (nextTuple != null) {
+			try {
+				BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
+				while (nextTuple != null) {
+					out.writeTuple(nextTuple);
+					nextTuple = getNextTuple();
+				}
+				reader.close();
+			} catch (Exception e) {
+				System.out.println("Exception occurred: ");
+				e.printStackTrace();
+			}
+			
+		} 		reader.close();
+
 	}
 
 }
