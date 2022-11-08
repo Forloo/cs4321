@@ -51,6 +51,7 @@ public class IndexScanOperator extends ScanOperator {
 	private ArrayList<Entry<Integer, ArrayList<TupleIdentifier>>> currLeafNode;
 	private Entry<Integer, ArrayList<TupleIdentifier>> currRow;
 	private int currPage;
+	private Boolean done = false;
 
 	/**
 	 * Constructor to scan rows of table fromTable using indexes.
@@ -59,12 +60,16 @@ public class IndexScanOperator extends ScanOperator {
 			String indexFile) {
 		
 		super(fromTable);
-		
+				
 		this.highkey = highkey;
 		this.lowkey = lowkey;
 		this.isClustered = clustered;
 		this.indexFile = indexFile;
 		this.colIdx = colIdx; 
+		this.table = fromTable;
+		
+		System.out.println(table);
+
 		
 		reader = new BPTreeReader(indexFile); 
 		reader.checkNodeType();
@@ -134,7 +139,7 @@ public class IndexScanOperator extends ScanOperator {
 //		getNextTuple();	
 
 
-		System.out.println("---------------------------");
+//		System.out.println("---------------------------");
 		}
 	
 	/**
@@ -143,76 +148,87 @@ public class IndexScanOperator extends ScanOperator {
 	 * @return the tuples representing rows in a database
 	 */
 	public Tuple getNextTuple() {
-		System.out.println("Get Next Tuple ======================================================");
+//		System.out.println("Get Next Tuple ======================================================");
 		Tuple tuple = null;
 				
-		while (true) {
-			if (isClustered) { 
-				tuple = super.getNextTuple();
+		
+		if (isClustered) { 
+			tuple = super.getNextTuple();
 
-				if (tuple == null) {
-					return null;
-				} 
-				if (highkey != null && currRow.getKey() > highkey) {
-					System.out.println("__________");
-					return null;
-				} 
+			if (tuple == null) {
+				return null;
 			} 
-			
-			else { //unclustered 
-				
+			if (highkey != null && currRow.getKey() > highkey) {
+//				System.out.println("__________");
+				return null;
+			} 
+		} 
+		
+		else { //unclustered 
+			if (!done) {
 				//get the entire leaf
 				currLeafNode = reader.deserializeLeafNode().getReference();
-				
-				//check if you have read all the keys in the page
-				if (keyPos > currLeafNode.size() - 1) { //read all keys on page
-					
-					//if you read all the keys in the page and next page is index, return null
-					if (reader.checkNodeType() == false) {
-						return null;
-						} 
-					
-					//if not, go to the next page and reset the variables.
-					keyPos = 0; 
-					currTuple = 0;
-				}
-				
 				//get to the correct row
 				currRow = currLeafNode.get(keyPos);
-				
-				
-				//check if we reached the highkey
-				if (highkey != null && currRow.getKey() >= highkey) {
-					System.out.println("reached highkey");
-					return null;
-				} 
-				
-				//check if we read all the tuples in the row
-				if (currTuple > currRow.getValue().size() - 1) { //read all tuples in row
-					System.out.println("finished reading all tuples in the row, move on to next row");
-                    keyPos++;
-                    currTuple = 0;
-                }
-				
-
 				//get the page id and tuple id and get the tuple
 				currRid = currRow.getValue().get(currTuple);
 				currPageID = currRid.getPageId();
 				currTupleID = currRid.getTupleId();
 				try {
 					tuple = super.getNextTupleIndex(currRid, currPageID, currTupleID);
-					System.out.println(tuple);
-					System.out.println("increment the tuple count");
+//					System.out.println(tuple);
+//					System.out.println("increment the tuple count");
 					currTuple++;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				System.out.println("TUPLE: " + tuple);
-				System.out.println("done");
-			}	
+//					System.out.println("TUPLE: " + tuple);
+//					System.out.println("done");
+				
+				//check if we read all the tuples in the row
+				if (currTuple > currRow.getValue().size() - 1) { //read all tuples in row
+//					System.out.println("finished reading all tuples in the row, move on to next row");
+                    keyPos++;
+                    currTuple = 0;
+                }
+				
+				
+				//check if you have read all the keys in the page
+				if (keyPos > currLeafNode.size() - 1) { //read all keys on page
+					//if you read all the keys in the page and next page is index, return null
+					if (reader.checkNodeType() == false) {
+						done = true;
+						return tuple;
+					} 
+					//if not, go to the next page and reset the variables.
+					keyPos = 0; 
+					currTuple = 0;
+				}
+				
+				//check if we reached the highkey
+				if (highkey != null && currRow.getKey() >= highkey) {
+//					System.out.println("reached highkey");
+					done = true;
+					return tuple;
+				} 
+				
+				
+				if (tuple != null) {
+					return tuple;
+				
+			} else {
+				return null;
+			}
+				}
 			
-			return tuple;
+
+			
 		}
+		return null;	
+			
+			
+			
+		
 	}
 
 	/**

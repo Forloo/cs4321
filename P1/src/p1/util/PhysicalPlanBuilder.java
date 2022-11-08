@@ -143,8 +143,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			// Make this into the physicalOperator
 			if (DatabaseCatalog.getInstance().useIndex()) {
 				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(cpy.getFromTable());
+				System.out.println("indexInfo: " + indexInfo[1]);
+
 				boolean clustered = indexInfo[1].equals("1") ? true : false;
-				System.out.println(indexInfo);
+				System.out.println("clus: " + clustered);
+
 				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(cpy.getFromTable()).indexOf(indexInfo[0]);
 				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + cpy.getFromTable() + "." + indexInfo[0];
 				return new IndexScanOperator(cpy.getFromTable(), null, null, clustered, indexIdx, idxFile);

@@ -78,7 +78,7 @@ public class BPTreeReader {
 	 */
 	public BTreeNode deserializeNode() {
 		int type = bb.getInt(0);
-		System.out.println("enter");
+//		System.out.println("enter");
 		if (type==0) {
 			BTreeNode leaf = deserializeLeafNode();
 			return leaf;
@@ -277,7 +277,7 @@ public class BPTreeReader {
 			leaf.add(element);
 			element = getNextDataEntryUnclus();
 		}
-		System.out.println(i);
+//		System.out.println(i);
 //		System.out.println(getNextDataEntryUnclus());
 		idx = 4;
 		return leaf;

@@ -1,6 +1,7 @@
 package p1.io;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -30,6 +31,10 @@ public class BinaryTupleReader implements TupleReader {
 	private int currPage;
 	// /The current tuple
 	private int currTuple;
+	//file path
+	private String file;
+	
+	private int debug=0;
 
 	/**
 	 * Creates a ByteBuffer that reads from the input file.
@@ -39,6 +44,7 @@ public class BinaryTupleReader implements TupleReader {
 	 */
 	public BinaryTupleReader(String file) {
 		try {
+			this.file = file;
 			fin = new FileInputStream(file);
 			fc = fin.getChannel();
 			bb = ByteBuffer.allocate(4096);
@@ -99,22 +105,44 @@ public class BinaryTupleReader implements TupleReader {
 	 */
 	@Override
 	public Tuple nextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
+
+//		int thisPos = pageId * ? + tupleId;
         if (currRid == null) {
         	return null;
         }       
-        
+//        System.out.println("currPage is at: " + currPage);
         if (currPage > pageId) {
-        	reset();
+//        	System.out.println("inside condition 1");
+        	factoryReset();
+//        	System.out.println("Resetted the value");
         } 
         else if (currPage == pageId) {
         	if (currTuple > tupleId) {
-        		reset();
+//        		System.out.println("inside condition 2");
+        		factoryReset();
+//        		System.out.println("Resetted the value");
         	}
         } 
+//        reset
+//        factoryReset();
         
-//        while (currPage < pageId) {
-//        	
-//        }
+        //calculate number of tuples per page to get to the right page
+        //then tuple id
+        
+        while (currPage < pageId) {
+        	nextTuple();
+        }
+//        System.out.println(currPage);
+//        System.out.println("we are at page: " + currPage);
+        for(int i = 0; i < tupleId-1; i++) {
+        	nextTuple();
+        }
+//       System.out.println(nextTuple());
+        Tuple finalTuple = nextTuple();
+//        System.out.println(finalTuple);
+//        System.out.println("We are at tuple: " + currTuple);
+//        reset();
+        return finalTuple;
 //        
 //        while (currTuple < tupleId) {
 //        	
@@ -126,7 +154,7 @@ public class BinaryTupleReader implements TupleReader {
 //        
 //                
         
-        return nextTuple();
+//        return nextTuple();
     } 
 
 	/**
@@ -151,13 +179,29 @@ public class BinaryTupleReader implements TupleReader {
 	@Override
 	public void reset() {
 		try {
+//			System.out.println("resetting,............");
 			fc.position(0);
+//			System.out.println("nexttupeeeeeeee is: " + this.getTuplesLeft,());
+//			System.out.println("next tuple is the value:" + this.nextTuple());
 			numTuplesLeft = 0;
 			currPage=0;
 			currTuple=0;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void factoryReset() throws FileNotFoundException {
+		try {
+			fc.position(0);
+			numTuplesLeft = 0;
+			currPage=-1;
+			currTuple=0;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
 	}
 
 	/**
@@ -170,6 +214,7 @@ public class BinaryTupleReader implements TupleReader {
 			for (int i = 0; i < idx; i++) {
 				nextTuple();
 			}
+			currTuple = 0;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
