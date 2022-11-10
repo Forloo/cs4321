@@ -408,6 +408,4 @@ public class BTree {
 		return ret;
 	}
 
-	// Need to get the serialization for the trees working.
-
 }

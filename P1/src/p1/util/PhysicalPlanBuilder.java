@@ -56,6 +56,7 @@ import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
 import p1.operator.IndexScanOperator;
+import p1.operator.IndexScanOperator2;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
@@ -147,7 +148,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				System.out.println(indexInfo);
 				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(cpy.getFromTable()).indexOf(indexInfo[0]);
 				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + cpy.getFromTable() + "." + indexInfo[0];
-				return new IndexScanOperator(cpy.getFromTable(), null, null, clustered, indexIdx, idxFile);
+//				return new IndexScanOperator(cpy.getFromTable(), null, null, clustered, indexIdx, idxFile);
+				return new IndexScanOperator2(cpy.getFromTable(),null,null,clustered,indexIdx,idxFile);
 			} else {
 				return new ScanOperator(cpy.getFromTable());
 			}
@@ -229,7 +231,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 							.indexOf(indexInfo[0]);
 					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + child.getTable() + "."
 							+ indexInfo[0];
-					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
+//					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
+					child = new IndexScanOperator2(child.getTable(),low,high,clustered,indexIdx,idxFile);
 				}
 			}
 

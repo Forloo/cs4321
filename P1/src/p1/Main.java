@@ -15,10 +15,12 @@ import p1.io.BPTreeReader;
 import p1.io.BPTreeWriter;
 import p1.io.FileConverter;
 import p1.operator.IndexScanOperator;
+import p1.operator.IndexScanOperator2;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
+import p1.util.Tuple;
 
 public class Main {
 
@@ -76,9 +78,23 @@ public class Main {
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
 					
-					BPTreeReader tr = new BPTreeReader("/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					String path= "C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Boats.E";
+					BPTreeReader tr = new BPTreeReader(path);
 
-//					IndexScanOperator scan = new IndexScanOperator(tableName, 4, 69, clus, colIdx, "/Users/annazhang/db/cs4321/P1/expected_indexes/Boats.E");
+					IndexScanOperator2 scan = new IndexScanOperator2(tableName, 60, 150, clus, colIdx, path);
+					scan.dump();
+					System.out.println(tableName);
+					System.out.println("=======================================");
+					scan.reset();
+					scan.dump();
+					System.out.println("++++++++++++++++++++++++++++++++++");
+//					Tuple value= scan.getNextTuple();
+//					System.out.println(tableName);
+//					System.out.println(value);
+//					System.out.println("No value is printed here");
+//					Tuple value2= scan.getNextTuple();
+//					System.out.println(value2);
+//					System.out.println("===============================");
 				}
 			}
 
