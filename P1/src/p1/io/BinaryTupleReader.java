@@ -99,7 +99,6 @@ public class BinaryTupleReader implements TupleReader {
 	 */
 	@Override
 	public Tuple nextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
-//		System.out.println("currRid: " + currRid + " pageID: " + pageId + " tupleId: " + tupleId);
         if (currRid == null) {
         	return null;
         }       
@@ -132,40 +131,20 @@ public class BinaryTupleReader implements TupleReader {
 		
 		while (currPage<pageId) {
 			Tuple currentTuple=nextTuple();
-//			System.out.println(currPage);
-//			System.out.println(pageId);
-//			System.out.println("Page loop");
-			//Need to handle the edge case where the page switches over and then 
-			// we are on the next page but the thing is when we get to the next page the 
-			// we will always start on the tuple zero meaning that when we go in the other loop
-			// that means that we will just get the value null if that happens
+			// Handle the edge case when the page switches over but we start
+			// on the zeroth tuple.
 			if (currPage==pageId && currTuple==tupleId) {
 				return currentTuple;
 			}
 		}
 		
 		Tuple tupleRet=null;
-//		System.out.println("The page that we are on right now is:" +currPage);
-//		System.out.println("The tuple that we are on right now is:"+currTuple);
 		while(currTuple<tupleId) {
 			tupleRet=nextTuple();
-//			System.out.println(currTuple);
-//			System.out.println(tupleId);
 			if (currTuple==tupleId) {
 				return tupleRet;
 			}
-//			System.out.println(currTuple);
-//			System.out.println(tupleId);
-//			System.out.println(tupleRet);
-//			System.out.println("Tuple finding loop");
 		}
-//		ArrayList<String> values= tupleRet.getTuple();
-//		Tuple finalTuple= new Tuple(values);
-//		
-//		System.out.println("Some value here is outputted did we find it ");
-//		System.out.println(finalTuple);
-//		System.out.println("We rached the end of the file is there is still a value that is left on the given page");
-//		System.out.println("Reached this point in the code");
 		return null;
 		
 	}

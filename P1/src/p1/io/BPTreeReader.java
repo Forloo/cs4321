@@ -51,7 +51,6 @@ public class BPTreeReader {
 	 */
 	public BPTreeReader(String file) {
 		try {
-//			System.out.println(file);
 			this.file = file;
 			fin = new FileInputStream(file);
 			fc = fin.getChannel();
@@ -80,7 +79,6 @@ public class BPTreeReader {
 	 */
 	public BTreeNode deserializeNode() {
 		int type = bb.getInt(0);
-//		System.out.println("enter");
 		if (type==0) {
 			BTreeNode leaf = deserializeLeafNode();
 			return leaf;
@@ -229,7 +227,6 @@ public class BPTreeReader {
 //		 read new page.
 		try {
 			bb = ByteBuffer.allocate(4096); // skip the header page afterwards
-//			System.out.println(bb.getInt(8));
 			int end = fc.read(bb);
 			idx = 0;
 			curDatEnt = 0;
@@ -242,7 +239,6 @@ public class BPTreeReader {
 			return null;
 		}
 		idx += 4;
-//		System.out.println("is leaf node: " +  bb.getInt(0));
 		return bb.getInt(0) == 0;
 	}
 
@@ -262,10 +258,8 @@ public class BPTreeReader {
 			key = bb.getInt(idx); // start by getting key
 			locations = new ArrayList<ArrayList<Integer>>();
 			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
-//			System.out.println("key: " + key);
 			idx += 4;
 			numEl = bb.getInt(idx); // then num elements
-//			System.out.println("numEl: " + numEl);
 			idx += 4;
 			for (int i = 0; i < numEl; i++) { // number of pairs
 				ArrayList<Integer> onePair = new ArrayList<Integer>();
@@ -277,7 +271,6 @@ public class BPTreeReader {
 			}
 			curDatEnt += 1;
 			pair.put(key, locations);
-//			System.out.println(pair.toString());
 			return pair;
 		} else { // done returning the key value pairs
 			return null;
@@ -299,8 +292,6 @@ public class BPTreeReader {
 			leaf.add(element);
 			element = getNextDataEntryUnclus();
 		}
-		System.out.println(i);
-//		System.out.println(getNextDataEntryUnclus());
 		idx = 4;
 		return leaf;
 	}
