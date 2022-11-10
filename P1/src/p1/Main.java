@@ -78,23 +78,17 @@ public class Main {
 					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
 							order);
 					
-					String path= "C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Boats.E";
-					BPTreeReader tr = new BPTreeReader(path);
-
-					IndexScanOperator2 scan = new IndexScanOperator2(tableName, 60, 150, clus, colIdx, path);
-					scan.dump();
-					System.out.println(tableName);
-					System.out.println("=======================================");
-					scan.reset();
-					scan.dump();
-					System.out.println("++++++++++++++++++++++++++++++++++");
-//					Tuple value= scan.getNextTuple();
+//					String path= "C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Boats.E";
+//					String sailorsPath="C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Sailors.A";
 //					System.out.println(tableName);
-//					System.out.println(value);
-//					System.out.println("No value is printed here");
-//					Tuple value2= scan.getNextTuple();
-//					System.out.println(value2);
-//					System.out.println("===============================");
+//					BPTreeReader tr = new BPTreeReader(sailorsPath);
+//					IndexScanOperator2 scan= new IndexScanOperator2(tableName,null, 1000,clus,colIdx,sailorsPath);
+//					System.out.println(tableName);
+//					scan.dump();
+//					System.out.println("=====================================");
+//					scan.reset();
+//					System.out.println("Reset method is tested here");
+
 				}
 			}
 
