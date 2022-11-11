@@ -92,8 +92,8 @@ public class QueryPlan {
 				if (!fromUsed) {
 					// If the expressionInfo is null then that means there is no where conditions
 					if (expressionInfo == null) {
-						Operator first = createScanOp(fromTable);
-						Operator second = createScanOp(alias);
+						Operator first = new ScanOperator(fromTable);
+						Operator second = new ScanOperator(alias);
 						String combinedName = fromTable + "," + alias;
 						Operator temp = createJoinOp(combinedName, first, second, null);
 						prev = temp;
@@ -102,11 +102,11 @@ public class QueryPlan {
 						Operator first = null;
 						if (expressionInfo.containsKey(fromTable)) {
 							ArrayList<Expression> conditions = expressionInfo.get(fromTable);
-							Operator scanone = createScanOp(fromTable);
+							Operator scanone = new ScanOperator(fromTable);
 							Operator selectone = createSelectOp(scanone, conditions.get(0));
 							first = selectone;
 						} else {
-							Operator scanone = createScanOp(fromTable);
+							Operator scanone = new ScanOperator(fromTable);
 							first = scanone;
 						}
 
@@ -114,11 +114,11 @@ public class QueryPlan {
 						if (expressionInfo.containsKey(alias)) {
 							// Get the arraylist of conditions
 							ArrayList<Expression> conditions2 = expressionInfo.get(alias);
-							Operator scantwo = createScanOp(alias);
+							Operator scantwo = new ScanOperator(alias);
 							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0));
 							second = selecttwo;
 						} else {
-							Operator scantwo = createScanOp(Aliases.getAlias(joins.get(0).toString()));
+							Operator scantwo = new ScanOperator(Aliases.getAlias(joins.get(0).toString()));
 							second = scantwo;
 						}
 						String combinedName = fromTable + "," + alias;
@@ -142,7 +142,7 @@ public class QueryPlan {
 						// used
 				// so this means that the left child is a join operator.
 				if (expressionInfo == null) {
-					Operator first = createScanOp(alias);
+					Operator first = new ScanOperator(alias);
 					String combinedName = prev.getTable() + "," + alias;
 					Operator temp = createJoinOp(combinedName, prev, first, null);
 					prev = temp;
@@ -150,11 +150,11 @@ public class QueryPlan {
 					Operator first = null;
 					if (expressionInfo.containsKey(alias)) {
 						ArrayList<Expression> conditions = expressionInfo.get(alias);
-						Operator scanone = createScanOp(alias);
+						Operator scanone = new ScanOperator(alias);
 						Operator selectone = createSelectOp(scanone, conditions.get(0));
 						first = selectone;
 					} else {
-						Operator scanone = createScanOp(alias);
+						Operator scanone = new ScanOperator(alias);
 						first = scanone;
 					}
 					String combinedName = prev.getTable() + "," + alias;
@@ -190,7 +190,7 @@ public class QueryPlan {
 		// Join tables handled the select and the scans for all of their own tables.
 		if (!joinUsed) {
 			// Make the scan operator since we will always need it
-			Operator scan = createScanOp(fromTable);
+			Operator scan = new ScanOperator(fromTable);
 			// Then check if there is some where condition. If there is then we need to make
 			// the select
 			if (where != null) {
@@ -266,24 +266,6 @@ public class QueryPlan {
 		// else use external sort
 		return new ExternalSortOperator(child, (List<String>) orders, DatabaseCatalog.getInstance().getSortPages(),
 				DatabaseCatalog.getInstance().getTempDir(), 0);
-	}
-
-	/**
-	 * Creates a scan operator based on if we want to use indexes.
-	 *
-	 * @param from the name of the table to scan
-	 * @return a scan operator
-	 */
-	public Operator createScanOp(String from) {
-		if (DatabaseCatalog.getInstance().useIndex()) {
-			String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(from);
-			boolean clustered = indexInfo[1].equals("1") ? true : false;
-			int indexIdx = DatabaseCatalog.getInstance().getSchema().get(from).indexOf(indexInfo[0]);
-			String idxFile = DatabaseCatalog.getInstance().getIndexDir() + from + "." + indexInfo[0];
-			return new IndexScanOperator(from, null, null, clustered, indexIdx, idxFile);
-		} else {
-			return new ScanOperator(from);
-		}
 	}
 
 	/**
