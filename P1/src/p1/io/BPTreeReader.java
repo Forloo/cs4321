@@ -40,6 +40,8 @@ public class BPTreeReader {
 	private Tuple tuples = new Tuple("");
 	private int key;
 	private String file;
+	
+	private static final int pageSize=4096;
 
 	/**
 	 * Creates a ByteBuffer that reads from the input file
@@ -49,7 +51,6 @@ public class BPTreeReader {
 	 */
 	public BPTreeReader(String file) {
 		try {
-//			System.out.println(file);
 			this.file = file;
 			fin = new FileInputStream(file);
 			fc = fin.getChannel();
@@ -78,7 +79,6 @@ public class BPTreeReader {
 	 */
 	public BTreeNode deserializeNode() {
 		int type = bb.getInt(0);
-		System.out.println("enter");
 		if (type==0) {
 			BTreeNode leaf = deserializeLeafNode();
 			return leaf;
@@ -195,6 +195,26 @@ public class BPTreeReader {
 		return currentLeafNode;
 		
 	}
+	
+	/**
+	 * Retrieves the information from the header page.
+	 * @return ArrayList<Integer> three ints telling us information about the tree.
+	 */
+	public ArrayList<Integer> getHeaderInfo(){
+		// Only reading the portion of the buffer here that you need
+		
+		ArrayList<Integer> ret = new ArrayList<Integer>();
+		int pos=0;
+		for(int i=0;i<3;i++) {
+			int curr_value=bb.getInt(pos);
+			pos+=4;
+			ret.add(curr_value);
+		}
+		
+		return ret;
+	}
+	
+	
 	/**
 	 * returns the node type (either leaf or inner). Call this first for each node.
 	 * 
@@ -207,7 +227,6 @@ public class BPTreeReader {
 //		 read new page.
 		try {
 			bb = ByteBuffer.allocate(4096); // skip the header page afterwards
-//			System.out.println(bb.getInt(8));
 			int end = fc.read(bb);
 			idx = 0;
 			curDatEnt = 0;
@@ -220,7 +239,6 @@ public class BPTreeReader {
 			return null;
 		}
 		idx += 4;
-//		System.out.println("is leaf node: " +  bb.getInt(0));
 		return bb.getInt(0) == 0;
 	}
 
@@ -240,10 +258,8 @@ public class BPTreeReader {
 			key = bb.getInt(idx); // start by getting key
 			locations = new ArrayList<ArrayList<Integer>>();
 			pair = new HashMap<Integer, ArrayList<ArrayList<Integer>>>();
-//			System.out.println("key: " + key);
 			idx += 4;
 			numEl = bb.getInt(idx); // then num elements
-//			System.out.println("numEl: " + numEl);
 			idx += 4;
 			for (int i = 0; i < numEl; i++) { // number of pairs
 				ArrayList<Integer> onePair = new ArrayList<Integer>();
@@ -255,7 +271,6 @@ public class BPTreeReader {
 			}
 			curDatEnt += 1;
 			pair.put(key, locations);
-//			System.out.println(pair.toString());
 			return pair;
 		} else { // done returning the key value pairs
 			return null;
@@ -277,8 +292,6 @@ public class BPTreeReader {
 			leaf.add(element);
 			element = getNextDataEntryUnclus();
 		}
-		System.out.println(i);
-//		System.out.println(getNextDataEntryUnclus());
 		idx = 4;
 		return leaf;
 	}
@@ -385,6 +398,49 @@ public class BPTreeReader {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static int getPageSize() {
+		return pageSize;
+	}
+	
+	/**
+	 * Read from the filechannel into the buffer so the information can be parse after.
+	 * @param fc 
+	 * @param bb
+	 * @param pageNum
+	 */
+	public void read(int pageNum) {
+		
+		// Reset the values in the buffer first so that we can overwrite the values in them
+		this.resetBuffer();
+		try {
+			int fileLocation=pageNum*BPTreeReader.getPageSize();
+			// Move to the right spot in the fc location to start reading from
+			fc.position(fileLocation);
+			fc.read(bb);
+			// Need to flip the buffer so that we change it from writing to the read mode
+			bb.flip();
+		}
+		catch(IOException e){
+			System.out.println("Error while reading from the input file");
+		}
+		
+	}
+	
+	/**
+	 * Reset the buffer to contain no values at all.
+	 * @param buffer The input buffer that we are currently using.
+	 */
+	public void resetBuffer() {
+		// Set the position of the buffer back to the beginning of the buffer
+		bb.clear();
+		// Make a new buffer with the size of the page
+		byte[] fill = new byte[BPTreeReader.getPageSize()];
+		bb.put(fill);
+		// Clear the buffer again meaning that we start from the beginning of the buffer
+		bb.clear();
+		
 	}
 	
 

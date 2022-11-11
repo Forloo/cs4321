@@ -75,8 +75,17 @@ public class ScanOperator extends Operator {
 	 * @return the tuples representing rows in a database
 	 */
 	public Tuple getNextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
-		System.out.println("called scan operator");
 		return reader.nextTupleIndex(currRid, pageId, tupleId);
+	}
+	
+	/**
+	 * Retrieves the next tuple. There must be a next tuple if this method is called
+	 * @param pageId The page the tuple is located on
+	 * @param tupleId The tuplenumber the given tuple is on that page.
+	 * @return 
+	 */
+	public Tuple getNextTupleIndexScan(int pageId,int tupleId) {
+		return reader.nextTupleIndex(pageId, tupleId);
 	}
 
 	/**

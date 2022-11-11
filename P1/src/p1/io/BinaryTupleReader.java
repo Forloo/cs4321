@@ -47,7 +47,7 @@ public class BinaryTupleReader implements TupleReader {
 			numTuplesLeft = bb.getInt(4);
 			idx = 8;
 			currPage=0;
-			currTuple=0;
+			currTuple=-1;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -73,8 +73,8 @@ public class BinaryTupleReader implements TupleReader {
 				numAttr = bb.getInt(0);
 				numTuplesLeft = bb.getInt(4);
 				idx = 8;
-//				currPage+=1;
-//				currTuple=0;
+				currPage+=1;
+				currTuple=-1;
 			}
 			// Read the next tuple.
 			ArrayList<String> attr = new ArrayList<String>();
@@ -83,7 +83,7 @@ public class BinaryTupleReader implements TupleReader {
 				idx += 4;
 			}
 			numTuplesLeft--;
-//			currTuple+=1;
+			currTuple+=1;
 			return new Tuple(String.join(",", attr));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -99,7 +99,6 @@ public class BinaryTupleReader implements TupleReader {
 	 */
 	@Override
 	public Tuple nextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
-		System.out.println("currRid: " + currRid + " pageID: " + pageId + " tupleId: " + tupleId);
         if (currRid == null) {
         	return null;
         }       
@@ -119,6 +118,36 @@ public class BinaryTupleReader implements TupleReader {
         
         return nextTuple();
     } 
+	
+	public Tuple nextTupleIndex(int pageId,int tupleId) {
+		if (currPage>pageId) {
+			reset();
+		}
+		else if (currPage==pageId) {
+			if(currTuple>tupleId) {
+				reset();
+			}
+		}
+		
+		while (currPage<pageId) {
+			Tuple currentTuple=nextTuple();
+			// Handle the edge case when the page switches over but we start
+			// on the zeroth tuple.
+			if (currPage==pageId && currTuple==tupleId) {
+				return currentTuple;
+			}
+		}
+		
+		Tuple tupleRet=null;
+		while(currTuple<tupleId) {
+			tupleRet=nextTuple();
+			if (currTuple==tupleId) {
+				return tupleRet;
+			}
+		}
+		return null;
+		
+	}
 
 	/**
 	 * Closes the reader.
@@ -144,7 +173,7 @@ public class BinaryTupleReader implements TupleReader {
 		try {
 			fc.position(0);
 			numTuplesLeft = 0;
-			currPage=0;
+			currPage=-1;
 			currTuple=0;
 		} catch (IOException e) {
 			e.printStackTrace();

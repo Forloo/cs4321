@@ -55,8 +55,6 @@ public class ExternalSortOperator extends Operator {
 		}
 		try {
 			sort();
-//			System.out.println(this.reader);
-//			System.out.println("======================");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -76,36 +74,25 @@ public class ExternalSortOperator extends Operator {
 	 * Create number of runs, sort each run
 	 */
 	public void sort() throws IOException {
-//		System.out.println("\nnew table\n");
 		int tuplesPerPage = 4088 / schema.size() / 4;
-//		System.out.println("schema size = " + schema.size());
 		int totalTuples = tuplesPerPage * bufferPages;
-//		System.out.println(totalTuples);
 
 		int run = 0;
-//		System.out.println("tuplesperpage:" + totalTuples);
 		Tuple tup = null;
 		ArrayList<String> fileList = new ArrayList<String>();
-//		System.out.println(child.dump());
-//		System.out.println("totalTuples = " + totalTuples);
 
 		ArrayList<Tuple> sortList = new ArrayList<Tuple>();
 
 		while (true) {
 			sortList.clear();
 			int tuplesRemaining = totalTuples;
-//			System.out.println(tuplesRemaining);
-//			System.out.println(tup.toString());//debug
-//			System.out.println(tuplesRemaining);
 
 			while (tuplesRemaining-- > 0 && (tup = child.getNextTuple()) != null) {
-//				System.out.println("adding: " + tup);
 				sortList.add(tup);
 			}
 
 			if (sortList.size() == 0)
 				break;
-//			System.out.println("sort list size: " + sortList.size());
 
 			Collections.sort(sortList, new CompareTuples());
 
@@ -114,7 +101,6 @@ public class ExternalSortOperator extends Operator {
 			fileList.add(fileName);
 
 			for (Tuple t : sortList) {
-//				System.out.println(t.toString());
 				writer.writeTuple(t);
 			}
 			writer.close();
@@ -148,8 +134,6 @@ public class ExternalSortOperator extends Operator {
 		// this many steps of merge
 		int totalMerge = (int) (Math.log(fileList.size()) / Math.log(b - 1)) + 1;
 		for (int i = 0; i < totalMerge; i++) {
-//			System.out.println("\n\ni is : " + i);
-//			System.out.println(totalMerge);
 
 			// for merging into one big run
 			if (numRunsAfterMerge % (b - 1) != 0) {
@@ -157,10 +141,6 @@ public class ExternalSortOperator extends Operator {
 			} else {
 				numRunsAfterMerge = numRunsAfterMerge / (b - 1); // same issue as mentioned
 			}
-
-//			if (numRunsAfterMerge == 1) {//included here bc once putting under while loop below, code doesn't reach
-//				break;
-//			}
 
 			// adjust fileList here, potential issue here
 			List<String> subItems = new ArrayList<String>(fileList.subList(0, numRunsAfterMerge)); // change
@@ -195,7 +175,6 @@ public class ExternalSortOperator extends Operator {
 			if (copy == b - 1) { // when equal amount of tuples in input buff, there might be left over runs...
 				try {
 					while (copy <= fileReaders.size() - 1) {
-//						System.out.println("copy " + subItems.get(copy));
 						uninputBufferRun.add(fileReaders.get(copy));
 						copy++;
 					}
@@ -209,25 +188,11 @@ public class ExternalSortOperator extends Operator {
 //			int currentNumRuns = 0; //to check current merge step's number of produced runs
 			tuplesPerPage = tuplesPerPage * (b - 1);
 
-//			System.out.println("numRuns after merge: " + numRunsAfterMerge);
-//			for debugging (check if initialized properly)
-//			for (String title:subItems) {
-//				System.out.println(title);//print fileList for debugging
-//			}
-//			System.out.println("fileReader Size: "+fileReaders.size()); //all runs
-//			System.out.println("bminus one tuple size: " + inputBufferTuple.size()); //tuples
-//			System.out.println("used run size: "  +inputBufferRun.size()); //input buff runs
-//			System.out.println("unused run size: "  +uninputBufferRun.size()); //potential input buff runs
-//			System.out.println("out dir number of tuples should be: "+ tuplesPerPage); //this merge step's run size
-//			System.out.println("out dir size: " + numRunsAfterMerge);
 
 			ArrayList<Tuple> outputBuffer = new ArrayList<Tuple>(); // intialize output buffer
 			ms++; // for storing files, creating unique names
 			rn = 0;
-//			System.out.println(inputBufferTuple.size());
 			while (!inputBufferTuple.isEmpty()) { // 1 merge step
-//				System.out.println(outputBuffer.size());
-//				System.out.println(inputBufferTuple.size());
 				// finding min tuple, saving which input buffer page min came from
 
 				Tuple minTup = null;
@@ -249,36 +214,27 @@ public class ExternalSortOperator extends Operator {
 				// writing to output buffer
 				outputBuffer.add(minTup);
 				outBufferNumTup++;
-//				System.out.println(outBufferNumTup);
 
 				// updating the input buffer
 				Tuple nextTupInBuff = inputBufferRun.get(minTupIndx).nextTuple();
 				if (nextTupInBuff == null) {// if one input buffer runs out, just remove
 					inputBufferRun.remove(minTupIndx);
 					inputBufferTuple.remove(minTupIndx);
-//						System.out.println("input buffer tuple array size is: "+inputBufferTuple.size());
 
 				} else { // else just keep getting next tuple from the same run
-//					System.out.println("called?");
 					inputBufferTuple.set(minTupIndx, nextTupInBuff);
 				}
 				// write the disk and clear output buffer
 				if (outBufferNumTup == tuplesPerPage || inputBufferTuple.isEmpty()) {
-//					System.out.println("Anna should be doing this part");
 					String fileName = tempDir + "mergeStep_" + Integer.toString(ms) + "_run_" + Integer.toString(rn);
-//					fileList.set(currentNumRuns, fileName); //overwrite fileList and get first n elements next merge???
-					fileList.add(0, fileName); // try this?
-//					currentNumRuns ++; //for while loop end condition
+					fileList.add(0, fileName); 
 
 					rn++; // creating unique names
 
 					// write to temp dir
 					BinaryTupleWriter writer = new BinaryTupleWriter(fileName);
-//					System.out.println("this many tuples stored in output buffer: " + outputBuffer.size());
-//					System.out.println("writing this file to temp dir: " + fileName);
 					finalFile = fileName;
 					reader = new BinaryTupleReader(fileName);
-//					outputBuffer.add(nextTupInBuff)
 					for (Tuple t : outputBuffer) {
 						if (t == null) {
 							break;
@@ -313,7 +269,6 @@ public class ExternalSortOperator extends Operator {
 
 				}
 			}
-//			reader = BinaryTupleWriter(fileName);
 		}
 	}
 

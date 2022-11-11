@@ -129,7 +129,7 @@ public class IndexScanOperator extends ScanOperator {
 		} 
 				
 //		getNextTuple();	
-		System.out.println("---------------------------");
+//		System.out.println("---------------------------");
 		}
 	
 	/**
@@ -157,7 +157,7 @@ public class IndexScanOperator extends ScanOperator {
 			else { //unclustered 
 //				System.out.println("Entered thsi loop");
 				currLeafNode = reader.deserializeLeafNode().getReference();				
-				System.out.println("currLeafNode: " + currLeafNode);				
+//				System.out.println("currLeafNode: " + currLeafNode);				
 //				System.out.println("keyPos: " + keyPos);
 //				System.out.println("currTuple: " + currTuple);
 //				
@@ -211,15 +211,15 @@ public class IndexScanOperator extends ScanOperator {
 //				System.out.println("calling next tuple");
 				try {
 					tuple = super.getNextTupleIndex(currRid, currPageID, currTupleID);
-					System.out.println(tuple);
+//					System.out.println(tuple);
 					currTuple++;		
 
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				System.out.println("TUPLE: " + tuple);
+//				System.out.println("TUPLE: " + tuple);
 								
-				System.out.println("done");
+//				System.out.println("done");
 
 			}	
 			

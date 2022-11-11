@@ -31,8 +31,10 @@ public class BTreeIndexNode extends BTreeNode {
 		this.references=references;
 		this.address=address;
 		int smallValue=Integer.MAX_VALUE;
-		for(int i=0;i<this.childs.size();i++) {
-			smallValue=Math.min(smallValue, childs.get(i).getSmallest());
+		if (childs!=null) {
+			for(int i=0;i<this.childs.size();i++) {
+				smallValue=Math.min(smallValue, childs.get(i).getSmallest());
+			}
 		}
 		this.smallest=smallValue;
 	}
