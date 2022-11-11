@@ -82,15 +82,8 @@ public class SMJOperator extends Operator {
 			}
 		}
 
-		if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
-			left = new SortOperator(leftOp, leftOrder);
-			right = new SortOperator(rightOp, rightOrder);
-		} else { // external sort
-			left = new ExternalSortOperator(leftOp, leftOrder, DatabaseCatalog.getInstance().getSortPages(),
-					DatabaseCatalog.getInstance().getTempDir(), 0);
-			right = new ExternalSortOperator(rightOp, rightOrder, DatabaseCatalog.getInstance().getSortPages(),
-					DatabaseCatalog.getInstance().getTempDir(), 1);
-		}
+		left = new ExternalSortOperator(leftOp, leftOrder, 4, DatabaseCatalog.getInstance().getTempDir(), 0);
+		right = new ExternalSortOperator(rightOp, rightOrder, 4, DatabaseCatalog.getInstance().getTempDir(), 1);
 		this.tables = tables;
 
 		where = exp;
@@ -264,6 +257,18 @@ public class SMJOperator extends Operator {
 			System.out.println("Exception occurred: ");
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public String toString(int level) {
+		String leftString = left.toString(level + 1);
+		String rightString = right.toString(level + 1);
+		return "-".repeat(level) + "SMJ" + where.toString() + "\n" + leftString + rightString;
 	}
 
 }

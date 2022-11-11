@@ -27,7 +27,7 @@ public class ScanOperator extends Operator {
 	 * Constructor to scan rows of table fromTable (aliased).
 	 */
 	public ScanOperator(String fromTable) {
-		if (Aliases.getInstance()!=null) {
+		if (Aliases.getInstance() != null) {
 			reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(Aliases.getTable(fromTable)));
 			ArrayList<String> newSchema = new ArrayList<String>();
 			for (String col : DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(fromTable))) {
@@ -37,9 +37,8 @@ public class ScanOperator extends Operator {
 			}
 			schema = newSchema;
 			table = fromTable;
-		}
-		else {
-			reader= new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(fromTable));
+		} else {
+			reader = new BinaryTupleReader(DatabaseCatalog.getInstance().getNames().get(fromTable));
 			ArrayList<String> newSchema = new ArrayList<String>();
 			for (String col : DatabaseCatalog.getInstance().getSchema().get(fromTable)) {
 				String[] els = col.split("\\.");
@@ -68,7 +67,7 @@ public class ScanOperator extends Operator {
 	public Tuple getNextTuple() {
 		return reader.nextTuple();
 	}
-	
+
 	/**
 	 * Retrieves the next tuples. If there is no next tuple then null is returned.
 	 *
@@ -77,14 +76,15 @@ public class ScanOperator extends Operator {
 	public Tuple getNextTupleIndex(TupleIdentifier currRid, int pageId, int tupleId) throws IOException {
 		return reader.nextTupleIndex(currRid, pageId, tupleId);
 	}
-	
+
 	/**
 	 * Retrieves the next tuple. There must be a next tuple if this method is called
-	 * @param pageId The page the tuple is located on
+	 * 
+	 * @param pageId  The page the tuple is located on
 	 * @param tupleId The tuplenumber the given tuple is on that page.
-	 * @return 
+	 * @return
 	 */
-	public Tuple getNextTupleIndexScan(int pageId,int tupleId) {
+	public Tuple getNextTupleIndexScan(int pageId, int tupleId) {
 		return reader.nextTupleIndex(pageId, tupleId);
 	}
 
@@ -154,6 +154,14 @@ public class ScanOperator extends Operator {
 		}
 	}
 
-
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public String toString(int level) {
+		return "-".repeat(level) + "TableScan[" + Aliases.getTable(table) + "]\n";
+	}
 
 }

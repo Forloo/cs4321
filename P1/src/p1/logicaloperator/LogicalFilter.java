@@ -45,4 +45,14 @@ public class LogicalFilter extends LogicalOperator {
 	public String toString() {
 		return "This is a logical filter node";
 	}
+
+	/**
+	 * Gets the string to print for the logical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the logical plan in string form
+	 */
+	public String toString(int level) {
+		return "-".repeat(level) + "Select[" + exp.toString() + "]\n" + child.toString(level + 1);
+	}
 }

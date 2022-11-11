@@ -53,13 +53,12 @@ import p1.logicaloperator.LogicalUnique;
 import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
-import p1.operator.IndexScanOperator2;
+import p1.operator.IndexScanOperator;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
-import p1.operator.SortOperator;
 import p1.operator.TNLJOperator;
 
 /**
@@ -147,11 +146,20 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			LogicalFilter cpy = (LogicalFilter) rootOperator;
 
 			Operator child = generatePhysicalTree(cpy.getChild());
-			String[] childIdx = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
 
-			if (DatabaseCatalog.getInstance().useIndex() && childIdx != null) {
-				String idxCol = childIdx[0];
+			// TODO: P4
+			if (true) {
+				String childTable = Aliases.getTable(child.getTable());
 
+				// TODO: P4 DECIDE WHICH INDEX TO USE IF MULTIPLE INDEXES FOR ONE TABLE
+				for (String col : DatabaseCatalog.getInstance().getIndexInfo().keySet()) { // THIS FOR LOOP IS A
+																							// PLACEHOLDER; DELETE WHEN
+																							// DONE WITH SECTION 3.3
+					if (col.contains(childTable)) {
+						childTable = col; // childTable is now tableName + "." + colName
+					}
+				}
+				String idxCol = childTable.substring(childTable.indexOf(".") + 1);
 				String[] exps = cpy.getExpression().toString().split(" AND ");
 				int lowkey = Integer.MIN_VALUE;
 				int highkey = Integer.MAX_VALUE;
@@ -195,14 +203,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
 				// Assuming inclusive keys
 				if (high != null || low != null) {
-					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
-					boolean clustered = indexInfo[1].equals("1") ? true : false;
-					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable())
-							.indexOf(indexInfo[0]);
-					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + child.getTable() + "."
-							+ indexInfo[0];
-//					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
-					child = new IndexScanOperator2(child.getTable(), low, high, clustered, indexIdx, idxFile);
+					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
+					boolean clustered = indexInfo[0].equals("1") ? true : false;
+					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(childTable);
+					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
+					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
 				}
 			}
 
@@ -229,11 +234,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			Operator leftchild = generatePhysicalTree(cpy.getLeftChild());
 			Operator rightchild = generatePhysicalTree(cpy.getRightChild());
 
-			if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
+			// TODO: P4
+			if (true) { // Tuple nested loop join
 				return new TNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
-			} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
-				return new BNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression(),
-						DatabaseCatalog.getInstance().getJoinPages());
+			} else if (true) { // Block nested loop join
+				return new BNLJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression(), 4);
 			} else { // Sort merge join
 				return new SMJOperator(cpy.getTables(), leftchild, rightchild, cpy.getExpression());
 			}
@@ -254,13 +259,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 			}
 
-			if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
-				sort = new SortOperator(child, cpy.getOrderBy());
-			} else { // external sort
-				sort = new ExternalSortOperator(child, orderBy, DatabaseCatalog.getInstance().getSortPages(),
-						DatabaseCatalog.getInstance().getTempDir(), 0);
-			}
-			return sort;
+			return new ExternalSortOperator(child, orderBy, 4, DatabaseCatalog.getInstance().getTempDir(), 0);
 		}
 
 		if (rootOperator instanceof LogicalUnique) {

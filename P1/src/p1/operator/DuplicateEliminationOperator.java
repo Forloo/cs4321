@@ -117,4 +117,14 @@ public class DuplicateEliminationOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
+
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public String toString(int level) {
+		return "-".repeat(level) + "DupElim\n" + child.toString(level + 1);
+	}
 }

@@ -53,4 +53,12 @@ public abstract class Operator {
 	 */
 	public abstract void dump(String outputFile);
 
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public abstract String toString(int level);
+
 }

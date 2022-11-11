@@ -213,4 +213,16 @@ public class TNLJOperator extends Operator {
 		}
 	}
 
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public String toString(int level) {
+		String leftString = left.toString(level + 1);
+		String rightString = right.toString(level + 1);
+		return "-".repeat(level) + "TNLJ" + where.toString() + "\n" + leftString + rightString;
+	}
+
 }

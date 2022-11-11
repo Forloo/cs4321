@@ -25,49 +25,46 @@ public class DatabaseCatalog {
 	private HashMap<String, ArrayList<String>> schema;
 	// The temp directory to store sort files.
 	private String tempDir;
-	// The type of join to use.
-	private int joinMethod;
-	// Number of buffer pages to use for join.
-	private int joinPages;
-	// Type of sort to use.
-	private int sortMethod;
-	// Number of buffer pages to use for sort.
-	private int sortPages;
-	// 1 to use indexes, 0 to not use indexes.
-	private int useIndex;
 	// for index information
 	private HashMap<String, String[]> indexInfo;
 	// index file locations
 	private String indexDir;
+	// table stats made by StatGen
+	// key: if just table name then num tuples is the value in a one-element array.
+	// If key is table name + column name, then value is 2-element array with arr[0]
+	// = low, arr[1] = high. example: {Sailors: [10000], Sailors.A: [0, 10000],
+	// Sailors.B: [0, 100], Boats: [1000], Boats.D: ...}
+	public HashMap<String, int[]> statsInfo;
 
 	//
 	/*
 	 * Constructor for a DatabaseCatalog: An object that gives us access to tables
 	 * and their schemas
 	 */
-	private DatabaseCatalog(File[] fileList, File schemaFile, File configFile, String tempDir, File indexInfo,
-			String indexDir) {
+	private DatabaseCatalog(File[] fileList, File schemaFile, String tempDir, File indexInfo, String indexDir) {
 
 		tableNames = new HashMap<String, String>();
 		schema = new HashMap<String, ArrayList<String>>();
 		this.tempDir = tempDir;
 		this.indexInfo = new HashMap<String, String[]>();
 		this.indexDir = indexDir;
-		// add index file names to use (key is the file name, first element of array
+		statsInfo = new HashMap<String, int[]>();
+
+		// add index file names to use (key is the file name + "." + column name, first
 		// list is the clustered variable, second for order
 		try {
 			Scanner fileReader1 = new Scanner(indexInfo);
 			String nextL = fileReader1.nextLine();
 			while (nextL != null) {
-				String[] splitStr = nextL.split("\\s+");// split by spaces
-				this.indexInfo.put(splitStr[0], Arrays.copyOfRange(splitStr, 1, splitStr.length));
+				String[] splitStr = nextL.split("\\s+"); // split by spaces
+				this.indexInfo.put(splitStr[0] + "." + splitStr[1], Arrays.copyOfRange(splitStr, 2, splitStr.length));
 				nextL = fileReader1.nextLine();
 			}
 			fileReader1.close();
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		} catch (NoSuchElementException e2) {// thrown by calling nexLine
+		} catch (NoSuchElementException e2) { // thrown by calling nexLine
 
 		}
 
@@ -98,28 +95,6 @@ public class DatabaseCatalog {
 				}
 			}
 		}
-
-		// Get configuration file data and store in DatabaseCatalog
-		try {
-			Scanner fileReader = new Scanner(configFile);
-			String[] joinConfig = fileReader.nextLine().split(" ");
-			joinMethod = Integer.parseInt(joinConfig[0]);
-			if (joinConfig.length > 1) {
-				joinPages = Integer.parseInt(joinConfig[1]);
-			}
-			String[] sortConfig = fileReader.nextLine().split(" ");
-			sortMethod = Integer.parseInt(sortConfig[0]);
-			if (sortConfig.length > 1) {
-				sortPages = Integer.parseInt(sortConfig[1]);
-			}
-			String indexConfig = fileReader.nextLine();
-			useIndex = Integer.parseInt(indexConfig);
-
-			fileReader.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("An error occurred while parsing the configuration file.");
-			e.printStackTrace();
-		}
 	}
 
 	/**
@@ -149,12 +124,12 @@ public class DatabaseCatalog {
 	 * @param schema:   A file specifying the structure of tables.
 	 * @return A DatabaseCatalog object
 	 */
-	public static DatabaseCatalog getInstance(File[] fileList, File schema, File configFile, String tempDir,
-			File indexInfo, String indexDir) {
+	public static DatabaseCatalog getInstance(File[] fileList, File schema, String tempDir, File indexInfo,
+			String indexDir) {
 		// write code that allows us to create only one object
 		// access the object as per our need
 		if (catalogObject == null) {
-			catalogObject = new DatabaseCatalog(fileList, schema, configFile, tempDir, indexInfo, indexDir);
+			catalogObject = new DatabaseCatalog(fileList, schema, tempDir, indexInfo, indexDir);
 		}
 
 		// returns the singleton object
@@ -186,79 +161,6 @@ public class DatabaseCatalog {
 	 */
 	public String getTempDir() {
 		return tempDir;
-	}
-
-	/**
-	 * Gets the join method.
-	 */
-	public int getJoinMethod() {
-		return joinMethod;
-	}
-
-	/**
-	 * Gets the number of buffer pages to use for BNLJ.
-	 */
-	public int getJoinPages() {
-		return joinPages;
-	}
-
-	/**
-	 * Gets the sort method.
-	 */
-	public int getSortMethod() {
-		return sortMethod;
-	}
-
-	/**
-	 * Gets the number of buffer pages to use for external sort.
-	 */
-	public int getSortPages() {
-		return sortPages;
-	}
-
-	/**
-	 * Set the join method to use
-	 * 
-	 * @param joinMethod an int representing which join method to use
-	 */
-	public void setJoinMethod(int joinMethod) {
-		this.joinMethod = joinMethod;
-	}
-
-	/**
-	 * Set the number of pages to use for the bnlj
-	 * 
-	 * @param joinPages an integer specifying the number of pages to use for bnlj
-	 */
-	public void setJoinPages(int joinPages) {
-		this.joinPages = joinPages;
-	}
-
-	/**
-	 * Set the sort method to use for SMJ
-	 * 
-	 * @param sortMethod an integer specifying the sort method
-	 */
-	public void setSortMethod(int sortMethod) {
-		this.sortMethod = sortMethod;
-	}
-
-	/**
-	 * Set the number of pages to use for sorting
-	 * 
-	 * @param sortPages an integer specifying the number of pages to use for sorting
-	 */
-	public void setSortPages(int sortPages) {
-		this.sortPages = sortPages;
-	}
-
-	/**
-	 * Returns whether or not to use indexes for scanning.
-	 * 
-	 * @return true for using indexes, false for not using indexes.
-	 */
-	public boolean useIndex() {
-		return useIndex == 1 ? true : false;
 	}
 
 	/**

@@ -1,289 +1,312 @@
 package p1.operator;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
-import p1.index.BTree;
+import p1.index.BTreeIndexNode;
 import p1.index.BTreeLeafNode;
+import p1.index.BTreeNode;
 import p1.index.TupleIdentifier;
 import p1.io.BPTreeReader;
 import p1.io.BinaryTupleWriter;
-import p1.util.DatabaseCatalog;
+import p1.util.Aliases;
 import p1.util.Tuple;
 
-/**
- * An operator that opens a file scan on the appropriate data file to return all
- * rows in that table.
- */
 public class IndexScanOperator extends ScanOperator {
-	// Column names.
-	ArrayList<String> schema;
-	// Table name.
-	String table;
-	private Integer highkey;
-	private Integer lowkey;
-	private String indexFile;
-	private Boolean isClustered;
-	private int colIdx; // index of the attribute column.
-	private TupleIdentifier currRid;
-	private int currKey;
-	private int currTuple; // curr tuple within key
-	// index file reader
-	BPTreeReader reader;
-	ArrayList<ArrayList<Integer>> rids = new ArrayList<ArrayList<Integer>>();
-	int keyPos;
-	int child;
-	ArrayList<Integer> keys = new ArrayList<Integer>();
-	private Integer currPageID;
-	private Integer currTupleID;
-	private ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> leaf;
-	private ArrayList<ArrayList<Integer>> currPos;
-	private Object[] valueSet;
-	private Object[] valueArray;
-	private List<Object> valueList;
-	private ArrayList<HashMap<Integer, ArrayList<ArrayList<Integer>>>> templeaf;
-	private ArrayList<Entry<Integer, ArrayList<TupleIdentifier>>> currLeafNode;
-	private Entry<Integer, ArrayList<TupleIdentifier>> currRow;
+
+	// The lowkey for the scan Index
+	private Integer lowKey;
+	// The highKey for the scan index
+	private Integer highKey;
+	// whether the index that we are scanning from is clustered or not
+	private boolean clustered;
+	// The column index that the table is indexed on
+	private int colIdx;
+	// The reader for the binary tree file
+	private BPTreeReader treeReader;
+	// The current page the BPTreeReader is on for the leaf node
 	private int currPage;
+	// The current reference id location for the current key
+	private int currRid;
+	// The current key that we are on for the current leaf node
+	private Integer currKey;
+	// The current leaf node for the page that the current bufffer is on.
+	private BTreeLeafNode currNode;
+	// The number of leaf nodes in the tree
+	private int numLeafs;
+	// The location of the root node
+	private int rootAddy;
+	// The order for the tree that we are traversing
+	private int order;
+	// Page for the leaf node the query starts on.
+	private int startLeafPage;
+	// The index of the key the leaf page starts on.
+	private Integer startKey;
 
-	/**
-	 * Constructor to scan rows of table fromTable using indexes.
-	 */
-	public IndexScanOperator(String fromTable, Integer lowkey, Integer highkey, Boolean clustered, int colIdx,
+	public IndexScanOperator(String fromTable, Integer lowKey, Integer highKey, Boolean clustered, int colIdx,
 			String indexFile) {
-		
 		super(fromTable);
-		
-		this.highkey = highkey;
-		this.lowkey = lowkey;
-		this.isClustered = clustered;
-		this.indexFile = indexFile;
-		this.colIdx = colIdx; 
-		
-		reader = new BPTreeReader(indexFile); 
-		reader.checkNodeType();
-		int rootAddy = reader.getAddressOfRoot(); 
-		
-		currKey = 0; 
-		currTuple = 0; 
-		keyPos = 0;
-		
-		if (lowkey == null) { 			
-			reader.reset(1); 
+		this.lowKey = lowKey;
+		this.highKey = highKey;
+		this.clustered = clustered;
+		this.colIdx = colIdx;
+		this.treeReader = new BPTreeReader(indexFile);
 
-			reader.checkNodeType(); 
-			
-			for (Integer i : reader.getNextDataEntryUnclus().keySet()) { 
-				currKey = i;
+		// Read the header page and get the info from that page
+		this.treeReader.resetBuffer();
+		this.treeReader.read(0);
+
+		ArrayList<Integer> headerInfo = this.treeReader.getHeaderInfo();
+		for (int i = 0; i < headerInfo.size(); i++) {
+			if (i == 0) {
+				this.rootAddy = headerInfo.get(i);
+			} else if (i == 1) {
+				this.numLeafs = headerInfo.get(i);
+			} else {
+				this.order = headerInfo.get(i);
 			}
-			
-		} else { 
-			for (int i = 0; i < rootAddy; i++) { // WORKS
-				reader.checkNodeType(); 
-			} 			
-			currKey = reader.getNextKey(); 
-						
-			reader.reset(rootAddy);
-			while (!(reader.checkNodeType())) {
-				currKey = reader.getNextKey();
-				keys.clear();
-				int temp = 0;
-				int pos = 0;;
-				keys.add(currKey);
-				Boolean found = false;
-				while ((currKey) != -1) {
-					keys.add(currKey);
-					temp++;
-					if (lowkey < currKey && !found) {pos = temp; found = true;}
-					currKey = reader.getNextKey();
-				} 
-				if (!found) {
-					pos = temp;
-				}					
-			currKey = reader.getNextKey();
-			
-			for (int i = 0; i < pos; i++) {
-				child = reader.getNextAddrIN(); 
+		}
+
+		// Initialize this value to null first.
+		currKey = null;
+
+		// If the lowkey value here is null then that means that we want to get the
+		// first key value that
+		// is in the left most leaf node.
+		if (this.lowKey == null) {
+			// The first leaf node will be on the first page for this
+			this.treeReader.resetBuffer();
+			this.treeReader.read(1);
+			// We know that this node must be a leaf node since this is the first element
+			// in the root page
+			currNode = (BTreeLeafNode) this.treeReader.deserializeNode();
+
+			// Set the curr page that we are reading from to be the page one
+			currPage = 1;
+			// The rid for the current key always start on the
+			currRid = 0;
+			// The curr leaf node that we are on for the current leaf node
+			currKey = 0;
+
+			// The leaf page starts on the first page in the file
+			startLeafPage = 1;
+			startKey = 0;
+		} else {
+			// Start at the root node and then traverse to the leaf node
+			this.treeReader.resetBuffer();
+			this.treeReader.read(this.rootAddy);
+
+			BTreeNode temp = this.treeReader.deserializeNode();
+			int address = 0;
+
+			while (!(temp instanceof BTreeLeafNode)) {
+				// If we are in this loop then that means the node is an index node meaning that
+				// we can cast to it
+				BTreeIndexNode changed = (BTreeIndexNode) temp;
+				ArrayList<Map.Entry<Integer, ArrayList<Integer>>> pointers = changed.getReferences();
+
+				// Iterate through the arraylist until we find a pointer that is either lest
+				// than or equal
+				// to the current lowkey value
+				for (int i = 0; i < pointers.size(); i++) {
+					// Check if we are on the last key since this is the one with two values in its
+					// pointers
+					if (i == pointers.size() - 1) {
+						if (this.lowKey < pointers.get(i).getKey()) {
+							address = pointers.get(i).getValue().get(0);
+						} else {
+							address = pointers.get(i).getValue().get(1);
+						}
+					} else if (this.lowKey < pointers.get(i).getKey()) {
+						address = pointers.get(i).getValue().get(0);
+						break;
+					}
+				}
+
+				// After you get the address to jump to then we need to update the current
+				// btreenode
+				this.treeReader.resetBuffer();
+				this.treeReader.read(address);
+
+				temp = this.treeReader.deserializeNode();
 			}
-				
-			currKey = child;
-			reader.reset(currKey);	
-			
+
+			ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>> findKeyStart = temp.getReference();
+
+			// Get to the right key in the given node if there is a key for it.
+			for (int k = 0; k < findKeyStart.size(); k++) {
+				int keyValue = findKeyStart.get(k).getKey();
+				if (keyValue >= this.lowKey) {
+					currKey = k;
+					break;
+				}
 			}
-			
-			keyPos = -1;
-			if (currKey < lowkey) {
-				while (currKey < lowkey) {
-					for (Integer i : reader.getNextDataEntryUnclus().keySet()) currKey = i; keyPos++;
-					if (currKey == lowkey) currKey = lowkey;
+
+			// Set the right node for this or if index node then not possible
+			if (currKey == null) {
+				this.treeReader.resetBuffer();
+				address = address + 1;
+				this.treeReader.read(address);
+				temp = this.treeReader.deserializeNode();
+				if (temp instanceof BTreeIndexNode) {
+					currKey = null;
+					currRid = 0;
+					currNode = null;
+				} else {
+					currKey = 0;
+					currRid = 0;
+					currNode = (BTreeLeafNode) temp;
 				}
 			} else {
-				currKey = lowkey;
+				currRid = 0;
+				currNode = (BTreeLeafNode) temp;
 			}
-		} 
-				
-//		getNextTuple();	
-//		System.out.println("---------------------------");
+
+			// Need this to reset to the right leaf page and to the right key later
+			startLeafPage = address;
+			startKey = currKey;
+			currPage = address;
+
 		}
-	
-	/**
-	 * Retrieves the next tuples. If there is no next tuple then null is returned.
-	 *
-	 * @return the tuples representing rows in a database
-	 */
+
+	}
+
 	public Tuple getNextTuple() {
-//		System.out.println("avav;abjdvbadjb");
-		Tuple tuple = null;
-		
-		while (true) {
-			if (isClustered) { 
-				tuple = super.getNextTuple();
+		// List of things to check
+		// 1. If the currNode is none then return the value of null
+		// 2 actual one. Alternative check is to see if the key value that we are
+		// checking has a value that
+		// is larger than the highkey
+		// 2.Need to check if the current key for the node that we are checking if that
+		// is still in bound
+		// if that value is in bound then move to next rid number. If the number if not
+		// in bound then move
+		// to the next key value. If the next key value will get us out of range then we
+		// need to read the next
+		// possible leaf page. If the next page that we read is not a leaf node then
+		// make the currNode null
 
-				if (tuple == null) {
-					return null;
-				} 
-				if (highkey != null && currRow.getKey() > highkey) {
-					System.out.println("__________");
-					return null;
-				} 
-			} 
-			
-			else { //unclustered 
-//				System.out.println("Entered thsi loop");
-				currLeafNode = reader.deserializeLeafNode().getReference();				
-//				System.out.println("currLeafNode: " + currLeafNode);				
-//				System.out.println("keyPos: " + keyPos);
-//				System.out.println("currTuple: " + currTuple);
-//				
-				currRow = currLeafNode.get(keyPos);				
-//				System.out.println("currRow: " + currRow);
-																																	
-				if (keyPos >= currLeafNode.size() - 1) { //read all keys on page 
-//					System.out.println("read all keys on page ");
-					if(reader.checkNodeType() == true) {
-//						System.out.println("going to next page");
-						keyPos = 0; 
-						currTuple = 0; 
-					} else {
-						return null;
-					}
-//					nextPage = reader.checkNodeType();
-//					if (reader.checkNodeType() == false) return null; //finished traversing all leaves
-					
-					
-//					reader.checkNodeType(); // go to next page 
-					
-				} 				
-				
-				//reached highkey 
-				if (highkey != null && currRow.getKey() >= highkey) {
-//					System.out.println("reached highkey");
-					return null;
-				} 
-								
-//				System.out.println("tuples in row: " + currRow.getValue().size());
-//				System.out.println("currTuple2: " + currTuple);
+		if (currNode == null) {
+//			System.out.println("The curr node ended up being node");
+			return null;
+		}
+		if (this.highKey != null && currNode.getReference().get(currKey).getKey() > this.highKey) {
+//			System.out.println("The value of the key is larger than the highkey value that we are given");
+			return null;
+		}
+		// Get the tuple value here
+		ArrayList<Map.Entry<Integer, ArrayList<TupleIdentifier>>> info = currNode.getReference();
+		int page = info.get(currKey).getValue().get(currRid).getPageId();
+		int tupleId = info.get(currKey).getValue().get(currRid).getTupleId();
+		Tuple result = super.getNextTupleIndexScan(page, tupleId);
 
-				if (currTuple >= currRow.getValue().size() - 1) { //read all tuples in row
-//					System.out.println("read all tuples in key");
-
-                    keyPos++;
-                    currTuple = 0;
-                }
-				
-				currRid = currRow.getValue().get(currTuple);
-//				System.out.println("currRid: " + currRid);	
-			
-				currPageID = currRid.getPageId();
-//				System.out.println("currPageID: " + currPageID);
-
-				currTupleID = currRid.getTupleId();
-//				System.out.println("currTupleID: " + currTupleID);
-				
-//				System.out.println("currTuple: " + currTuple);
-
-//				System.out.println("calling next tuple");
-				try {
-					tuple = super.getNextTupleIndex(currRid, currPageID, currTupleID);
-//					System.out.println(tuple);
-					currTuple++;		
-
-				} catch (IOException e) {
-					e.printStackTrace();
+		// If the currrid location is still lower then the length of the currValue row
+		// then that
+		// means that we are still in bound
+		if (currRid + 1 < currNode.getReference().get(currKey).getValue().size()) {
+			currRid = currRid + 1;
+		}
+		// Move to the next key value
+		else {
+			if (currKey + 1 < currNode.getReference().size()) {
+				currKey = currKey + 1;
+				// Need to reset the currRid back to the zero value
+				currRid = 0;
+			}
+			// If there are no more keys in this node then that means we are done with this
+			// node and that
+			// we need to get the next leaf node
+			else {
+				this.treeReader.resetBuffer();
+				// Increment the current page by the value one to get the next leaf page
+				currPage = currPage + 1;
+				this.treeReader.read(currPage);
+				BTreeNode node = this.treeReader.deserializeNode();
+				if (node instanceof BTreeLeafNode) {
+					currNode = (BTreeLeafNode) node;
+					// Set the current currentKey value to have the value zero
+					currKey = 0;
+					// Set the current rid value of that key to also be the value of zero.
+					currRid = 0;
+				} else {
+					currNode = null;
 				}
-//				System.out.println("TUPLE: " + tuple);
-								
-//				System.out.println("done");
+			}
 
-			}	
-			
-			return tuple;
+		}
+
+		return result;
+	}
+
+	public void reset() {
+		// To reset the leaf node there are three things that we need to do
+		// 1. Move to the right buffer page
+		// 2. Read the values from the buffer page correctly
+		// Update the currNode to be the currNode-> If the page that we are given is not
+		// a leaf address then that
+		// that means the node is null and then there is nothing for us to check
+
+		this.treeReader.resetBuffer();
+		this.treeReader.read(startLeafPage);
+
+		// Make the node
+		BTreeNode node = this.treeReader.deserializeNode();
+
+		if (node instanceof BTreeIndexNode) {
+			currNode = null;
+		} else {
+			// This means that the page is a leaf node meaning that there are some values
+			// that we can get from it
+			currNode = (BTreeLeafNode) node;
+
+			// The currid that we start on will always be the value of zero
+			currRid = 0;
+			// The key that we start on will have a different value
+			currPage = startLeafPage;
+			// The key that we start on for that given page
+			currKey = startKey;
 		}
 	}
 
-	/**
-	 * Tells the operator to reset its state and start returning its output again
-	 * from the beginning
-	 */
-	public void reset() {
-		super.reset();
-	}
-
-	/**
-	 * Gets the column names corresponding to the tuples.
-	 *
-	 * @return a list of all column names for the scan table.
-	 */
 	public ArrayList<String> getSchema() {
 		return super.getSchema();
 	}
 
-	/**
-	 * Gets the table name.
-	 *
-	 * @return the table name.
-	 */
 	public String getTable() {
-		return table;
+		return super.getTable();
 	}
 
-	/**
-	 * This method repeatedly calls getNextTuple() until the next tuple is null (no
-	 * more output) and writes each tuple to System.out.
-	 */
 	public void dump() {
-		super.dump();
-
-	}
-
-	/**
-	 * This method repeatedly calls getNextTuple() until the next tuple is null (no
-	 * more output) and writes each tuple to a new file.
-	 *
-	 * @param outputFile the file to write the tuples to
-	 */
-	public void dump(String outputFile) {
 		Tuple nextTuple = getNextTuple();
 		while (nextTuple != null) {
-			try {
-				BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
-				while (nextTuple != null) {
-					out.writeTuple(nextTuple);
-					nextTuple = getNextTuple();
-				}
-				out.close();
-			} catch (Exception e) {
-				System.out.println("Exception occurred: ");
-				e.printStackTrace();
-			}
-			
+			System.out.println(nextTuple.toString());
+			nextTuple = getNextTuple();
 		}
 	}
 
+	public void dump(String outputFile) {
+		Tuple nextTuple = getNextTuple();
+		try {
+			BinaryTupleWriter out = new BinaryTupleWriter(outputFile);
+			while (nextTuple != null) {
+				out.writeTuple(nextTuple);
+				nextTuple = getNextTuple();
+			}
+			out.close();
+		} catch (Exception e) {
+			System.out.println("Exception occurred: ");
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public String toString(int level) {
+		return "-".repeat(level) + "IndexScan[" + Aliases.getTable(table) + "," + schema.get(colIdx) + "," + lowKey
+				+ "," + highKey + "]\n";
+	}
 }

@@ -2,7 +2,12 @@ package p1;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.Arrays;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -11,16 +16,13 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.index.BTree;
 import p1.index.BTreeNode;
-import p1.io.BPTreeReader;
 import p1.io.BPTreeWriter;
 import p1.io.FileConverter;
-import p1.operator.IndexScanOperator;
-import p1.operator.IndexScanOperator2;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
-import p1.util.Tuple;
+import p1.util.StatGen;
 
 public class Main {
 
@@ -32,8 +34,6 @@ public class Main {
 			String input = fileReader.nextLine();
 			String queriesOutput = fileReader.nextLine();
 			String tempDir = fileReader.nextLine() + File.separator;
-			String buildIndexes = fileReader.nextLine();
-			String evalQueries = fileReader.nextLine();
 
 			String queriesFile = input + File.separator + "queries.sql";
 			String dataDir = input + File.separator + "db" + File.separator;
@@ -46,8 +46,7 @@ public class Main {
 			File inputDir = new File(dataDir + "data");
 
 			String[] allFiles = inputDir.list();
-			
-			
+
 			File[] fileList = new File[allFiles.length];
 			File schema = new File(dataDir + "schema.txt");
 
@@ -57,27 +56,28 @@ public class Main {
 			}
 
 			File indexInfo = new File(dataDir + "index_info.txt");
-			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema,
-					new File(input + File.separator + "plan_builder_config.txt"), tempDir, indexInfo, indexDir);
+			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema, tempDir, indexInfo, indexDir);
 
-			if (buildIndexes.equals("1")) {
-				for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
+			File statsFile = StatGen.generateStats(dataDir); // generates stats.txt
+			// this is how you use the new data generator
+//			RandomDataGenerator rdg = new RandomDataGenerator(statsFile); // use generated file to generate random data
+//			RandomDataGenerator rdg = new RandomDataGenerator(new File(dataDir + "stats.txt")); // use custom file to generate random data
+//			rdg.generateAll(dataDir + "data" + File.separator);
 
+			for (String key : db.getIndexInfo().keySet()) { // generate all indexes specified
+				String[] idxInfo = db.getIndexInfo().get(key);
+				File indexFileLocation = new File(indexDir + File.separator + key);
+				boolean clus = idxInfo[0].equals("1"); // true if clustered index
+				String tableName = key.split("\\.")[0];
+				String tablePath = db.getNames().get(tableName);
 
-					String[] idxInfo = db.getIndexInfo().get(key);
-					File indexFileLocation = new File(indexDir + File.separator + key + "." + idxInfo[0]);
-					boolean clus = idxInfo[1].equals("1"); // true if clustered index
-					String tablePath = db.getNames().get(key);
+				int order = Integer.valueOf(idxInfo[1]);
+				int colIdx = DatabaseCatalog.getInstance().getSchema().get(tableName).indexOf(key);
+				BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
+				BTreeNode root = bTree.constructTree();
+				bTree.setRoot(root);
+				BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(), order);
 
-					int order = Integer.valueOf(idxInfo[2]);
-					String tableName = key;
-					int colIdx = DatabaseCatalog.getInstance().getSchema().get(key).indexOf(key + "." + idxInfo[0]);
-					BTree bTree = new BTree(order, clus, colIdx, indexFileLocation, tablePath, 0, tableName, tempDir);
-					BTreeNode root = bTree.constructTree();
-					bTree.setRoot(root);
-					BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(),
-							order);
-					
 //					String path= "C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Boats.E";
 //					String sailorsPath="C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Sailors.A";
 //					System.out.println(tableName);
@@ -89,7 +89,6 @@ public class Main {
 //					scan.reset();
 //					System.out.println("Reset method is tested here");
 
-				}
 			}
 
 			try {
@@ -97,7 +96,7 @@ public class Main {
 				Statement statement;
 				int queryCount = 1;
 
-				while (evalQueries.equals("1") && (statement = parser.Statement()) != null) {
+				while ((statement = parser.Statement()) != null) {
 					try {
 						// Parse statement
 						Select select = (Select) statement;
@@ -118,6 +117,27 @@ public class Main {
 						qp.getOperator().dump(queriesOutputFile);
 						long elapsedMillis = System.currentTimeMillis() - startMillis;
 						System.out.println("Number of milliseconds taken to evaluate query: " + elapsedMillis);
+
+						// Generate logical/physical plan files
+						String logicalOutputFile = queriesOutputFile + "_logicalplan";
+						String physicalOutputFile = queriesOutputFile + "_physicalplan";
+						try {
+							// Logical plan
+							File logFile = new File(logicalOutputFile);
+							Path logFilePath = Paths.get(logicalOutputFile);
+							ArrayList<String> logPlan = new ArrayList<String>();
+							logPlan.add(lp.getOperator().toString(0));
+							Files.write(logFilePath, logPlan, StandardCharsets.UTF_8);
+							// Physical plan
+							File physFile = new File(physicalOutputFile);
+							Path physFilePath = Paths.get(physicalOutputFile);
+							ArrayList<String> physPlan = new ArrayList<String>();
+							physPlan.add(qp.getOperator().toString(0));
+							Files.write(physFilePath, physPlan, StandardCharsets.UTF_8);
+						} catch (IOException e) {
+							System.out.println("Error writing plan file: ");
+							e.printStackTrace();
+						}
 
 						// Check output for testing
 						FileConverter.convertBinToHuman(queriesOutputFile, queriesOutputFile + "_humanreadable");
@@ -144,7 +164,7 @@ public class Main {
 		} catch (Exception e) {
 			System.err.println("Exception occurred during config file parsing");
 			e.printStackTrace();
-		} 
+		}
 	}
 
 	private static void testing(String tempDir) {
@@ -219,5 +239,5 @@ public class Main {
 // ============================= debugging by generating random data ===========================
 //	}
 
-}
+	}
 }

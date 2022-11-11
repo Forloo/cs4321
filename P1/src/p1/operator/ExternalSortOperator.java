@@ -188,7 +188,6 @@ public class ExternalSortOperator extends Operator {
 //			int currentNumRuns = 0; //to check current merge step's number of produced runs
 			tuplesPerPage = tuplesPerPage * (b - 1);
 
-
 			ArrayList<Tuple> outputBuffer = new ArrayList<Tuple>(); // intialize output buffer
 			ms++; // for storing files, creating unique names
 			rn = 0;
@@ -227,7 +226,7 @@ public class ExternalSortOperator extends Operator {
 				// write the disk and clear output buffer
 				if (outBufferNumTup == tuplesPerPage || inputBufferTuple.isEmpty()) {
 					String fileName = tempDir + "mergeStep_" + Integer.toString(ms) + "_run_" + Integer.toString(rn);
-					fileList.add(0, fileName); 
+					fileList.add(0, fileName);
 
 					rn++; // creating unique names
 
@@ -385,6 +384,16 @@ public class ExternalSortOperator extends Operator {
 			System.out.println("Exception occurred: ");
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public String toString(int level) {
+		return "-".repeat(level) + "ExternalSort" + order.toString() + "\n" + child.toString(level + 1);
 	}
 
 }

@@ -125,4 +125,14 @@ public class ProjectOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
+
+	/**
+	 * Gets the string to print for the physical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the physical plan in string form
+	 */
+	public String toString(int level) {
+		return "-".repeat(level) + "Project" + cols.toString() + "\n" + child.toString(level + 1);
+	}
 }

@@ -22,7 +22,6 @@ import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
-import p1.operator.SortOperator;
 import p1.operator.TNLJOperator;
 
 /**
@@ -211,11 +210,13 @@ public class QueryPlan {
 		// Check if there is a distinct
 		if (distinct != null) {
 			// For distinct there is always a order by element
-			Operator sort = createSortOp(child, groupByElements);
+			Operator sort = new ExternalSortOperator(child, groupByElements, 4,
+					DatabaseCatalog.getInstance().getTempDir(), 0);
 			DuplicateEliminationOperator dup = new DuplicateEliminationOperator(sort);
 			child = dup;
 		} else if (groupByElements != null) {
-			Operator sort = createSortOp(child, groupByElements);
+			Operator sort = new ExternalSortOperator(child, groupByElements, 4,
+					DatabaseCatalog.getInstance().getTempDir(), 0);
 			child = sort;
 		}
 
@@ -242,30 +243,14 @@ public class QueryPlan {
 	 */
 	public Operator createJoinOp(String tableNames, Operator leftOp, Operator rightOp,
 			ArrayList<Expression> joinConditions) {
-		if (DatabaseCatalog.getInstance().getJoinMethod() == 0) { // Tuple nested loop join
+		// TODO: P4
+		if (true) { // Tuple nested loop join
 			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
-		} else if (DatabaseCatalog.getInstance().getJoinMethod() == 1) { // Block nested loop join
-			return new BNLJOperator(tableNames, leftOp, rightOp, joinConditions,
-					DatabaseCatalog.getInstance().getJoinPages());
+		} else if (true) { // Block nested loop join
+			return new BNLJOperator(tableNames, leftOp, rightOp, joinConditions, 4);
 		} else { // Sort merge join
 			return new SMJOperator(tableNames, leftOp, rightOp, joinConditions);
 		}
-	}
-
-	/**
-	 * Creates a sort operator based on the configuration file.
-	 *
-	 * @param child  the child operator
-	 * @param orders the order of columns to sort by
-	 * @return a sort operator
-	 */
-	public Operator createSortOp(Operator child, List orders) {
-		if (DatabaseCatalog.getInstance().getSortMethod() == 0) { // in-memory sort
-			return new SortOperator(child, orders);
-		}
-		// else use external sort
-		return new ExternalSortOperator(child, (List<String>) orders, DatabaseCatalog.getInstance().getSortPages(),
-				DatabaseCatalog.getInstance().getTempDir(), 0);
 	}
 
 	/**
@@ -276,8 +261,19 @@ public class QueryPlan {
 	 * @return a select operator
 	 */
 	public Operator createSelectOp(Operator child, Expression ex) {
-		if (DatabaseCatalog.getInstance().useIndex()) {
-			String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
+		// TODO: P4
+		if (true) {
+			String childTable = Aliases.getTable(child.getTable());
+
+			// TODO: P4 DECIDE WHICH INDEX TO USE IF MULTIPLE INDEXES FOR ONE TABLE
+			for (String col : DatabaseCatalog.getInstance().getIndexInfo().keySet()) { // THIS FOR LOOP IS A
+																						// PLACEHOLDER; DELETE WHEN
+																						// DONE WITH SECTION 3.3
+				if (col.contains(childTable)) {
+					childTable = col; // childTable is now tableName + "." + colName
+				}
+			}
+			String idxCol = childTable.substring(childTable.indexOf(".") + 1);
 			String[] exps = ex.toString().split(" AND ");
 			int lowkey = Integer.MIN_VALUE;
 			int highkey = Integer.MAX_VALUE;
@@ -319,11 +315,12 @@ public class QueryPlan {
 			}
 			Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
 			Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
+			// Assuming inclusive keys
 			if (high != null || low != null) {
-				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
-				boolean clustered = indexInfo[1].equals("1") ? true : false;
-				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(indexInfo[0]);
-				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + child.getTable() + "." + indexInfo[0];
+				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
+				boolean clustered = indexInfo[0].equals("1") ? true : false;
+				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(childTable);
+				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
 				child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
 			}
 		}

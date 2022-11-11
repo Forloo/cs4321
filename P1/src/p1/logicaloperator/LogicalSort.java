@@ -45,4 +45,17 @@ public class LogicalSort extends LogicalOperator {
 	public String toString() {
 		return "This is a logical sort node";
 	}
+
+	/**
+	 * Gets the string to print for the logical plan
+	 * 
+	 * @param level the level of the operator
+	 * @return the logical plan in string form
+	 */
+	public String toString(int level) {
+		if (orderBy == null) {
+			return child.toString(level + 1);
+		}
+		return "-".repeat(level) + "Sort" + orderBy.toString() + "\n" + child.toString(level + 1);
+	}
 }
