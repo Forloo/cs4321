@@ -1,8 +1,6 @@
 package p1.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
@@ -55,7 +53,6 @@ import p1.logicaloperator.LogicalUnique;
 import p1.operator.BNLJOperator;
 import p1.operator.DuplicateEliminationOperator;
 import p1.operator.ExternalSortOperator;
-import p1.operator.IndexScanOperator;
 import p1.operator.IndexScanOperator2;
 import p1.operator.Operator;
 import p1.operator.ProjectOperator;
@@ -142,17 +139,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			// Cast the rootOperator to the logical scan and then get the field that we want
 			LogicalScan cpy = (LogicalScan) rootOperator;
 			// Make this into the physicalOperator
-			if (DatabaseCatalog.getInstance().useIndex()) {
-				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(cpy.getFromTable());
-				boolean clustered = indexInfo[1].equals("1") ? true : false;
-				System.out.println(indexInfo);
-				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(cpy.getFromTable()).indexOf(indexInfo[0]);
-				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + cpy.getFromTable() + "." + indexInfo[0];
-//				return new IndexScanOperator(cpy.getFromTable(), null, null, clustered, indexIdx, idxFile);
-				return new IndexScanOperator2(cpy.getFromTable(),null,null,clustered,indexIdx,idxFile);
-			} else {
-				return new ScanOperator(cpy.getFromTable());
-			}
+			return new ScanOperator(cpy.getFromTable());
 		}
 
 		if (rootOperator instanceof LogicalFilter) {
@@ -160,26 +147,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			LogicalFilter cpy = (LogicalFilter) rootOperator;
 
 			Operator child = generatePhysicalTree(cpy.getChild());
+			String[] childIdx = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
 
-
-			if (DatabaseCatalog.getInstance().useIndex()) {
-				System.out.println("index info" + (DatabaseCatalog.getInstance().getIndexInfo()));
-				System.out.println("child" + child);
-				
-				System.out.println("child table" + child.getTable());
-
-
-				HashMap<String,String[]> information = DatabaseCatalog.getInstance().getIndexInfo();
-				
-				System.out.println("-=====================");
-				for (String key: information.keySet()) {
-					System.out.println(key);
-				}
-				System.out.println("full" + DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0]);
-
-
-
-				String idxCol = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable())[0];
+			if (DatabaseCatalog.getInstance().useIndex() && childIdx != null) {
+				String idxCol = childIdx[0];
 
 				String[] exps = cpy.getExpression().toString().split(" AND ");
 				int lowkey = Integer.MIN_VALUE;
@@ -222,7 +193,6 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
 				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
-				System.out.println("Bounds: " + low + " to " + high);
 				// Assuming inclusive keys
 				if (high != null || low != null) {
 					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(child.getTable());
@@ -232,7 +202,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + child.getTable() + "."
 							+ indexInfo[0];
 //					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
-					child = new IndexScanOperator2(child.getTable(),low,high,clustered,indexIdx,idxFile);
+					child = new IndexScanOperator2(child.getTable(), low, high, clustered, indexIdx, idxFile);
 				}
 			}
 
