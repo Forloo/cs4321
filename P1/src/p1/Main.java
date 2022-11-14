@@ -117,7 +117,7 @@ public class Main {
 						qp.getOperator().dump(queriesOutputFile);
 						long elapsedMillis = System.currentTimeMillis() - startMillis;
 						System.out.println("Number of milliseconds taken to evaluate query: " + elapsedMillis);
-
+						System.out.println("Finished the current query");
 						// Generate logical/physical plan files
 						String logicalOutputFile = queriesOutputFile + "_logicalplan";
 						String physicalOutputFile = queriesOutputFile + "_physicalplan";

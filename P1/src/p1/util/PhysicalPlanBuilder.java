@@ -225,6 +225,12 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			return project;
 		}
+		
+		// If the rootOperator is our new LogicalAllJoin then the only thing
+		// that get the list of all operators for each of those tables
+		// Then based on some test statistics function we will choose which join that we want to 
+		// make for each of those table joins that we have to do.
+		
 
 		if (rootOperator instanceof LogicalJoin) {
 			// Cast the element to the logical join
