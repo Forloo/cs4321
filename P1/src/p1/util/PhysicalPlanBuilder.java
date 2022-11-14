@@ -1,7 +1,6 @@
 package p1.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -211,7 +210,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				if (high != null || low != null) {
 					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
 					boolean clustered = indexInfo[0].equals("1") ? true : false;
-					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(childTable);
+					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable()))
+							.indexOf(childTable);
 					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
 					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
 				}
@@ -231,49 +231,49 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			return project;
 		}
-		
+
 		// If the rootOperator is our new LogicalAllJoin then the only thing
 		// that get the list of all operators for each of those tables
-		// Then based on some test statistics function we will choose which join that we want to 
+		// Then based on some test statistics function we will choose which join that we
+		// want to
 		// make for each of those table joins that we have to do.
 		if (rootOperator instanceof LogicalAllJoin) {
-			Operator prevJoin=null;
-			LogicalAllJoin cpy= (LogicalAllJoin) rootOperator;
+			Operator prevJoin = null;
+			LogicalAllJoin cpy = (LogicalAllJoin) rootOperator;
 			// Get the list of all the tables
 			List<String> allTables = cpy.getTableNames();
-			List<LogicalOperator> operators= cpy.getTableOperators();
-			HashMap<String[],ArrayList<Expression>> allConditions= cpy.getConditions();
-			//If we made a logicalalljoin then there is at least two tables
-			for(int i=1;i<allTables.size();i++) {
+			List<LogicalOperator> operators = cpy.getTableOperators();
+			HashMap<String[], ArrayList<Expression>> allConditions = cpy.getConditions();
+			// If we made a logicalalljoin then there is at least two tables
+			for (int i = 1; i < allTables.size(); i++) {
 				// The first join creation always joins two different tables
-				if (i==1) {
+				if (i == 1) {
 					// Write a function here to generate the conditions for the join operator
-					
+
 					// First thing to do is convert the two logical operator into the right
 					// physical Operator.
-					Operator left= generatePhysicalTree(operators.get(i-1));
-					Operator right= generatePhysicalTree(operators.get(i));
-					ArrayList<Expression> joinConditions= this.getJoinConditions(left, right, allConditions);
-					String joinName = left.getTable()+","+right.getTable();
-					Operator joinElement= this.chooseJoin(joinName, left, right, joinConditions);
+					Operator left = generatePhysicalTree(operators.get(i - 1));
+					Operator right = generatePhysicalTree(operators.get(i));
+					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions);
+					String joinName = left.getTable() + "," + right.getTable();
+					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 					System.out.println(joinName);
 					System.out.println(joinConditions);
-					prevJoin=joinElement;
-				}
-				else {
+					prevJoin = joinElement;
+				} else {
 					// If not the first element then there must be anohter join before this.
-					Operator left= prevJoin;
-					Operator right= generatePhysicalTree(operators.get(i));
-					String joinName= left.getTable()+","+right.getTable();
+					Operator left = prevJoin;
+					Operator right = generatePhysicalTree(operators.get(i));
+					String joinName = left.getTable() + "," + right.getTable();
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions);
-					Operator joinElement= this.chooseJoin(joinName, left, right, joinConditions);
-					prevJoin=joinElement;
+					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
+					prevJoin = joinElement;
 					System.out.println(joinName);
 					System.out.println(joinConditions);
 				}
 				System.out.println("+++++++++++++++++++");
 			}
-			
+
 			return prevJoin;
 		}
 
@@ -338,35 +338,36 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		QueryPlan physicalcopy = new QueryPlan(physicalroot);
 		this.physicalPlan = physicalcopy;
 	}
-	
-	private Operator chooseJoin(String tableNames,Operator left, Operator right, ArrayList<Expression> joinConditions) {
-		
-		Operator result=null;
-		if(true) {
-			result=new TNLJOperator(tableNames,left,right,joinConditions);
+
+	private Operator chooseJoin(String tableNames, Operator left, Operator right,
+			ArrayList<Expression> joinConditions) {
+
+		Operator result = null;
+		if (true) {
+			result = new TNLJOperator(tableNames, left, right, joinConditions);
+		} else if (true) {
+			result = new BNLJOperator(tableNames, left, right, joinConditions, 10);
+		} else {
+			result = new SMJOperator(tableNames, left, right, joinConditions);
 		}
-		else if (true) {
-			result= new BNLJOperator(tableNames,left,right,joinConditions,10);
-		}
-		else {
-			result= new SMJOperator(tableNames,left,right,joinConditions);
-		}
-		
+
 		return result;
 	}
-	
-	private ArrayList<Expression> getJoinConditions(Operator left, Operator right, HashMap<String[],ArrayList<Expression>> conditions){
-		String leftName= left.getTable();
-		String rightName= right.getTable();
-		String combinedName= leftName+","+rightName;
-		String [] tablesNeeded= combinedName.split(",");
-		HashSet<String> tblsNeeded= new HashSet<String>();
-		ArrayList<Expression> joinCondition= new ArrayList<Expression>();
-		// Get all of the tables for the current join making sure that there are no duplicates.
-		for(int i=0;i<tablesNeeded.length;i++) {
+
+	private ArrayList<Expression> getJoinConditions(Operator left, Operator right,
+			HashMap<String[], ArrayList<Expression>> conditions) {
+		String leftName = left.getTable();
+		String rightName = right.getTable();
+		String combinedName = leftName + "," + rightName;
+		String[] tablesNeeded = combinedName.split(",");
+		HashSet<String> tblsNeeded = new HashSet<String>();
+		ArrayList<Expression> joinCondition = new ArrayList<Expression>();
+		// Get all of the tables for the current join making sure that there are no
+		// duplicates.
+		for (int i = 0; i < tablesNeeded.length; i++) {
 			tblsNeeded.add(tablesNeeded[i]);
 		}
-		
+
 		for (String[] key : conditions.keySet()) {
 			boolean allIncluded = true;
 			for (int l = 0; l < key.length; l++) {
@@ -381,7 +382,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 			}
 		}
-		
+
 		return joinCondition;
 	}
 

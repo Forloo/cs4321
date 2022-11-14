@@ -3,6 +3,7 @@ package p1.operator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.io.BinaryTupleWriter;
@@ -268,7 +269,8 @@ public class SMJOperator extends Operator {
 	public String toString(int level) {
 		String leftString = left.toString(level + 1);
 		String rightString = right.toString(level + 1);
-		return "-".repeat(level) + "SMJ" + where.toString() + "\n" + leftString + rightString;
+		List<String> whereStr = where.stream().map(s -> s.toString()).collect(Collectors.toList());
+		return "-".repeat(level) + "SMJ[" + String.join(" AND ", whereStr) + "]\n" + leftString + rightString;
 	}
 
 }

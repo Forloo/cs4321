@@ -319,7 +319,8 @@ public class QueryPlan {
 			if (high != null || low != null) {
 				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
 				boolean clustered = indexInfo[0].equals("1") ? true : false;
-				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(childTable);
+				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable()))
+						.indexOf(childTable);
 				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
 				child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
 			}

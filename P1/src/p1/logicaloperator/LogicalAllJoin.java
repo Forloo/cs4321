@@ -99,7 +99,7 @@ public class LogicalAllJoin extends LogicalOperator {
 			wheres.addAll(w.getValue());
 		}
 		List<String> whereStr = wheres.stream().map(s -> s.toString()).collect(Collectors.toList());
-		String lines = "-".repeat(level) + "Join[" + String.join(",", whereStr) + "]\n";
+		String lines = "-".repeat(level) + "Join[" + String.join(" AND ", whereStr) + "]\n";
 		for (LogicalOperator op : tableOperators) {
 			lines += op.toString(level + 1);
 		}
