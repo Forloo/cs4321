@@ -97,14 +97,14 @@ public class LogicalPlan {
 		LogicalOperator child = null;
 		boolean joinUsed = false;
 		
-		// If the joins table is not null then we need to make the new join operator
+//		 If the joins table is not null then we need to make the new join operator
 		if (joins!=null) {
 			LogicalAllJoin joining= new LogicalAllJoin(allTableNames,allTableOperators,expressionInfoAliases);
 			joinUsed=true;
 			child=joining;
 		}
 
-		// Check if there is more than one table being used
+		//Check if there is more than one table being used
 //		if (joins != null) {
 //			boolean fromUsed = false;
 //			LogicalJoin prev = null;
@@ -153,12 +153,35 @@ public class LogicalPlan {
 //
 //						// Check if there is match for this table. If there is a match
 //						// then assign the conditions in that arraylist to the join
-//						ArrayList<Expression> joinCondition = null;
-//						if (expressionInfo.containsKey(sortedTablesNeeded)) {
-//							ArrayList<Expression> joinConditions = expressionInfo.get(sortedTablesNeeded);
-//							joinCondition = joinConditions;
+////						ArrayList<Expression> joinCondition = null;
+////						if (expressionInfo.containsKey(sortedTablesNeeded)) {
+////							ArrayList<Expression> joinConditions = expressionInfo.get(sortedTablesNeeded);
+////							joinCondition = joinConditions;
+////						}
+//						// Appears that the second way of doing the join conditions is better
+//						// this gets all of the conditions no matter even if there are duplicates in the problem.
+//						ArrayList<Expression> joinCondition = new ArrayList<Expression>();
+//						HashSet<String> tblsNeeded = new HashSet<String>();
+//						for(int n=0;n<tablesNeeded.length;n++) {
+//							tblsNeeded.add(tablesNeeded[n]);
 //						}
+//						
+//						for(String [] key: expressionInfoAliases.keySet()) {
+//							boolean allIncluded = true;
+//							for (int l = 0; l < key.length; l++) {
+//								allIncluded = allIncluded && tblsNeeded.contains(key[l]);
+//							}
 //
+//							if (allIncluded) {
+////								System.out.println("We entered this loop and some conditions were assigned");
+//								ArrayList<Expression> allExpr = expressionInfoAliases.get(key);
+//								for (int p = 0; p < allExpr.size(); p++) {
+//									joinCondition.add(allExpr.get(p));
+//								}
+//							}
+//						}
+//						
+//						System.out.println(joinCondition); 
 //						LogicalJoin temp = new LogicalJoin(combinedName, first, second, joinCondition);
 //						prev = temp;
 //					}
@@ -191,7 +214,7 @@ public class LogicalPlan {
 //					for (int k = 0; k < splitted.length; k++) {
 //						tblsNeed.add(splitted[k]);
 //					}
-//
+//					
 //					for (String[] key : expressionInfoAliases.keySet()) {
 //						boolean allIncluded = true;
 //						for (int l = 0; l < key.length; l++) {
@@ -199,13 +222,17 @@ public class LogicalPlan {
 //						}
 //
 //						if (allIncluded) {
+////							System.out.println("We entered this loop and some conditions were assigned");
 //							ArrayList<Expression> allExpr = expressionInfoAliases.get(key);
 //							for (int p = 0; p < allExpr.size(); p++) {
 //								joinCondition.add(allExpr.get(p));
 //							}
 //						}
 //					}
-//
+//					
+////					System.out.println("=========================");
+////					System.out.println(joinCondition);
+////					System.out.println("+++++++++++++++++++++++++++++");
 //					LogicalJoin temp = new LogicalJoin(combinedName, prev, first, joinCondition);
 //					prev = temp;
 //
@@ -262,7 +289,6 @@ public class LogicalPlan {
 		// Iterate through for each table and determine whether it needs a scan operator or 
 		// a filter operation.
 		for(int i=0;i<allTableNames.size();i++) {
-			System.out.println(allTableNames);
 			String alias = Aliases.getAlias(allTableNames.get(i));
 			if (tableConditions==null) {
 				LogicalScan currOp= new LogicalScan(alias);
