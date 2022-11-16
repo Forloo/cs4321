@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
+
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.BinaryExpression;
@@ -92,6 +93,10 @@ public class ExpressionParser implements ExpressionVisitor {
 
 		Expression left = arg0.getLeftExpression();
 		Expression right = arg0.getRightExpression();
+//		System.out.println(right);
+//		System.out.println("For debugging output we need to check which side will have the longer and expression");
+//		System.out.println(left);
+//		System.out.println("Debugging here again we need to make sure that the left hand side is indeed the side with the longer expression");
 		ExpressionParser leftParser = new ExpressionParser(left);
 		ExpressionParser rightParser = new ExpressionParser(right);
 		left.accept(leftParser);
@@ -210,7 +215,6 @@ public class ExpressionParser implements ExpressionVisitor {
 		String[] arr = this.getTables(arg0);
 		this.getTablesNeeded().put(arr, allExpr);
 		allExpr.add(arg0);
-
 	}
 
 	/**
@@ -243,7 +247,6 @@ public class ExpressionParser implements ExpressionVisitor {
 		String[] arr = this.getTables(arg0);
 		this.getTablesNeeded().put(arr, allExpr);
 		allExpr.add(arg0);
-
 	}
 
 	/**

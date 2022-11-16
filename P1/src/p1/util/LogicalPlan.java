@@ -21,6 +21,8 @@ import p1.logicaloperator.LogicalProject;
 import p1.logicaloperator.LogicalScan;
 import p1.logicaloperator.LogicalSort;
 import p1.logicaloperator.LogicalUnique;
+import p1.unionfind.UnionFind;
+import p1.unionfind.UnionFindVisitor;
 
 public class LogicalPlan {
 
@@ -103,6 +105,24 @@ public class LogicalPlan {
 			joinUsed=true;
 			child=joining;
 		}
+		
+		// Testing here to see if the union find will work as we expect it to.
+		System.out.println("====================================");
+		UnionFindVisitor testing= new UnionFindVisitor(where);
+		if(where!=null) {
+			where.accept(testing);
+		}
+		UnionFind findings= testing.getUnionFind();
+		ArrayList<Expression> notUsed= testing.getnotUsableExpression();
+		System.out.println("Finding elements");
+		System.out.println(findings.getUnionElement().size());
+		System.out.println(findings);
+		System.out.println("Elements that are not used");
+		System.out.println(notUsed);
+		System.out.println("============================================");
+		// We did not get a compile error for any of the queries that we tried to work
+		// on now it just means that we need to to  see if the numbers inside of the unionfind are the right
+		// values that we expect them to be.
 
 		//Check if there is more than one table being used
 //		if (joins != null) {

@@ -208,9 +208,12 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
 				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
 				// Assuming inclusive keys
+				System.out.println(childTable);
 				if (high != null || low != null) {
+					System.out.println("We entered inside of this loop somehow");
 					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
 					boolean clustered = indexInfo[0].equals("1") ? true : false;
+					System.out.println(childTable);
 					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(childTable);
 					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
 					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
@@ -256,8 +259,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					ArrayList<Expression> joinConditions= this.getJoinConditions(left, right, allConditions);
 					String joinName = left.getTable()+","+right.getTable();
 					Operator joinElement= this.chooseJoin(joinName, left, right, joinConditions);
-					System.out.println(joinName);
-					System.out.println(joinConditions);
+//					System.out.println(joinName);
+//					System.out.println(joinConditions);
 					prevJoin=joinElement;
 				}
 				else {
@@ -268,10 +271,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions);
 					Operator joinElement= this.chooseJoin(joinName, left, right, joinConditions);
 					prevJoin=joinElement;
-					System.out.println(joinName);
-					System.out.println(joinConditions);
+//					System.out.println(joinName);
+//					System.out.println(joinConditions);
 				}
-				System.out.println("+++++++++++++++++++");
+//				System.out.println("+++++++++++++++++++");
 			}
 			
 			return prevJoin;
