@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import net.sf.jsqlparser.expression.Expression;
+import p1.unionfind.UnionFind;
 
 public class LogicalAllJoin extends LogicalOperator {
 
@@ -32,9 +33,10 @@ public class LogicalAllJoin extends LogicalOperator {
 	private List<String> tableNames;
 	// The operators for each of the tables in the order of the tablenames
 	private List<LogicalOperator> tableOperators;
-
 	// The conditions for all the joined tables.
 	private HashMap<String[], ArrayList<Expression>> conditions;
+	// The union find elements
+	private UnionFind uf;
 
 	/**
 	 * The constructor for LogicalAllJoin
@@ -100,11 +102,23 @@ public class LogicalAllJoin extends LogicalOperator {
 		}
 		List<String> whereStr = wheres.stream().map(s -> s.toString()).collect(Collectors.toList());
 		String lines = "-".repeat(level) + "Join[" + String.join(" AND ", whereStr) + "]\n";
+
+		// Print union find
+		lines += uf.toStringFile();
+
 		for (LogicalOperator op : tableOperators) {
 			lines += op.toString(level + 1);
 		}
-		String unionFind = ""; // TODO: FINISH WHEN UNION FIND IS DONE
-		return lines + unionFind;
+		return lines;
+	}
+
+	/**
+	 * Sets the items in union find so we can print them in toString(int level)
+	 * 
+	 * @param findings the union find elements
+	 */
+	public void setUnionFind(UnionFind findings) {
+		uf = findings;
 	}
 
 }
