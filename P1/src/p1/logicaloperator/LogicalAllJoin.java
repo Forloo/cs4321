@@ -36,6 +36,8 @@ public class LogicalAllJoin extends LogicalOperator {
 	// The conditions for all the joined tables.
 	private HashMap<String[], ArrayList<Expression>> conditions;
 	// The union find elements
+	private ArrayList<Expression> allExpr;
+	// The unionfind object
 	private UnionFind uf;
 
 	/**
@@ -48,11 +50,13 @@ public class LogicalAllJoin extends LogicalOperator {
 	 * @param conditions     : The conditions for all the tables.
 	 */
 	public LogicalAllJoin(List<String> tableNames, List<LogicalOperator> tableOperators,
-			HashMap<String[], ArrayList<Expression>> conditions) {
+			HashMap<String[], ArrayList<Expression>> conditions, ArrayList<Expression> allExpr) {
 
 		this.tableNames = tableNames;
 		this.tableOperators = tableOperators;
 		this.conditions = conditions;
+		this.allExpr=allExpr;
+		
 	}
 
 	/**
@@ -120,5 +124,16 @@ public class LogicalAllJoin extends LogicalOperator {
 	public void setUnionFind(UnionFind findings) {
 		uf = findings;
 	}
-
+	
+	/**
+	 * Retrieves the UnionFind
+	 * @return UnionFind representing joined conditions and unused expressions.
+	 */
+	public UnionFind getUnionFind() {
+		return this.uf;
+	}
+	
+	public ArrayList<Expression> getUnusedOperators(){
+		return this.allExpr;
+	}
 }

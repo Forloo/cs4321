@@ -19,6 +19,7 @@ import p1.logicaloperator.LogicalScan;
 import p1.logicaloperator.LogicalSort;
 import p1.logicaloperator.LogicalUnique;
 import p1.unionfind.UnionFind;
+import p1.unionfind.UnionFindElement;
 import p1.unionfind.UnionFindVisitor;
 
 public class LogicalPlan {
@@ -96,7 +97,7 @@ public class LogicalPlan {
 		
 		List<LogicalOperator> allTableOperators= null;
 		if (joins!=null) {
-			allTableOperators= this.makeAllOperators(allTableNames, expressionInfo,notUsed);
+			allTableOperators= this.makeAllOperators(allTableNames, expressionInfo,notUsed,findings);
 		}
 
 		LogicalOperator child = null;
@@ -111,11 +112,11 @@ public class LogicalPlan {
 		// The join methods can still be assigned using the other method that we used befoore.
 		
 //		 If the joins table is not null then we need to make the new join operator
-		if (joins!=null) {
-			LogicalAllJoin joining= new LogicalAllJoin(allTableNames,allTableOperators,expressionInfoAliases);
-			joinUsed=true;
-			child=joining;
-		}
+//		if (joins!=null) {
+//			LogicalAllJoin joining= new LogicalAllJoin(allTableNames,allTableOperators,expressionInfoAliases,findings);
+//			joinUsed=true;
+//			child=joining;
+//		}
 		
 		// Testing here to see if the union find will work as we expect it to.
 //		System.out.println("====================================");
@@ -138,7 +139,7 @@ public class LogicalPlan {
 
 //		 If the joins table is not null then we need to make the new join operator
 		if (joins != null) {
-			LogicalAllJoin joining = new LogicalAllJoin(allTableNames, allTableOperators, expressionInfoAliases);
+			LogicalAllJoin joining = new LogicalAllJoin(allTableNames, allTableOperators, expressionInfoAliases,notUsed);
 			// Set union find for LogicalAllJoin to print for the logical plan file
 			joining.setUnionFind(findings);
 			joinUsed = true;
@@ -289,7 +290,9 @@ public class LogicalPlan {
 
 			// Check if there is a where clause
 			if (where != null) {
-				LogicalFilter filter = new LogicalFilter(logicalscan, where);
+				ArrayList<Expression> allExpr= new ArrayList<Expression>();
+				allExpr.add(where);
+				LogicalFilter filter = new LogicalFilter(logicalscan, allExpr,findings.getUnionElement());
 				child = filter;
 			} else {
 				child = logicalscan;
@@ -325,7 +328,7 @@ public class LogicalPlan {
 	 * @param tableConditions : Contains all conditions for specific tables.
 	 * @return List<LogicalOperator> for each table.
 	 */
-	private List<LogicalOperator> makeAllOperators(List<String> allTableNames,HashMap<String,ArrayList<Expression>> tableConditions, ArrayList<Expression> notUsed){
+	private List<LogicalOperator> makeAllOperators(List<String> allTableNames,HashMap<String,ArrayList<Expression>> tableConditions, ArrayList<Expression> notUsed, UnionFind uf){
 		List<LogicalOperator> ret= new ArrayList<LogicalOperator>();
 		
 		// Iterate through for each table and determine whether it needs a scan operator or 
@@ -341,9 +344,36 @@ public class LogicalPlan {
 					// One problem here is that the expression only takes in one expression
 					// But the problem is that there could be a lot of expression for this one
 					// table.
-					// Make the scan operator for this class.
+					
+					// Solve the issue that we can only give the select operator one expression
+					// Now we want to only add the expressions that are not included by the union find
+					
+					ArrayList<Expression> notIncluded = new ArrayList<Expression>();
+					
+					for(int k=0;k<currConditions.size();k++) {
+						Expression currExpression= currConditions.get(k);
+						if(notUsed.contains(currExpression)) {
+							notIncluded.add(currExpression);
+						}
+					}
+					
+//					System.out.println("This is the beginning delimiter");
+//					System.out.println(currConditions);
+//					System.out.println(notIncluded);
+//					System.out.println(notUsed);
+					
+					// I need to assign to the select operator the right conditions 
+					// the right attribute values. Then I need to make sure I set those
+					// bounds on the right column value for the select so that we can 
+					// apply those conditions
+					
 					LogicalScan scanOp = new LogicalScan(alias);
-					LogicalFilter currOp = new LogicalFilter(scanOp, currConditions.get(0));
+//					ArrayList<UnionFindElement> allElements= uf.getUnionElement();
+					
+					
+//					System.out.println("This is the end delimiter");
+					// Make the scan operator for this class.
+					LogicalFilter currOp = new LogicalFilter(scanOp, notIncluded,uf.getUnionElement());
 					ret.add(currOp);
 				} else {
 					LogicalScan currOp = new LogicalScan(alias);
@@ -354,6 +384,7 @@ public class LogicalPlan {
 
 		return ret;
 	}
+	
 
 	private LogicalAllJoin makeOperations(List<String> tableNames, List<LogicalOperator> tableOperations) {
 		return null;
