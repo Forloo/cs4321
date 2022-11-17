@@ -1,9 +1,7 @@
 package p1.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import net.sf.jsqlparser.expression.Expression;
@@ -15,7 +13,6 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import p1.logicaloperator.LogicalAllJoin;
 import p1.logicaloperator.LogicalFilter;
-import p1.logicaloperator.LogicalJoin;
 import p1.logicaloperator.LogicalOperator;
 import p1.logicaloperator.LogicalProject;
 import p1.logicaloperator.LogicalScan;
@@ -85,15 +82,15 @@ public class LogicalPlan {
 		ArrayList<Expression> notUsed= testing.getnotUsableExpression();
 		
 		// All table names
-		List<String> allTableNames= new ArrayList<String>();
+		List<String> allTableNames = new ArrayList<String>();
 		allTableNames.add(from.toString());
-		
-		if (joins!=null) {
-			for(int i=0;i<joins.size();i++) {
+
+		if (joins != null) {
+			for (int i = 0; i < joins.size(); i++) {
 				allTableNames.add(joins.get(i).toString());
 			}
 		}
-		
+
 		// This will only be used if the join table is not null meaning that
 		// there is more than one table that we are joining on.
 		
@@ -101,11 +98,9 @@ public class LogicalPlan {
 		if (joins!=null) {
 			allTableOperators= this.makeAllOperators(allTableNames, expressionInfo,notUsed);
 		}
-		
 
 		LogicalOperator child = null;
 		boolean joinUsed = false;
-		
 		// Make a union find
 		// From the unionfind we can see the eexpression that are not used
 		
@@ -137,10 +132,20 @@ public class LogicalPlan {
 //		System.out.println(notUsed);
 //		System.out.println("============================================");
 		// We did not get a compile error for any of the queries that we tried to work
-		// on now it just means that we need to to  see if the numbers inside of the unionfind are the right
+		// on now it just means that we need to to see if the numbers inside of the
+		// unionfind are the right
 		// values that we expect them to be.
 
-		//Check if there is more than one table being used
+//		 If the joins table is not null then we need to make the new join operator
+		if (joins != null) {
+			LogicalAllJoin joining = new LogicalAllJoin(allTableNames, allTableOperators, expressionInfoAliases);
+			// Set union find for LogicalAllJoin to print for the logical plan file
+			joining.setUnionFind(findings);
+			joinUsed = true;
+			child = joining;
+		}
+
+		// Check if there is more than one table being used
 //		if (joins != null) {
 //			boolean fromUsed = false;
 //			LogicalJoin prev = null;
@@ -312,10 +317,11 @@ public class LogicalPlan {
 		this.rootOperator = child;
 
 	}
-	
+
 	/**
 	 * Constructs logicalOperators for all tables
-	 * @param allTableNames : The string name of all tables
+	 * 
+	 * @param allTableNames   : The string name of all tables
 	 * @param tableConditions : Contains all conditions for specific tables.
 	 * @return List<LogicalOperator> for each table.
 	 */
@@ -324,33 +330,31 @@ public class LogicalPlan {
 		
 		// Iterate through for each table and determine whether it needs a scan operator or 
 		// a filter operation.
-		for(int i=0;i<allTableNames.size();i++) {
+		for (int i = 0; i < allTableNames.size(); i++) {
 			String alias = Aliases.getAlias(allTableNames.get(i));
-			if (tableConditions==null) {
-				LogicalScan currOp= new LogicalScan(alias);
+			if (tableConditions == null) {
+				LogicalScan currOp = new LogicalScan(alias);
 				ret.add(currOp);
-			}
-			else {
+			} else {
 				if (tableConditions.containsKey(alias)) {
 					ArrayList<Expression> currConditions= tableConditions.get(alias);
 					// One problem here is that the expression only takes in one expression
 					// But the problem is that there could be a lot of expression for this one
 					// table.
 					// Make the scan operator for this class.
-					LogicalScan scanOp= new LogicalScan(alias);
-					LogicalFilter currOp = new LogicalFilter(scanOp,currConditions.get(0));
+					LogicalScan scanOp = new LogicalScan(alias);
+					LogicalFilter currOp = new LogicalFilter(scanOp, currConditions.get(0));
 					ret.add(currOp);
-				}
-				else {
+				} else {
 					LogicalScan currOp = new LogicalScan(alias);
 					ret.add(currOp);
 				}
 			}
 		}
-		
+
 		return ret;
 	}
-	
+
 	private LogicalAllJoin makeOperations(List<String> tableNames, List<LogicalOperator> tableOperations) {
 		return null;
 	}

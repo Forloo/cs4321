@@ -253,23 +253,22 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 					// First thing to do is convert the two logical operator into the right
 					// physical Operator.
-					Operator left= generatePhysicalTree(operators.get(i-1));
-					Operator right= generatePhysicalTree(operators.get(i));
-					ArrayList<Expression> joinConditions= this.getJoinConditions(left, right, allConditions);
-					String joinName = left.getTable()+","+right.getTable();
-					Operator joinElement= this.chooseJoin(joinName, left, right, joinConditions);
+					Operator left = generatePhysicalTree(operators.get(i - 1));
+					Operator right = generatePhysicalTree(operators.get(i));
+					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions);
+					String joinName = left.getTable() + "," + right.getTable();
+					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 //					System.out.println(joinName);
 //					System.out.println(joinConditions);
-					prevJoin=joinElement;
-				}
-				else {
+					prevJoin = joinElement;
+				} else {
 					// If not the first element then there must be anohter join before this.
 					Operator left = prevJoin;
 					Operator right = generatePhysicalTree(operators.get(i));
 					String joinName = left.getTable() + "," + right.getTable();
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions);
-					Operator joinElement= this.chooseJoin(joinName, left, right, joinConditions);
-					prevJoin=joinElement;
+					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
+					prevJoin = joinElement;
 //					System.out.println(joinName);
 //					System.out.println(joinConditions);
 				}
@@ -350,6 +349,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		} else if (true) {
 			result = new BNLJOperator(tableNames, left, right, joinConditions, 10);
 		} else {
+			// Change this back later for some reason there is an error when we change this
+			// from the tuple nest loop join to the sort merge join
 			result = new SMJOperator(tableNames, left, right, joinConditions);
 		}
 
