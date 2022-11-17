@@ -209,7 +209,6 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				// Assuming inclusive keys
 				System.out.println(childTable);
 				if (high != null || low != null) {
-					System.out.println("We entered inside of this loop somehow");
 					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
 					boolean clustered = indexInfo[0].equals("1") ? true : false;
 					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable()))

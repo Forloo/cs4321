@@ -266,10 +266,9 @@ public class UnionFindVisitor implements ExpressionVisitor{
 
 	@Override
 	public void visit(NotEqualsTo arg0) {
-		// The notequals is not usable in the union find method so we just need to add
-		// it to the list of elements that we cannnot use in the union find instead
-		// we can use it later to allocate to the join as we see fit and dtermine where
-		// we should put those conditions
+		// Not equal is not used in the list of usable constraints so we can
+		// just add this to the list of constraints immediately
+		notUsable.add(arg0);
 		
 	}
 

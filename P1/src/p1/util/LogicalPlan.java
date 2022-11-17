@@ -77,6 +77,13 @@ public class LogicalPlan {
 			fromTable = from.getAlias();
 		}
 		
+		UnionFindVisitor testing= new UnionFindVisitor(where);
+		if(where!=null) {
+			where.accept(testing);
+		}
+		UnionFind findings= testing.getUnionFind();
+		ArrayList<Expression> notUsed= testing.getnotUsableExpression();
+		
 		// All table names
 		List<String> allTableNames= new ArrayList<String>();
 		allTableNames.add(from.toString());
@@ -92,12 +99,21 @@ public class LogicalPlan {
 		
 		List<LogicalOperator> allTableOperators= null;
 		if (joins!=null) {
-			allTableOperators= this.makeAllOperators(allTableNames, expressionInfo);
+			allTableOperators= this.makeAllOperators(allTableNames, expressionInfo,notUsed);
 		}
 		
 
 		LogicalOperator child = null;
 		boolean joinUsed = false;
+		
+		// Make a union find
+		// From the unionfind we can see the eexpression that are not used
+		
+		// Then in the select expression we can check if a given table will need that unused 
+		// expression or not by comparing the names.
+		
+		
+		// The join methods can still be assigned using the other method that we used befoore.
 		
 //		 If the joins table is not null then we need to make the new join operator
 		if (joins!=null) {
@@ -107,19 +123,19 @@ public class LogicalPlan {
 		}
 		
 		// Testing here to see if the union find will work as we expect it to.
-		System.out.println("====================================");
-		UnionFindVisitor testing= new UnionFindVisitor(where);
-		if(where!=null) {
-			where.accept(testing);
-		}
-		UnionFind findings= testing.getUnionFind();
-		ArrayList<Expression> notUsed= testing.getnotUsableExpression();
-		System.out.println("Finding elements");
-		System.out.println(findings.getUnionElement().size());
-		System.out.println(findings);
-		System.out.println("Elements that are not used");
-		System.out.println(notUsed);
-		System.out.println("============================================");
+//		System.out.println("====================================");
+//		UnionFindVisitor testing= new UnionFindVisitor(where);
+//		if(where!=null) {
+//			where.accept(testing);
+//		}
+//		UnionFind findings= testing.getUnionFind();
+//		ArrayList<Expression> notUsed= testing.getnotUsableExpression();
+//		System.out.println("Finding elements");
+//		System.out.println(findings.getUnionElement().size());
+//		System.out.println(findings);
+//		System.out.println("Elements that are not used");
+//		System.out.println(notUsed);
+//		System.out.println("============================================");
 		// We did not get a compile error for any of the queries that we tried to work
 		// on now it just means that we need to to  see if the numbers inside of the unionfind are the right
 		// values that we expect them to be.
@@ -303,7 +319,7 @@ public class LogicalPlan {
 	 * @param tableConditions : Contains all conditions for specific tables.
 	 * @return List<LogicalOperator> for each table.
 	 */
-	private List<LogicalOperator> makeAllOperators(List<String> allTableNames,HashMap<String,ArrayList<Expression>> tableConditions){
+	private List<LogicalOperator> makeAllOperators(List<String> allTableNames,HashMap<String,ArrayList<Expression>> tableConditions, ArrayList<Expression> notUsed){
 		List<LogicalOperator> ret= new ArrayList<LogicalOperator>();
 		
 		// Iterate through for each table and determine whether it needs a scan operator or 
@@ -317,6 +333,9 @@ public class LogicalPlan {
 			else {
 				if (tableConditions.containsKey(alias)) {
 					ArrayList<Expression> currConditions= tableConditions.get(alias);
+					// One problem here is that the expression only takes in one expression
+					// But the problem is that there could be a lot of expression for this one
+					// table.
 					// Make the scan operator for this class.
 					LogicalScan scanOp= new LogicalScan(alias);
 					LogicalFilter currOp = new LogicalFilter(scanOp,currConditions.get(0));

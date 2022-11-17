@@ -3,7 +3,7 @@ package p1.unionfind;
 import java.util.ArrayList;
 
 public class UnionFind {
-	
+		
 	private ArrayList<UnionFindElement> unionElements;
 	
 	/**
