@@ -1,6 +1,9 @@
 package p1.logicaloperator;
 
+import java.util.ArrayList;
+
 import net.sf.jsqlparser.expression.Expression;
+import p1.unionfind.UnionFindElement;
 
 /**
  * Logical version of SelectOperator.
@@ -10,7 +13,9 @@ public class LogicalFilter extends LogicalOperator {
 	// The child operator
 	private LogicalOperator child;
 	// The expression to filter by
-	private Expression exp;
+	private ArrayList<Expression> exp;
+	// The constraints from the unionfind
+	private ArrayList<UnionFindElement> ufRestraints;
 
 	/**
 	 * The constructor for the logical filter operator
@@ -18,9 +23,10 @@ public class LogicalFilter extends LogicalOperator {
 	 * @param op The child operator
 	 * @param ex Expression containing the information
 	 */
-	public LogicalFilter(LogicalOperator op, Expression ex) {
+	public LogicalFilter(LogicalOperator op, ArrayList<Expression> expr, ArrayList<UnionFindElement> ufRestraints) {
 		this.child = op;
-		this.exp = ex;
+		this.exp = expr;
+		this.ufRestraints=ufRestraints;
 	}
 
 	/**
@@ -37,13 +43,17 @@ public class LogicalFilter extends LogicalOperator {
 	 *
 	 * @return An Expression object containing the condition information.
 	 */
-	public Expression getExpression() {
+	public ArrayList<Expression> getExpression() {
 		return exp;
 	}
 
 	// This is just for testing and knowing that we have the right node placement.
 	public String toString() {
 		return "This is a logical filter node";
+	}
+	
+	public ArrayList<UnionFindElement> getUfRestraints(){
+		return this.ufRestraints;
 	}
 
 	/**

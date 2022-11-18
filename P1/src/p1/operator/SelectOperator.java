@@ -1,6 +1,7 @@
 package p1.operator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.io.BinaryTupleWriter;
@@ -16,7 +17,9 @@ public class SelectOperator extends Operator {
 	// The child operator, scanning all rows.
 	private Operator scanObj;
 	// The expression to check rows on.
-	private Expression where;
+	private ArrayList<Expression> where;
+	// The unionfind expression if any of them exist for the current table.
+	HashMap<String, ArrayList<Integer>> ufRestraints;
 
 	/**
 	 * Determines selection conditions and rows.
@@ -24,9 +27,10 @@ public class SelectOperator extends Operator {
 	 * @param op the child scan operator.
 	 * @param ex the expression to select tuples from.
 	 */
-	public SelectOperator(Operator op, Expression ex) {
+	public SelectOperator(Operator op, ArrayList<Expression> ex, HashMap<String, ArrayList<Integer>> ufRestraints) {
 		where = ex;
 		scanObj = op;
+		this.ufRestraints=ufRestraints;
 	}
 
 	/**
@@ -41,12 +45,43 @@ public class SelectOperator extends Operator {
 			if (nextTuple == null) {
 				return null;
 			}
-
-			ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, scanObj.getSchema());
-			where.accept(exprObj2);
-			if (Boolean.parseBoolean(exprObj2.getValue())) {
+			
+			Boolean allTrue= true;
+			// Convert this function to handle the arraylist
+			for(int i=0;i<where.size();i++) {
+				ExpressionEvaluator exprObj2= new ExpressionEvaluator(nextTuple,scanObj.getSchema());
+				Expression curr = where.get(i);
+				curr.accept(exprObj2);
+				Boolean result= Boolean.parseBoolean(exprObj2.getValue());
+				allTrue=allTrue && result;
+			}
+			
+			// Loop through all of the extra union find constraints
+			for(String key: ufRestraints.keySet()) {
+				// The key value must be here since we check the conditions before adding to our list
+				int schema_location= this.getSchema().indexOf(key);
+				// Given the schema location here we can then findt the value in the tuple that we are given
+				int tuple_value= Integer.parseInt(nextTuple.getTuple().get(schema_location));
+				Integer min_value= ufRestraints.get(key).get(0);
+				Integer max_value = ufRestraints.get(key).get(1);
+				if(tuple_value>=min_value && tuple_value<=max_value) {
+					allTrue=allTrue && true;
+				}
+				else {
+					// Violates the condition
+					allTrue= allTrue && false;
+				}
+			}
+			
+			if (allTrue) {
 				return nextTuple;
 			}
+			
+//			ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, scanObj.getSchema());
+//			where.accept(exprObj2);
+//			if (Boolean.parseBoolean(exprObj2.getValue())) {
+//				return nextTuple;
+//			}
 		}
 	}
 

@@ -102,7 +102,7 @@ public class QueryPlan {
 						if (expressionInfo.containsKey(fromTable)) {
 							ArrayList<Expression> conditions = expressionInfo.get(fromTable);
 							Operator scanone = new ScanOperator(fromTable);
-							Operator selectone = createSelectOp(scanone, conditions.get(0));
+							Operator selectone = createSelectOp(scanone, conditions.get(0),conditions);
 							first = selectone;
 						} else {
 							Operator scanone = new ScanOperator(fromTable);
@@ -114,7 +114,7 @@ public class QueryPlan {
 							// Get the arraylist of conditions
 							ArrayList<Expression> conditions2 = expressionInfo.get(alias);
 							Operator scantwo = new ScanOperator(alias);
-							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0));
+							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0),conditions2);
 							second = selecttwo;
 						} else {
 							Operator scantwo = new ScanOperator(Aliases.getAlias(joins.get(0).toString()));
@@ -150,7 +150,7 @@ public class QueryPlan {
 					if (expressionInfo.containsKey(alias)) {
 						ArrayList<Expression> conditions = expressionInfo.get(alias);
 						Operator scanone = new ScanOperator(alias);
-						Operator selectone = createSelectOp(scanone, conditions.get(0));
+						Operator selectone = createSelectOp(scanone, conditions.get(0),conditions);
 						first = selectone;
 					} else {
 						Operator scanone = new ScanOperator(alias);
@@ -193,7 +193,9 @@ public class QueryPlan {
 			// Then check if there is some where condition. If there is then we need to make
 			// the select
 			if (where != null) {
-				Operator selectop = createSelectOp(scan, where);
+				ArrayList<Expression> allEx= new ArrayList<Expression>();
+				allEx.add(where);
+				Operator selectop = createSelectOp(scan, where,allEx);
 				child = selectop;
 			} else {
 				child = scan;
@@ -260,7 +262,7 @@ public class QueryPlan {
 	 * @param ex    the expression to choose columns
 	 * @return a select operator
 	 */
-	public Operator createSelectOp(Operator child, Expression ex) {
+	public Operator createSelectOp(Operator child, Expression ex, ArrayList<Expression> allex) {
 		// TODO: P4
 		if (true) {
 			String childTable = Aliases.getTable(child.getTable());
@@ -273,6 +275,7 @@ public class QueryPlan {
 					childTable = col; // childTable is now tableName + "." + colName
 				}
 			}
+			// TODO: Get this working with the arraylist of expressions
 			String idxCol = childTable.substring(childTable.indexOf(".") + 1);
 			String[] exps = ex.toString().split(" AND ");
 			int lowkey = Integer.MIN_VALUE;
@@ -319,13 +322,16 @@ public class QueryPlan {
 			if (high != null || low != null) {
 				String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
 				boolean clustered = indexInfo[0].equals("1") ? true : false;
-				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(childTable);
+				int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable()))
+						.indexOf(childTable);
 				String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
 				child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
 			}
 		}
-
-		return new SelectOperator(child, ex);
+		
+		// Does not matter that this select operator is null
+		// The code here does not get made since the physicalPlanBuilder makes this obsolete.
+		return new SelectOperator(child, allex,null);
 	}
 
 	/**

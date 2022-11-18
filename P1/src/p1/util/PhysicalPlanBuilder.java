@@ -1,12 +1,16 @@
 package p1.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.CaseExpression;
 import net.sf.jsqlparser.expression.DateValue;
 import net.sf.jsqlparser.expression.DoubleValue;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.InverseExpression;
@@ -43,6 +47,7 @@ import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import p1.logicaloperator.LogicalAllJoin;
 import p1.logicaloperator.LogicalFilter;
 import p1.logicaloperator.LogicalJoin;
 import p1.logicaloperator.LogicalOperator;
@@ -60,6 +65,8 @@ import p1.operator.SMJOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.operator.TNLJOperator;
+import p1.unionfind.UnionFind;
+import p1.unionfind.UnionFindElement;
 
 /**
  * Walks through logical plan and builds a physical plan
@@ -160,58 +167,144 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					}
 				}
 				String idxCol = childTable.substring(childTable.indexOf(".") + 1);
-				String[] exps = cpy.getExpression().toString().split(" AND ");
-				int lowkey = Integer.MIN_VALUE;
-				int highkey = Integer.MAX_VALUE;
-				for (String e : exps) {
-					String[] exp = e.split(" ");
-					String[] left = exp[0].split("\\.");
-					String[] right = exp[2].split("\\.");
-					if ((left.length > 1 && left[1].equals(idxCol) && isInt(right[0]))
-							|| (right.length > 1 && right[1].equals(idxCol) && isInt(left[0]))) {
-						String comparator = exp[1];
-						if (isInt(right[0])) {
-							if (comparator.equals("<")) {
-								highkey = Math.min(Integer.parseInt(right[0]) - 1, highkey);
-							} else if (comparator.equals("<=")) {
-								highkey = Math.min(Integer.parseInt(right[0]), highkey);
-							} else if (comparator.equals(">")) {
-								lowkey = Math.max(Integer.parseInt(right[0]) + 1, lowkey);
-							} else if (comparator.equals(">=")) {
-								lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
-							} else if (comparator.equals("=")) {
-								lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
-								highkey = Math.min(Integer.parseInt(right[0]), highkey);
-							}
-						} else {
-							if (comparator.equals("<")) {
-								lowkey = Math.max(Integer.parseInt(left[0]) + 1, lowkey);
-							} else if (comparator.equals("<=")) {
-								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
-							} else if (comparator.equals(">")) {
-								highkey = Math.min(Integer.parseInt(left[0]) - 1, highkey);
-							} else if (comparator.equals(">=")) {
-								highkey = Math.min(Integer.parseInt(left[0]), highkey);
-							} else if (comparator.equals("=")) {
-								lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
-								highkey = Math.min(Integer.parseInt(left[0]), highkey);
+//				String[] exps = cpy.getExpression().toString().split(" AND ");
+//				System.out.println(cpy.getExpression());
+				if(cpy.getExpression().size()>0) {
+					int lowkey=Integer.MIN_VALUE;
+					int highkey= Integer.MAX_VALUE;
+					for(int k=0;k<cpy.getExpression().size();k++) {
+						String [] exps= cpy.getExpression().get(k).toString().split("AND");
+						for (String e : exps) {
+							String[] exp = e.split(" ");
+							String[] left = exp[0].split("\\.");
+							String[] right = exp[2].split("\\.");
+							if ((left.length > 1 && left[1].equals(idxCol) && isInt(right[0]))
+									|| (right.length > 1 && right[1].equals(idxCol) && isInt(left[0]))) {
+								String comparator = exp[1];
+								if (isInt(right[0])) {
+									if (comparator.equals("<")) {
+										highkey = Math.min(Integer.parseInt(right[0]) - 1, highkey);
+									} else if (comparator.equals("<=")) {
+										highkey = Math.min(Integer.parseInt(right[0]), highkey);
+									} else if (comparator.equals(">")) {
+										lowkey = Math.max(Integer.parseInt(right[0]) + 1, lowkey);
+									} else if (comparator.equals(">=")) {
+										lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+									} else if (comparator.equals("=")) {
+										lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+										highkey = Math.min(Integer.parseInt(right[0]), highkey);
+									}
+								} else {
+									if (comparator.equals("<")) {
+										lowkey = Math.max(Integer.parseInt(left[0]) + 1, lowkey);
+									} else if (comparator.equals("<=")) {
+										lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+									} else if (comparator.equals(">")) {
+										highkey = Math.min(Integer.parseInt(left[0]) - 1, highkey);
+									} else if (comparator.equals(">=")) {
+										highkey = Math.min(Integer.parseInt(left[0]), highkey);
+									} else if (comparator.equals("=")) {
+										lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+										highkey = Math.min(Integer.parseInt(left[0]), highkey);
+									}
+								}
 							}
 						}
 					}
-				}
-				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
-				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
-				// Assuming inclusive keys
-				if (high != null || low != null) {
-					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
-					boolean clustered = indexInfo[0].equals("1") ? true : false;
-					int indexIdx = DatabaseCatalog.getInstance().getSchema().get(child.getTable()).indexOf(childTable);
-					String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
-					child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
+					String[] exps= cpy.getExpression().get(0).toString().split("AND");
+//					int lowkey = Integer.MIN_VALUE;
+//					int highkey = Integer.MAX_VALUE;
+//					for (String e : exps) {
+//						String[] exp = e.split(" ");
+//						String[] left = exp[0].split("\\.");
+//						String[] right = exp[2].split("\\.");
+//						if ((left.length > 1 && left[1].equals(idxCol) && isInt(right[0]))
+//								|| (right.length > 1 && right[1].equals(idxCol) && isInt(left[0]))) {
+//							String comparator = exp[1];
+//							if (isInt(right[0])) {
+//								if (comparator.equals("<")) {
+//									highkey = Math.min(Integer.parseInt(right[0]) - 1, highkey);
+//								} else if (comparator.equals("<=")) {
+//									highkey = Math.min(Integer.parseInt(right[0]), highkey);
+//								} else if (comparator.equals(">")) {
+//									lowkey = Math.max(Integer.parseInt(right[0]) + 1, lowkey);
+//								} else if (comparator.equals(">=")) {
+//									lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+//								} else if (comparator.equals("=")) {
+//									lowkey = Math.max(Integer.parseInt(right[0]), lowkey);
+//									highkey = Math.min(Integer.parseInt(right[0]), highkey);
+//								}
+//							} else {
+//								if (comparator.equals("<")) {
+//									lowkey = Math.max(Integer.parseInt(left[0]) + 1, lowkey);
+//								} else if (comparator.equals("<=")) {
+//									lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+//								} else if (comparator.equals(">")) {
+//									highkey = Math.min(Integer.parseInt(left[0]) - 1, highkey);
+//								} else if (comparator.equals(">=")) {
+//									highkey = Math.min(Integer.parseInt(left[0]), highkey);
+//								} else if (comparator.equals("=")) {
+//									lowkey = Math.max(Integer.parseInt(left[0]), lowkey);
+//									highkey = Math.min(Integer.parseInt(left[0]), highkey);
+//								}
+//							}
+//						}
+//					}
+					Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
+					Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;
+					// Assuming inclusive keys
+//					System.out.println(childTable);
+					if (high != null || low != null) {
+						String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable);
+						boolean clustered = indexInfo[0].equals("1") ? true : false;
+						int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable()))
+								.indexOf(childTable);
+						String idxFile = DatabaseCatalog.getInstance().getIndexDir() + childTable;
+						child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
+					}
 				}
 			}
-
-			return new SelectOperator(child, cpy.getExpression());
+			HashMap<String,ArrayList<Integer>> ufRestraints = new HashMap<String,ArrayList<Integer>>();
+			// The child table is always a scan child so we can just convert that child into a scanOperator
+			// Then from that we can get the schema from that and using the schema then we can assign the right conditions
+			// for that given table.
+			ScanOperator childOp= (ScanOperator)child;
+			ArrayList<String> schema = childOp.getSchema();
+			ArrayList<UnionFindElement> ufInfo= cpy.getUfRestraints();
+			
+			for(int k=0;k<ufInfo.size();k++) {
+				// For each of the attribute constraints if that string is in our attribute
+				// table then we add it to the list of constraints.
+				UnionFindElement curr= ufInfo.get(k);
+				// Get the arrayList of attributes in this current union set
+				ArrayList<String> attributes = curr.getAttributeSet();
+				for(int l=0;l<attributes.size();l++) {
+					if (schema.contains(attributes.get(l))) {
+						ArrayList<Integer> bounds = new ArrayList<Integer>();
+						bounds.add(curr.getMinValue());
+						bounds.add(curr.getMaxValue());
+						ufRestraints.put(attributes.get(l), bounds);
+					}
+				}
+			}
+//			System.out.println("Delimit this section from the top");
+			// Print out the table that we are getting the restraints on
+//			System.out.println(child.getTable());
+			
+			// Print out the restraints that we are assigning to this table
+//			for(String key: ufRestraints.keySet()) {
+//				System.out.println(key);
+//				System.out.println(ufRestraints.get(key));
+//			}
+//			System.out.println("Delimit this value from the bottom");
+			
+			// It looks like adding the bounds to the value work so the next step in doing this
+			// is to integrate with the rest of the code.
+			
+//			System.out.println(child.getTable());
+//			System.out.println(cpy.getExpression());
+//			System.out.println("delimiter is being set here: the delimiter that is being set here is just this");
+			return new SelectOperator(child, cpy.getExpression(),ufRestraints);
 		}
 
 		if (rootOperator instanceof LogicalProject) {
@@ -224,6 +317,69 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			ProjectOperator project = new ProjectOperator(child, cpy.getSelects());
 
 			return project;
+		}
+
+		// If the rootOperator is our new LogicalAllJoin then the only thing
+		// that get the list of all operators for each of those tables
+		// Then based on some test statistics function we will choose which join that we
+		// want to
+		// make for each of those table joins that we have to do.
+		if (rootOperator instanceof LogicalAllJoin) {
+			Operator prevJoin = null;
+			LogicalAllJoin cpy = (LogicalAllJoin) rootOperator;
+			ArrayList<Expression> notUsed= cpy.getUnusedOperators();
+			UnionFind uf= cpy.getUnionFind();
+//			System.out.println(cpy.getUnionFind());
+//			System.out.println("Union find element found");
+			// Get the list of all the tables
+			List<String> allTables = cpy.getTableNames();
+			List<LogicalOperator> operators = cpy.getTableOperators();
+			HashMap<String[], ArrayList<Expression>> allConditions = cpy.getConditions();
+//			System.out.println("Delimit this value up on the top here");
+//			System.out.println("All conditions are in here");
+//			for(String [] key: allConditions.keySet()) {
+//				System.out.println(allConditions.get(key));
+//			}
+//			System.out.println("All conditions ended in the section before us");
+//			System.out.println(notUsed);
+//			System.out.println("Delimit this value right here");
+			// If we made a logicalalljoin then there is at least two tables
+			for (int i = 1; i < allTables.size(); i++) {
+				// The first join creation always joins two different tables
+				if (i == 1) {
+					// Write a function here to generate the conditions for the join operator
+
+					// First thing to do is convert the two logical operator into the right
+					// physical Operator.
+					Operator left = generatePhysicalTree(operators.get(i - 1));
+					Operator right = generatePhysicalTree(operators.get(i));
+//					System.out.println("=================================");
+					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,uf);
+					String joinName = left.getTable() + "," + right.getTable();
+//					System.out.println(joinName);
+//					System.out.println("++++++++++++++++++++++++++++++++++++");
+					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
+//					System.out.println(joinName);
+//					System.out.println(joinConditions);
+					prevJoin = joinElement;
+				} else {
+					// If not the first element then there must be anohter join before this.
+					Operator left = prevJoin;
+					Operator right = generatePhysicalTree(operators.get(i));
+					String joinName = left.getTable() + "," + right.getTable();
+//					System.out.println("=================================");
+					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf);
+					System.out.println(joinName);
+//					System.out.println("++++++++++++++++++++++++++++++++++++++");
+					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
+					prevJoin = joinElement;
+//					System.out.println(joinName);
+//					System.out.println(joinConditions);
+				}
+//				System.out.println("+++++++++++++++++++");
+			}
+
+			return prevJoin;
 		}
 
 		if (rootOperator instanceof LogicalJoin) {
@@ -286,6 +442,83 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		Operator physicalroot = this.generatePhysicalTree(root);
 		QueryPlan physicalcopy = new QueryPlan(physicalroot);
 		this.physicalPlan = physicalcopy;
+	}
+
+	private Operator chooseJoin(String tableNames, Operator left, Operator right,
+			ArrayList<Expression> joinConditions) {
+
+		Operator result = null;
+		if (true) {
+			result = new TNLJOperator(tableNames, left, right, joinConditions);
+		} else if (true) {
+			result = new BNLJOperator(tableNames, left, right, joinConditions, 10);
+		} else {
+			// Change this back later for some reason there is an error when we change this
+			// from the tuple nest loop join to the sort merge join
+			result = new SMJOperator(tableNames, left, right, joinConditions);
+		}
+
+		return result;
+	}
+
+	private ArrayList<Expression> getJoinConditions(Operator left, Operator right,
+			HashMap<String[], ArrayList<Expression>> conditions, ArrayList<Expression> notUsed, UnionFind uf) {
+		String leftName = left.getTable();
+		String rightName = right.getTable();
+		String combinedName = leftName + "," + rightName;
+		String[] tablesNeeded = combinedName.split(",");
+		HashSet<String> tblsNeeded = new HashSet<String>();
+		ArrayList<Expression> joinCondition = new ArrayList<Expression>();
+		// Get all of the tables for the current join making sure that there are no
+		// duplicates.
+		ArrayList<Expression> filteredConditions= new ArrayList<Expression>();
+		for (int i = 0; i < tablesNeeded.length; i++) {
+			tblsNeeded.add(tablesNeeded[i]);
+		}
+
+		for (String[] key : conditions.keySet()) {
+			boolean allIncluded = true;
+			for (int l = 0; l < key.length; l++) {
+				allIncluded = allIncluded && tblsNeeded.contains(key[l]);
+			}
+
+			if (allIncluded) {
+//				System.out.println("We entered this loop and some conditions were assigned");
+				ArrayList<Expression> allExpr = conditions.get(key);
+				for (int p = 0; p < allExpr.size(); p++) {
+//					System.out.println(allExpr.get(p));
+//					System.out.println(allExpr.get(p) instanceof EqualsTo);
+					joinCondition.add(allExpr.get(p));
+					if(notUsed.contains(allExpr.get(p))) {
+						filteredConditions.add(allExpr.get(p));
+					}
+					else {
+						// Check if this an equality operator since that is the only operator
+						// that needs to be checked 
+						if (allExpr.get(p) instanceof EqualsTo) {
+							// Get the left expression and then make it into a string
+							// it must be in the unionfind since it is not in the list of
+							// expressions that we are parsing.
+							// For some of the queries that we have they are not valid since we have
+							// the form that A1=v1, A2=v2, and A1=A2 but then the values cannot be equal
+							// which they said is not allowed and not tested.
+							EqualsTo leftExpression = (EqualsTo) allExpr.get(p);
+							Expression leftAttribute = leftExpression.getLeftExpression();
+							String leftAttributeValue= leftAttribute.toString();
+							UnionFindElement ufe= uf.find(leftAttributeValue);
+							if(ufe.getMaxValue()==Integer.MAX_VALUE && ufe.getMinValue()==Integer.MIN_VALUE) {
+								filteredConditions.add(allExpr.get(p));
+//								System.out.println("Did we enter inside of this loop");
+							}
+						}
+					}
+				}
+			}
+		}
+//		System.out.println(joinCondition);
+//		System.out.println(filteredConditions);
+
+		return filteredConditions;
 	}
 
 	@Override

@@ -1,6 +1,8 @@
 package p1.logicaloperator;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import net.sf.jsqlparser.expression.Expression;
 
@@ -85,6 +87,8 @@ public class LogicalJoin extends LogicalOperator {
 		String leftString = left.toString(level + 1);
 		String rightString = right.toString(level + 1);
 		String unionFind = ""; // TODO: FINISH WHEN UNION FIND IS DONE
-		return "-".repeat(level) + "Join" + exp.toString() + "\n" + leftString + rightString + unionFind;
+		List<String> whereStr = exp.stream().map(s -> s.toString()).collect(Collectors.toList());
+		return "-".repeat(level) + "Join[" + String.join(" AND ", whereStr) + "]\n" + leftString + rightString
+				+ unionFind;
 	}
 }
