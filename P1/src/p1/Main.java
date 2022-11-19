@@ -133,6 +133,9 @@ public class Main {
 							Path physFilePath = Paths.get(physicalOutputFile);
 							ArrayList<String> physPlan = new ArrayList<String>();
 							physPlan.add(qp.getOperator().toString(0));
+//							System.out.println(qp.getOperator().toString(0));
+							// Im guessing the physPlan only get the first operator and that is
+							// why there is nothing in the tree right now.
 							Files.write(physFilePath, physPlan, StandardCharsets.UTF_8);
 						} catch (IOException e) {
 							System.out.println("Error writing plan file: ");

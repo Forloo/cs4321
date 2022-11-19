@@ -271,13 +271,18 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			ScanOperator childOp= (ScanOperator)child;
 			ArrayList<String> schema = childOp.getSchema();
 			ArrayList<UnionFindElement> ufInfo= cpy.getUfRestraints();
-			
+//			System.out.println("Before getting the information for the unionfind value");
+//			System.out.println(ufInfo);
+//			System.out.println("After getting the information for the unionfind value");
 			for(int k=0;k<ufInfo.size();k++) {
 				// For each of the attribute constraints if that string is in our attribute
 				// table then we add it to the list of constraints.
 				UnionFindElement curr= ufInfo.get(k);
 				// Get the arrayList of attributes in this current union set
 				ArrayList<String> attributes = curr.getAttributeSet();
+//				System.out.println("We are finding the schema for this problem");
+//				System.out.println(schema);
+//				System.out.println("The schema that we are looking for is above this given line");
 				for(int l=0;l<attributes.size();l++) {
 					if (schema.contains(attributes.get(l))) {
 						ArrayList<Integer> bounds = new ArrayList<Integer>();
@@ -319,19 +324,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			return project;
 		}
 
-		// If the rootOperator is our new LogicalAllJoin then the only thing
-		// that get the list of all operators for each of those tables
-		// Then based on some test statistics function we will choose which join that we
-		// want to
-		// make for each of those table joins that we have to do.
+		// TODO After using dynamic programming we will choose the order in which query 
+		// objects will be joined together
 		if (rootOperator instanceof LogicalAllJoin) {
 			Operator prevJoin = null;
 			LogicalAllJoin cpy = (LogicalAllJoin) rootOperator;
 			ArrayList<Expression> notUsed= cpy.getUnusedOperators();
 			UnionFind uf= cpy.getUnionFind();
-//			System.out.println(cpy.getUnionFind());
-//			System.out.println("Union find element found");
-			// Get the list of all the tables
 			List<String> allTables = cpy.getTableNames();
 			List<LogicalOperator> operators = cpy.getTableOperators();
 			HashMap<String[], ArrayList<Expression>> allConditions = cpy.getConditions();
@@ -349,8 +348,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				if (i == 1) {
 					// Write a function here to generate the conditions for the join operator
 
-					// First thing to do is convert the two logical operator into the right
-					// physical Operator.
+					// Convert to the correct physical operators
 					Operator left = generatePhysicalTree(operators.get(i - 1));
 					Operator right = generatePhysicalTree(operators.get(i));
 //					System.out.println("=================================");
@@ -363,14 +361,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //					System.out.println(joinConditions);
 					prevJoin = joinElement;
 				} else {
-					// If not the first element then there must be anohter join before this.
 					Operator left = prevJoin;
 					Operator right = generatePhysicalTree(operators.get(i));
 					String joinName = left.getTable() + "," + right.getTable();
-//					System.out.println("=================================");
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf);
 					System.out.println(joinName);
-//					System.out.println("++++++++++++++++++++++++++++++++++++++");
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 					prevJoin = joinElement;
 //					System.out.println(joinName);
@@ -493,22 +488,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						filteredConditions.add(allExpr.get(p));
 					}
 					else {
-						// Check if this an equality operator since that is the only operator
-						// that needs to be checked 
 						if (allExpr.get(p) instanceof EqualsTo) {
-							// Get the left expression and then make it into a string
-							// it must be in the unionfind since it is not in the list of
-							// expressions that we are parsing.
-							// For some of the queries that we have they are not valid since we have
-							// the form that A1=v1, A2=v2, and A1=A2 but then the values cannot be equal
-							// which they said is not allowed and not tested.
 							EqualsTo leftExpression = (EqualsTo) allExpr.get(p);
 							Expression leftAttribute = leftExpression.getLeftExpression();
 							String leftAttributeValue= leftAttribute.toString();
 							UnionFindElement ufe= uf.find(leftAttributeValue);
 							if(ufe.getMaxValue()==Integer.MAX_VALUE && ufe.getMinValue()==Integer.MIN_VALUE) {
 								filteredConditions.add(allExpr.get(p));
-//								System.out.println("Did we enter inside of this loop");
 							}
 						}
 					}
