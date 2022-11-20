@@ -169,11 +169,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				String idxCol = childTable.substring(childTable.indexOf(".") + 1);
 //				String[] exps = cpy.getExpression().toString().split(" AND ");
 //				System.out.println(cpy.getExpression());
-				if(cpy.getExpression().size()>0) {
-					int lowkey=Integer.MIN_VALUE;
-					int highkey= Integer.MAX_VALUE;
-					for(int k=0;k<cpy.getExpression().size();k++) {
-						String [] exps= cpy.getExpression().get(k).toString().split("AND");
+				if (cpy.getExpression().size() > 0) {
+					int lowkey = Integer.MIN_VALUE;
+					int highkey = Integer.MAX_VALUE;
+					for (int k = 0; k < cpy.getExpression().size(); k++) {
+						String[] exps = cpy.getExpression().get(k).toString().split(" AND ");
 						for (String e : exps) {
 							String[] exp = e.split(" ");
 							String[] left = exp[0].split("\\.");
@@ -211,7 +211,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 							}
 						}
 					}
-					String[] exps= cpy.getExpression().get(0).toString().split("AND");
+					String[] exps = cpy.getExpression().get(0).toString().split("AND");
 //					int lowkey = Integer.MIN_VALUE;
 //					int highkey = Integer.MAX_VALUE;
 //					for (String e : exps) {
@@ -264,26 +264,23 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					}
 				}
 			}
-			HashMap<String,ArrayList<Integer>> ufRestraints = new HashMap<String,ArrayList<Integer>>();
-			// The child table is always a scan child so we can just convert that child into a scanOperator
-			// Then from that we can get the schema from that and using the schema then we can assign the right conditions
+			HashMap<String, ArrayList<Integer>> ufRestraints = new HashMap<String, ArrayList<Integer>>();
+			// The child table is always a scan child so we can just convert that child into
+			// a scanOperator
+			// Then from that we can get the schema from that and using the schema then we
+			// can assign the right conditions
 			// for that given table.
-			ScanOperator childOp= (ScanOperator)child;
+			ScanOperator childOp = (ScanOperator) child;
 			ArrayList<String> schema = childOp.getSchema();
-			ArrayList<UnionFindElement> ufInfo= cpy.getUfRestraints();
-//			System.out.println("Before getting the information for the unionfind value");
-//			System.out.println(ufInfo);
-//			System.out.println("After getting the information for the unionfind value");
-			for(int k=0;k<ufInfo.size();k++) {
+			ArrayList<UnionFindElement> ufInfo = cpy.getUfRestraints();
+
+			for (int k = 0; k < ufInfo.size(); k++) {
 				// For each of the attribute constraints if that string is in our attribute
 				// table then we add it to the list of constraints.
-				UnionFindElement curr= ufInfo.get(k);
+				UnionFindElement curr = ufInfo.get(k);
 				// Get the arrayList of attributes in this current union set
 				ArrayList<String> attributes = curr.getAttributeSet();
-//				System.out.println("We are finding the schema for this problem");
-//				System.out.println(schema);
-//				System.out.println("The schema that we are looking for is above this given line");
-				for(int l=0;l<attributes.size();l++) {
+				for (int l = 0; l < attributes.size(); l++) {
 					if (schema.contains(attributes.get(l))) {
 						ArrayList<Integer> bounds = new ArrayList<Integer>();
 						bounds.add(curr.getMinValue());
@@ -295,21 +292,22 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //			System.out.println("Delimit this section from the top");
 			// Print out the table that we are getting the restraints on
 //			System.out.println(child.getTable());
-			
+
 			// Print out the restraints that we are assigning to this table
 //			for(String key: ufRestraints.keySet()) {
 //				System.out.println(key);
 //				System.out.println(ufRestraints.get(key));
 //			}
 //			System.out.println("Delimit this value from the bottom");
-			
-			// It looks like adding the bounds to the value work so the next step in doing this
+
+			// It looks like adding the bounds to the value work so the next step in doing
+			// this
 			// is to integrate with the rest of the code.
-			
+
 //			System.out.println(child.getTable());
 //			System.out.println(cpy.getExpression());
 //			System.out.println("delimiter is being set here: the delimiter that is being set here is just this");
-			return new SelectOperator(child, cpy.getExpression(),ufRestraints);
+			return new SelectOperator(child, cpy.getExpression(), ufRestraints);
 		}
 
 		if (rootOperator instanceof LogicalProject) {
@@ -352,7 +350,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					Operator left = generatePhysicalTree(operators.get(i - 1));
 					Operator right = generatePhysicalTree(operators.get(i));
 //					System.out.println("=================================");
-					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,uf);
+					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,
+							uf);
 					String joinName = left.getTable() + "," + right.getTable();
 //					System.out.println(joinName);
 //					System.out.println("++++++++++++++++++++++++++++++++++++");
@@ -466,7 +465,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		ArrayList<Expression> joinCondition = new ArrayList<Expression>();
 		// Get all of the tables for the current join making sure that there are no
 		// duplicates.
-		ArrayList<Expression> filteredConditions= new ArrayList<Expression>();
+		ArrayList<Expression> filteredConditions = new ArrayList<Expression>();
 		for (int i = 0; i < tablesNeeded.length; i++) {
 			tblsNeeded.add(tablesNeeded[i]);
 		}
@@ -484,16 +483,16 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //					System.out.println(allExpr.get(p));
 //					System.out.println(allExpr.get(p) instanceof EqualsTo);
 					joinCondition.add(allExpr.get(p));
-					if(notUsed.contains(allExpr.get(p))) {
+					if (notUsed.contains(allExpr.get(p))) {
 						filteredConditions.add(allExpr.get(p));
 					}
 					else {
 						if (allExpr.get(p) instanceof EqualsTo) {
 							EqualsTo leftExpression = (EqualsTo) allExpr.get(p);
 							Expression leftAttribute = leftExpression.getLeftExpression();
-							String leftAttributeValue= leftAttribute.toString();
-							UnionFindElement ufe= uf.find(leftAttributeValue);
-							if(ufe.getMaxValue()==Integer.MAX_VALUE && ufe.getMinValue()==Integer.MIN_VALUE) {
+							String leftAttributeValue = leftAttribute.toString();
+							UnionFindElement ufe = uf.find(leftAttributeValue);
+							if (ufe.getMaxValue() == Integer.MAX_VALUE && ufe.getMinValue() == Integer.MIN_VALUE) {
 								filteredConditions.add(allExpr.get(p));
 							}
 						}
