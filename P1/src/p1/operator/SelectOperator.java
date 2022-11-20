@@ -2,6 +2,7 @@ package p1.operator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.io.BinaryTupleWriter;
@@ -151,6 +152,37 @@ public class SelectOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
+	
+	public HashMap<String,ArrayList<Integer>> getUfConstraints(){
+		return this.ufRestraints;
+	}
+	
+	private String toStringHelper(String column,Integer min, Integer max) {
+		String ret="";
+		
+		boolean used=false;
+		if(min==Integer.MIN_VALUE) {
+			;
+		}
+		else {
+			ret=ret+column+">="+min;
+			used=true;
+		}
+		
+		if(max==Integer.MAX_VALUE) {
+			;
+		}
+		else {
+			if(!used) {
+				ret=ret+column+"<="+max;
+			}
+			else {
+				ret=ret+","+column+"<="+max;
+			}
+		}
+		
+		return ret;
+	}
 
 	/**
 	 * Gets the string to print for the physical plan
@@ -159,7 +191,47 @@ public class SelectOperator extends Operator {
 	 * @return the physical plan in string form
 	 */
 	public String toString(int level) {
-		return "-".repeat(level) + "Select[" + where.toString() + "]\n" + scanObj.toString(level + 1);
+		// where expression 
+		String wherePortion="";
+		for(int i=0;i<where.size();i++) {
+			if(i==where.size()-1) {
+				wherePortion=wherePortion+ where.get(i).toString();
+			}
+			else {
+				wherePortion=wherePortion+","+wherePortion;
+			}
+		}
+		String unionFindPortion="";
+//		System.out.println("++++++++++++++++++++++++");
+//		System.out.println(this.ufRestraints);
+//		System.out.println("===========================");
+		// Add union constraints.
+		HashMap<String, ArrayList<Integer>> ufConstraints= this.getUfConstraints();
+		boolean used=false;
+		for(String key: ufConstraints.keySet()) {
+			if(this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1)).length()>0){
+				if(!(used)) {
+					unionFindPortion=unionFindPortion+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+					used=true;
+				}
+				else {
+					unionFindPortion=unionFindPortion+","+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+				}
+			}
+		}
+		
+		String combinedWhere="";
+		if(wherePortion.length()>0 && unionFindPortion.length()>0) {
+			combinedWhere=wherePortion+","+unionFindPortion;
+		}
+		else if(wherePortion.length()>0 && !(unionFindPortion.length()>0)){
+			combinedWhere=wherePortion;
+		}
+		else if (!(wherePortion.length()>0) && unionFindPortion.length()>0) {
+			combinedWhere=unionFindPortion;
+		}
+		
+		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + scanObj.toString(level + 1);
 	}
 
 }

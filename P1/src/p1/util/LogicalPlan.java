@@ -341,12 +341,6 @@ public class LogicalPlan {
 			} else {
 				if (tableConditions.containsKey(alias)) {
 					ArrayList<Expression> currConditions= tableConditions.get(alias);
-					// One problem here is that the expression only takes in one expression
-					// But the problem is that there could be a lot of expression for this one
-					// table.
-					
-					// Solve the issue that we can only give the select operator one expression
-					// Now we want to only add the expressions that are not included by the union find
 					
 					ArrayList<Expression> notIncluded = new ArrayList<Expression>();
 					
@@ -361,11 +355,6 @@ public class LogicalPlan {
 //					System.out.println(currConditions);
 //					System.out.println(notIncluded);
 //					System.out.println(notUsed);
-					
-					// I need to assign to the select operator the right conditions 
-					// the right attribute values. Then I need to make sure I set those
-					// bounds on the right column value for the select so that we can 
-					// apply those conditions
 					
 					LogicalScan scanOp = new LogicalScan(alias);
 //					ArrayList<UnionFindElement> allElements= uf.getUnionElement();

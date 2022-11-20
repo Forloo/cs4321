@@ -110,6 +110,13 @@ public class UnionFind {
 		// 3. Check merge conditions and if there is overlap then make something for the
 		// overlap
 		// 4. Check if it is contained in our solution if not then add.
+		
+		if (unionOne.getUnionElement().size()==0) {
+			return unionTwo;
+		}
+		else if(unionOne.getUnionElement().size()>0 && unionTwo.getUnionElement().size()==0) {
+			return unionOne;
+		}
 
 		UnionFind curr = new UnionFind();
 		for (int i = 0; i < unionOne.getUnionElement().size(); i++) {
