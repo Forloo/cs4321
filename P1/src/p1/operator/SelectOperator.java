@@ -2,7 +2,6 @@ package p1.operator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.io.BinaryTupleWriter;
@@ -31,7 +30,7 @@ public class SelectOperator extends Operator {
 	public SelectOperator(Operator op, ArrayList<Expression> ex, HashMap<String, ArrayList<Integer>> ufRestraints) {
 		where = ex;
 		scanObj = op;
-		this.ufRestraints=ufRestraints;
+		this.ufRestraints = ufRestraints;
 	}
 
 	/**
@@ -46,38 +45,39 @@ public class SelectOperator extends Operator {
 			if (nextTuple == null) {
 				return null;
 			}
-			
-			Boolean allTrue= true;
+
+			Boolean allTrue = true;
 			// Convert this function to handle the arraylist
-			for(int i=0;i<where.size();i++) {
-				ExpressionEvaluator exprObj2= new ExpressionEvaluator(nextTuple,scanObj.getSchema());
+			for (int i = 0; i < where.size(); i++) {
+				ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, scanObj.getSchema());
 				Expression curr = where.get(i);
 				curr.accept(exprObj2);
-				Boolean result= Boolean.parseBoolean(exprObj2.getValue());
-				allTrue=allTrue && result;
+				Boolean result = Boolean.parseBoolean(exprObj2.getValue());
+				allTrue = allTrue && result;
 			}
-			
+
 			// Loop through all of the extra union find constraints
-			for(String key: ufRestraints.keySet()) {
-				// The key value must be here since we check the conditions before adding to our list
-				int schema_location= this.getSchema().indexOf(key);
-				// Given the schema location here we can then findt the value in the tuple that we are given
-				int tuple_value= Integer.parseInt(nextTuple.getTuple().get(schema_location));
-				Integer min_value= ufRestraints.get(key).get(0);
+			for (String key : ufRestraints.keySet()) {
+				// The key value must be here since we check the conditions before adding to our
+				// list
+				int schema_location = this.getSchema().indexOf(key);
+				// Given the schema location here we can then findt the value in the tuple that
+				// we are given
+				int tuple_value = Integer.parseInt(nextTuple.getTuple().get(schema_location));
+				Integer min_value = ufRestraints.get(key).get(0);
 				Integer max_value = ufRestraints.get(key).get(1);
-				if(tuple_value>=min_value && tuple_value<=max_value) {
-					allTrue=allTrue && true;
-				}
-				else {
+				if (tuple_value >= min_value && tuple_value <= max_value) {
+					allTrue = allTrue && true;
+				} else {
 					// Violates the condition
-					allTrue= allTrue && false;
+					allTrue = allTrue && false;
 				}
 			}
-			
+
 			if (allTrue) {
 				return nextTuple;
 			}
-			
+
 //			ExpressionEvaluator exprObj2 = new ExpressionEvaluator(nextTuple, scanObj.getSchema());
 //			where.accept(exprObj2);
 //			if (Boolean.parseBoolean(exprObj2.getValue())) {
@@ -152,35 +152,32 @@ public class SelectOperator extends Operator {
 			e.printStackTrace();
 		}
 	}
-	
-	public HashMap<String,ArrayList<Integer>> getUfConstraints(){
+
+	public HashMap<String, ArrayList<Integer>> getUfConstraints() {
 		return this.ufRestraints;
 	}
-	
-	private String toStringHelper(String column,Integer min, Integer max) {
-		String ret="";
-		
-		boolean used=false;
-		if(min==Integer.MIN_VALUE) {
+
+	private String toStringHelper(String column, Integer min, Integer max) {
+		String ret = "";
+
+		boolean used = false;
+		if (min == Integer.MIN_VALUE) {
 			;
+		} else {
+			ret = ret + column + " >= " + min;
+			used = true;
 		}
-		else {
-			ret=ret+column+">="+min;
-			used=true;
-		}
-		
-		if(max==Integer.MAX_VALUE) {
+
+		if (max == Integer.MAX_VALUE) {
 			;
-		}
-		else {
-			if(!used) {
-				ret=ret+column+"<="+max;
-			}
-			else {
-				ret=ret+","+column+"<="+max;
+		} else {
+			if (!used) {
+				ret = ret + column + " <= " + max;
+			} else {
+				ret = ret + ", " + column + " <= " + max;
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -191,46 +188,44 @@ public class SelectOperator extends Operator {
 	 * @return the physical plan in string form
 	 */
 	public String toString(int level) {
-		// where expression 
-		String wherePortion="";
-		for(int i=0;i<where.size();i++) {
-			if(i==where.size()-1) {
-				wherePortion=wherePortion+ where.get(i).toString();
-			}
-			else {
-				wherePortion=wherePortion+","+wherePortion;
+		// where expression
+		String wherePortion = "";
+		for (int i = 0; i < where.size(); i++) {
+			if (i == where.size() - 1) {
+				wherePortion = wherePortion + where.get(i).toString();
+			} else {
+				wherePortion = wherePortion + ", " + wherePortion;
 			}
 		}
-		String unionFindPortion="";
+		String unionFindPortion = "";
 //		System.out.println("++++++++++++++++++++++++");
 //		System.out.println(this.ufRestraints);
 //		System.out.println("===========================");
 		// Add union constraints.
-		HashMap<String, ArrayList<Integer>> ufConstraints= this.getUfConstraints();
-		boolean used=false;
-		for(String key: ufConstraints.keySet()) {
-			if(this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1)).length()>0){
-				if(!(used)) {
-					unionFindPortion=unionFindPortion+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
-					used=true;
-				}
-				else {
-					unionFindPortion=unionFindPortion+","+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+		HashMap<String, ArrayList<Integer>> ufConstraints = this.getUfConstraints();
+		boolean used = false;
+		for (String key : ufConstraints.keySet()) {
+			if (this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1)).length() > 0) {
+				if (!(used)) {
+					unionFindPortion = unionFindPortion
+							+ this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+					used = true;
+				} else {
+					unionFindPortion = unionFindPortion + ", "
+							+ this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
 				}
 			}
 		}
-		
-		String combinedWhere="";
-		if(wherePortion.length()>0 && unionFindPortion.length()>0) {
-			combinedWhere=wherePortion+","+unionFindPortion;
+
+		String combinedWhere = "";
+		if (wherePortion.length() > 0 && unionFindPortion.length() > 0) {
+			combinedWhere = wherePortion + "," + unionFindPortion;
+		} else if (wherePortion.length() > 0 && !(unionFindPortion.length() > 0)) {
+			combinedWhere = wherePortion;
+		} else if (!(wherePortion.length() > 0) && unionFindPortion.length() > 0) {
+			combinedWhere = unionFindPortion;
 		}
-		else if(wherePortion.length()>0 && !(unionFindPortion.length()>0)){
-			combinedWhere=wherePortion;
-		}
-		else if (!(wherePortion.length()>0) && unionFindPortion.length()>0) {
-			combinedWhere=unionFindPortion;
-		}
-		
+
 		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + scanObj.toString(level + 1);
 	}
 
