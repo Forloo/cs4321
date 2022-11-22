@@ -1,3 +1,3 @@
-/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/input
-/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/output
-/Users/jocelynsun/Desktop/CS 4321/cs4321/P1/temp
+/Users/annazhang/db/cs4321/P1/input
+/Users/annazhang/db/cs4321/P1/output
+/Users/annazhang/db/cs4321/P1/temp
