@@ -223,15 +223,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				boolean clustered = indexInfo[0].equals("1") ? true : false;	
 					
 				String finalIndex = null;
-				int counter = 0;
+				int counter = 0; // to keep track of colIdx
 				int colIdx = 0;
 					
 				ArrayList<Integer> leaves = DatabaseCatalog.getInstance().getNumLeaves();
 					
 				// calculate index scan cost for each index 
 				for (String columnName : indexInfo) {
-						
-					counter++; // to keep track of colIdx, not sure if i actually need this 
 					int[] range = DatabaseCatalog.getInstance().statsInfo.get(columnName);
 												
 					double total = range[1] - range[0]; // total range of values for this attribute 			    		
@@ -268,6 +266,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						finalIndex = columnName; // index to use, return null if no index should be used (scan instead)
 						colIdx = counter; // the column index that the table is indexed on
 					} 
+					counter++; 
+
 				} 
 				
 				LogicalScan copy = (LogicalScan) rootOperator;
