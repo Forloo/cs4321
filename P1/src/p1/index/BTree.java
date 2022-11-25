@@ -178,7 +178,6 @@ public class BTree {
 			BTreeNode prev = null;
 			for (int j = counter; j < upperBound; j++) {
 				childNodes.add(references.get(j));
-
 				if (j != counter) {
 					int keyValue = references.get(j).getSmallest();
 					// Each key value is unique the value should not have appeared before
@@ -191,10 +190,13 @@ public class BTree {
 						if (j == upperBound - 1) {
 							pointers.get(keyValue).add(prev.getAddress());
 							pointers.get(keyValue).add(references.get(j).getAddress());
+//							System.out.println(references.get(j).getAddress());
+//							System.out.println("Getting the address for the previous reference there is a bug here somewhere");
 						} else {
 							pointers.get(keyValue).add(prev.getAddress());
+//							System.out.println(references.get(j).getAddress());
+//							System.out.println("Other loops address values");
 						}
-
 					}
 				}
 				prev = references.get(j);
@@ -205,12 +207,14 @@ public class BTree {
 			BTreeIndexNode index = new BTreeIndexNode(this.order, childNodes, pointerInfo, this.getPageTracker());
 			indexList.add(index);
 			this.pageTracker += 1;
+//			System.out.println(this.pageTracker);
 
 			counter = upperBound;
 			remaining = remaining - numElements;
 		}
 
 		if (remaining > 0) {
+//			System.out.println(this.pageTracker);
 			int half = remaining / 2;
 			ArrayList<BTreeNode> childNodeOne = new ArrayList<BTreeNode>();
 			TreeMap<Integer, ArrayList<Integer>> pointersOne = new TreeMap<Integer, ArrayList<Integer>>();
@@ -230,8 +234,12 @@ public class BTree {
 						if (k == counter + half - 1) {
 							pointersOne.get(keyValue).add(prev.getAddress());
 							pointersOne.get(keyValue).add(references.get(k).getAddress());
+//							System.out.println(references.get(k).getAddress());
+//							System.out.println("Getting the address in the remaining sections");
 						} else {
 							pointersOne.get(keyValue).add(prev.getAddress());
+//							System.out.println(prev.getAddress());
+//							System.out.println("The remaining sections key value something messed up here");
 						}
 
 					}
@@ -264,11 +272,18 @@ public class BTree {
 					if (l == references.size() - 1) {
 						pointersTwo.get(keyValue).add(prev.getAddress());
 						pointersTwo.get(keyValue).add(references.get(l).getAddress());
+//						System.out.println("Some error is happening in the line of code here");
+//						System.out.println(references.get(l).getAddress());
 					} else {
 						pointersTwo.get(keyValue).add(prev.getAddress());
+//						System.out.println(prev.getAddress());
+//						System.out.println("Is the error message in the line of code here");
 					}
 
 				}
+				// Indexing was getting an error in this line of code since before the prev here did not exist
+				// the prev stayed the same and due to that the child address ended up being wrong.
+				prev=references.get(l);
 			}
 
 			ArrayList<Map.Entry<Integer, ArrayList<Integer>>> pointerInfoTwo = new ArrayList<Map.Entry<Integer, ArrayList<Integer>>>(
@@ -278,7 +293,17 @@ public class BTree {
 			this.pageTracker += 1;
 			indexList.add(indexTwo);
 		}
-
+		
+//		for (BTreeNode curr: indexList) {
+//			BTreeIndexNode indexingNode= (BTreeIndexNode) curr;
+//			ArrayList<BTreeNode> allChildren= indexingNode.getChildren();
+//			for(BTreeNode childs: allChildren) {
+//				System.out.println(childs.getAddress());
+//				System.out.println("Inside of the child loop");
+//			}
+//			System.out.println("Current node is done running");
+//		}
+		
 		return indexList;
 
 	}

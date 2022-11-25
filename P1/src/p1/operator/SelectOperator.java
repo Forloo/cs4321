@@ -198,7 +198,7 @@ public class SelectOperator extends Operator {
 				wherePortion=wherePortion+ where.get(i).toString();
 			}
 			else {
-				wherePortion=wherePortion+","+wherePortion;
+				wherePortion=wherePortion+","+where.get(i).toString();
 			}
 		}
 		String unionFindPortion="";

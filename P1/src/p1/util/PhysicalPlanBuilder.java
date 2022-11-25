@@ -309,6 +309,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //			System.out.println(child.getTable());
 //			System.out.println(cpy.getExpression());
 //			System.out.println("delimiter is being set here: the delimiter that is being set here is just this");
+			cpy.setRelevantConstraints(ufRestraints);
 			return new SelectOperator(child, cpy.getExpression(),ufRestraints);
 		}
 
@@ -351,8 +352,14 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					// Convert to the correct physical operators
 					Operator left = generatePhysicalTree(operators.get(i - 1));
 					Operator right = generatePhysicalTree(operators.get(i));
-//					System.out.println("=================================");
+//					System.out.println("All of the conditions for the query");
+//					System.out.println(allConditions);
+//					System.out.println("All of the conditions that are not used");
+//					System.out.println(notUsed);
+//					System.out.println("Get the join conditions for the two operators");
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,uf);
+//					System.out.println(joinConditions);
+//					System.out.println("=======================");
 					String joinName = left.getTable() + "," + right.getTable();
 //					System.out.println(joinName);
 //					System.out.println("++++++++++++++++++++++++++++++++++++");
@@ -364,8 +371,14 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					Operator left = prevJoin;
 					Operator right = generatePhysicalTree(operators.get(i));
 					String joinName = left.getTable() + "," + right.getTable();
+//					System.out.println("The else loop: All of the conditions that were not used");
+//					System.out.println(allConditions);
+//					System.out.println("Else loop:All of the conditions that are not used in the unionfind");
+//					System.out.println("The join condition for the two operators being joined");
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf);
-					System.out.println(joinName);
+//					System.out.println(joinConditions);
+//					System.out.println("+++++++++++++++++++++++++++");
+//					System.out.println(joinName);
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 					prevJoin = joinElement;
 //					System.out.println(joinName);
@@ -373,7 +386,17 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 //				System.out.println("+++++++++++++++++++");
 			}
-
+			
+			// Update the expressions in the join condition. Expressions that are relevant in the unionfind 
+			// should not show up. Conditions that are notUsed should always be included. The only constraints
+			// that need to be checked and possibly added are when two attributes are equal to each other.
+			HashMap<String[], ArrayList<Expression>> updatedConditions= this.updateConditions(allConditions, notUsed, uf.getUnionElement());
+			
+//			System.out.println("The new conditions are below this line");
+//			System.out.println(updatedConditions);
+			
+//			System.out.println("The new conditons are above this line");
+			cpy.setConditions(updatedConditions);
 			return prevJoin;
 		}
 
@@ -503,8 +526,62 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		}
 //		System.out.println(joinCondition);
 //		System.out.println(filteredConditions);
-
 		return filteredConditions;
+	}
+	
+	private HashMap<String[],ArrayList<Expression>> updateConditions(HashMap<String[],ArrayList<Expression>> prevConditions, ArrayList<Expression> notUsed, ArrayList<UnionFindElement> ufConstraints){
+		HashMap<String[],ArrayList<Expression>> updatedConditions= new HashMap<String[],ArrayList<Expression>>();
+		
+		for(String[] element: prevConditions.keySet()) {
+			// Get the expressions associated with the current element
+			ArrayList<Expression> curr = prevConditions.get(element);
+			for(Expression cond: curr) {
+				if (notUsed.contains(cond)) {
+					// Check if the the element key exists in the new HashMap
+					if (updatedConditions.containsKey(element)) {
+						// If it does contain this element then add it to the list of arraylist expression for this table
+						updatedConditions.get(element).add(cond);
+					}
+					else {
+						updatedConditions.put(element, new ArrayList<Expression>());
+						updatedConditions.get(element).add(cond);
+					}
+				}
+				else {
+					// Check if an instance of equal expression otherwise do not add anything and go on to the next iteration
+					if(cond instanceof EqualsTo) {
+						// Cast the expression to EqualsTo
+						EqualsTo converted= (EqualsTo)cond;
+						// Get the left attribute value
+						Expression left= converted.getLeftExpression();
+						String leftAttr= left.toString();
+						
+						// Loop over the unionfindconstraints
+						for(int i=0;i<ufConstraints.size();i++) {
+							UnionFindElement ufElement= ufConstraints.get(i);
+							if (ufElement.getAttributeSet().contains(leftAttr)) {
+								// Get the min element and get the max element.
+								// If they are equal then this conditon is fine since that means some
+								// conditions made them equal and the conditon will be handled by select operators
+								// underneath the join operators.
+								if(!(ufElement.getMaxValue()==ufElement.getMinValue())) {
+									if(updatedConditions.containsKey(element)) {
+										updatedConditions.get(element).add(cond);
+									}
+									else {
+										updatedConditions.put(element, new ArrayList<Expression>());
+										updatedConditions.get(element).add(cond);
+									}
+								}
+							}
+						}
+					}
+				}
+				
+			}
+		}
+		
+		return updatedConditions;
 	}
 
 	@Override
