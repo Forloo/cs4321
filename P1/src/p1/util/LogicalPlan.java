@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.Distinct;
@@ -347,7 +348,31 @@ public class LogicalPlan {
 					
 					for(int k=0;k<currConditions.size();k++) {
 						Expression currExpression= currConditions.get(k);
-						if(notUsed.contains(currExpression)) {
+						boolean notApplied=false;
+						System.out.println("=================================");
+						System.out.println(currExpression);
+						System.out.println(currExpression instanceof EqualsTo);
+						System.out.println("====================================");
+						if(currExpression instanceof EqualsTo) {
+							EqualsTo changed= (EqualsTo) currExpression;
+							Expression left = changed.getLeftExpression();
+							String leftAttr= left.toString();
+							ArrayList<UnionFindElement> allElements= uf.getUnionElement();
+							for(int b=0;b<allElements.size();b++) {
+								ArrayList<String> attributes= allElements.get(b).getAttributeSet();
+								if (attributes.contains(leftAttr)) {
+									if(allElements.get(b).getMinValue()!=allElements.get(b).getMaxValue()) {
+										System.out.println("before the changed value");
+										System.out.println("Does the condition end up being printed out?");
+										System.out.println(changed);
+										System.out.println("This equation was not applied and should be applied to the select operator");
+										notApplied=true;
+									}
+								}
+							}
+							
+						}
+						if(notUsed.contains(currExpression) || notApplied) {
 							notIncluded.add(currExpression);
 						}
 					}

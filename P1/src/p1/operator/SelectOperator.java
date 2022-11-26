@@ -198,6 +198,7 @@ public class SelectOperator extends Operator {
 				wherePortion = wherePortion + ", " + wherePortion;
 			}
 		}
+
 		String unionFindPortion = "";
 //		System.out.println("++++++++++++++++++++++++");
 //		System.out.println(this.ufRestraints);
