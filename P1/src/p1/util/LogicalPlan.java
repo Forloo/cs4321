@@ -351,6 +351,10 @@ public class LogicalPlan {
 					for(int k=0;k<currConditions.size();k++) {
 						Expression currExpression= currConditions.get(k);
 						boolean notApplied=false;
+						System.out.println("=================================");
+						System.out.println(currExpression);
+						System.out.println(currExpression instanceof EqualsTo);
+						System.out.println("====================================");
 						if(currExpression instanceof EqualsTo) {
 							EqualsTo changed= (EqualsTo) currExpression;
 							Expression left = changed.getLeftExpression();
@@ -359,7 +363,11 @@ public class LogicalPlan {
 							for(int b=0;b<allElements.size();b++) {
 								ArrayList<String> attributes= allElements.get(b).getAttributeSet();
 								if (attributes.contains(leftAttr)) {
-									if(allElements.get(b).getMinValue()==Integer.MIN_VALUE && allElements.get(b).getMaxValue()==Integer.MAX_VALUE) {
+									if(allElements.get(b).getMinValue()!=allElements.get(b).getMaxValue()) {
+										System.out.println("before the changed value");
+										System.out.println("Does the condition end up being printed out?");
+										System.out.println(changed);
+										System.out.println("This equation was not applied and should be applied to the select operator");
 										notApplied=true;
 									}
 								}

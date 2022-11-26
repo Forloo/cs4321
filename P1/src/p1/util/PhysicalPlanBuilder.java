@@ -324,8 +324,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					// Convert to the correct physical operators
 					Operator left = generatePhysicalTree(operators.get(i - 1));
 					this.addExpressions(left, usedExpression);
+					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 					Operator right = generatePhysicalTree(operators.get(i));
 					this.addExpressions(right, usedExpression);
+					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,uf,usedJoinExpression);
 					String joinName = left.getTable() + "," + right.getTable();
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
@@ -334,6 +336,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					Operator left = prevJoin;
 					Operator right = generatePhysicalTree(operators.get(i));
 					this.addExpressions(right, usedExpression);
+					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 					String joinName = left.getTable() + "," + right.getTable();
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf,usedJoinExpression);
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
@@ -458,12 +461,17 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						filteredConditions.add(allExpr.get(p));
 					}
 					else {
+						// The problem with this condition not showing up in the query is probably due to the 
+						// fact that there are other variables in the way of this problem
 						if (allExpr.get(p) instanceof EqualsTo) {
 							EqualsTo leftExpression = (EqualsTo) allExpr.get(p);
 							Expression leftAttribute = leftExpression.getLeftExpression();
 							String leftAttributeValue = leftAttribute.toString();
 							UnionFindElement ufe = uf.find(leftAttributeValue);
-							if (ufe.getMaxValue() == Integer.MAX_VALUE && ufe.getMinValue() == Integer.MIN_VALUE) {
+							// Check if switching the conditions will get the conditions in our query to end up 
+							// being populated with the right conditions and the right values.
+							// Hashset only checks operations added in the join not the select.
+							if (ufe.getMaxValue() !=ufe.getMinValue()) {
 								filteredConditions.add(allExpr.get(p));
 							}
 						}
@@ -553,6 +561,17 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			ArrayList<Expression> expr = converted.getWhere();
 			for(int i=0;i<expr.size();i++) {
 				used.add(expr.get(i));
+			}
+		}
+	}
+	
+	private void updateUsedJoinExpressions(ArrayList<Expression> used,HashSet<Expression> usedJoinExpression) {
+		for(int i=0;i<used.size();i++) {
+			if(usedJoinExpression.contains(used.get(i))) {
+				continue;
+			}
+			else {
+				usedJoinExpression.add(used.get(i));
 			}
 		}
 	}
