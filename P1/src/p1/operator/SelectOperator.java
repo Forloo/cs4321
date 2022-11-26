@@ -119,14 +119,6 @@ public class SelectOperator extends Operator {
 	public String getTable() {
 		return scanObj.getTable();
 	}
-	
-	/**
-	 * Retrieves the expressions for this table.
-	 * @return ArrayList<Expression> a list of the conditions for the table.
-	 */
-	public ArrayList<Expression> getWhere(){
-		return this.where;
-	}
 
 	/**
 	 * This method repeatedly calls getNextTuple() until the next tuple is null (no
@@ -196,14 +188,13 @@ public class SelectOperator extends Operator {
 	 * @return the physical plan in string form
 	 */
 	public String toString(int level) {
-		// where expression 
-		String wherePortion="";
-		for(int i=0;i<where.size();i++) {
-			if(i==where.size()-1) {
-				wherePortion=wherePortion+ where.get(i).toString();
-			}
-			else {
-				wherePortion=wherePortion+", "+where.get(i).toString();
+		// where expression
+		String wherePortion = "";
+		for (int i = 0; i < where.size(); i++) {
+			if (i == where.size() - 1) {
+				wherePortion = wherePortion + where.get(i).toString();
+			} else {
+				wherePortion = wherePortion + ", " + wherePortion;
 			}
 		}
 		String unionFindPortion = "";
