@@ -1,7 +1,6 @@
 package p1.logicaloperator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.unionfind.UnionFindElement;
@@ -17,8 +16,6 @@ public class LogicalFilter extends LogicalOperator {
 	private ArrayList<Expression> exp;
 	// The constraints from the unionfind
 	private ArrayList<UnionFindElement> ufRestraints;
-	// The unionFind contraints relevant for this table
-	private HashMap<String,ArrayList<Integer>> attrConstraints;
 
 	/**
 	 * The constructor for the logical filter operator
@@ -55,55 +52,8 @@ public class LogicalFilter extends LogicalOperator {
 		return "This is a logical filter node";
 	}
 	
-	/**
-	 * Get the constraints from the unionfind
-	 * @return ArrayList<UnionFindElement> containing the restraint information
-	 */
 	public ArrayList<UnionFindElement> getUfRestraints(){
 		return this.ufRestraints;
-	}
-	
-	/**
-	 * Sets the relevant constraints for the table
-	 * @param constraints Attribute constraints for our table.
-	 */
-	public void setRelevantConstraints(HashMap<String,ArrayList<Integer>> constraints) {
-		this.attrConstraints=constraints;
-	}
-	
-	public HashMap<String,ArrayList<Integer>> getRelevantConstraints(){
-		return this.attrConstraints;
-	}
-	
-	/**
-	 * Helper method for toString
-	 * @return String for the unionfind constraints if any.
-	 */
-	private String toStringHelper(String column, Integer min, Integer max) {
-		String ret=""; // Return string. Null if there are no matches or the hashmap is empty;
-		
-		boolean used=false;
-		if(min==Integer.MIN_VALUE) {
-			;
-		}
-		else {
-			ret=ret+column+">="+min;
-			used=true;
-		}
-		
-		if(max==Integer.MAX_VALUE) {
-			;
-		}
-		else {
-			if(!used) {
-				ret=ret+column+"<="+max;
-			}
-			else {
-				ret=ret+","+column+"<="+max;
-			}
-		}
-		
-		return ret;
 	}
 
 	/**
@@ -155,5 +105,6 @@ public class LogicalFilter extends LogicalOperator {
 //		System.out.println(combinedWhere);
 		
 		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + child.toString(level + 1);
+
 	}
 }
