@@ -139,6 +139,7 @@ public class LogicalPlan {
 
 //		 If the joins table is not null then we need to make the new join operator
 		if (joins != null) {
+//			System.out.println("inside!"); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 			LogicalAllJoin joining = new LogicalAllJoin(allTableNames, allTableOperators, expressionInfoAliases,notUsed);
 			// Set union find for LogicalAllJoin to print for the logical plan file
 			joining.setUnionFind(findings);
@@ -394,7 +395,7 @@ public class LogicalPlan {
 	 *
 	 * @param pb
 	 */
-	public void accept(PhysicalPlanBuilder pb) {
-		pb.visit(this);
+	public void accept(PhysicalPlanBuilder pb, HashMap<String, int[]> dbStatsInfo) {
+		pb.visit(this,dbStatsInfo);
 	}
 }

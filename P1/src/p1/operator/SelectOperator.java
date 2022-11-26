@@ -188,6 +188,7 @@ public class SelectOperator extends Operator {
 	 * @return the physical plan in string form
 	 */
 	public String toString(int level) {
+//		System.out.println("callled for select operator");
 		// where expression
 		String wherePortion = "";
 		for (int i = 0; i < where.size(); i++) {
@@ -225,6 +226,7 @@ public class SelectOperator extends Operator {
 		} else if (!(wherePortion.length() > 0) && unionFindPortion.length() > 0) {
 			combinedWhere = unionFindPortion;
 		}
+		System.out.println("what is this: " + combinedWhere);
 
 		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + scanObj.toString(level + 1);
 	}

@@ -63,6 +63,7 @@ public class LogicalFilter extends LogicalOperator {
 	 * @return the logical plan in string form
 	 */
 	public String toString(int level) {
+		System.out.println("Logical Filter CAlled");
 		return "-".repeat(level) + "Select[" + exp.toString() + "]\n" + child.toString(level + 1);
 	}
 }

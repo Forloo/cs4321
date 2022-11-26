@@ -47,6 +47,7 @@ import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import p1.dp.JoinDp;
 import p1.logicaloperator.LogicalAllJoin;
 import p1.logicaloperator.LogicalFilter;
 import p1.logicaloperator.LogicalJoin;
@@ -78,6 +79,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	// The plainselect containing the query information
 	private Statement query;
 
+	//this is needed to pass in dpJoin to calculate min cost join order
+	private HashMap<String, int[]> dbStatsInfo;
 	/**
 	 * The constructor for the PhysicalPlanBuilder
 	 *
@@ -325,18 +328,33 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		// TODO After using dynamic programming we will choose the order in which query 
 		// objects will be joined together
 		if (rootOperator instanceof LogicalAllJoin) {
+			
+			//call JoinDP here, get the order of tables to join
+			
+//			System.out.println("LOGICAL ALL JOIN!"); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 			Operator prevJoin = null;
 			LogicalAllJoin cpy = (LogicalAllJoin) rootOperator;
+			
+//			System.out.println(cpy.getConditions()); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
+		
+			JoinDp test = new JoinDp(cpy,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+			
+			
+			
 			ArrayList<Expression> notUsed= cpy.getUnusedOperators();
 			UnionFind uf= cpy.getUnionFind();
 			List<String> allTables = cpy.getTableNames();
 			List<LogicalOperator> operators = cpy.getTableOperators();
 			HashMap<String[], ArrayList<Expression>> allConditions = cpy.getConditions();
 //			System.out.println("Delimit this value up on the top here");
-//			System.out.println("All conditions are in here");
-//			for(String [] key: allConditions.keySet()) {
-//				System.out.println(allConditions.get(key));
-//			}
+			System.out.println("All conditions are in here");
+			for(String [] key: allConditions.keySet()) {
+				for(String k : key) {
+					System.out.println("this is the key: " + k);
+				}
+				
+				System.out.println(allConditions.get(key));
+			}
 //			System.out.println("All conditions ended in the section before us");
 //			System.out.println(notUsed);
 //			System.out.println("Delimit this value right here");
@@ -364,7 +382,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					Operator right = generatePhysicalTree(operators.get(i));
 					String joinName = left.getTable() + "," + right.getTable();
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf);
-					System.out.println(joinName);
+//					System.out.println("join name:" + joinName);
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 					prevJoin = joinElement;
 //					System.out.println(joinName);
@@ -372,7 +390,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 //				System.out.println("+++++++++++++++++++");
 			}
-
+			
 			return prevJoin;
 		}
 
@@ -430,7 +448,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 	}
 
-	public void visit(LogicalPlan lp) {
+	public void visit(LogicalPlan lp, HashMap<String, int[]> dbStatsInfo) {
+		this.dbStatsInfo = dbStatsInfo;
 		// Get the rootOperator for the tree
 		LogicalOperator root = lp.getOperator();
 		Operator physicalroot = this.generatePhysicalTree(root);
