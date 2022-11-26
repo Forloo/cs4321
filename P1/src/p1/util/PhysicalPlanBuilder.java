@@ -323,27 +323,30 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 					// Convert to the correct physical operators
 					Operator left = generatePhysicalTree(operators.get(i - 1));
-					this.addExpressions(left, usedExpression);
 					Operator right = generatePhysicalTree(operators.get(i));
 					this.addExpressions(right, usedExpression);
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,uf,usedJoinExpression);
 					String joinName = left.getTable() + "," + right.getTable();
+//					System.out.println(joinName);
+//					System.out.println("++++++++++++++++++++++++++++++++++++");
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
+//					System.out.println(joinName);
+//					System.out.println(joinConditions);
 					prevJoin = joinElement;
 				} else {
 					Operator left = prevJoin;
 					Operator right = generatePhysicalTree(operators.get(i));
-					this.addExpressions(right, usedExpression);
 					String joinName = left.getTable() + "," + right.getTable();
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf,usedJoinExpression);
+
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 					prevJoin = joinElement;
+//					System.out.println(joinName);
+//					System.out.println(joinConditions);
 				}
+//				System.out.println("+++++++++++++++++++");
 			}
-			
-			// Update the expressions in the join condition.
-			HashMap<String[], ArrayList<Expression>> updatedConditions= this.updateConditions(allConditions, notUsed, uf.getUnionElement(), usedExpression);
-			cpy.setConditions(updatedConditions);
+
 			return prevJoin;
 		}
 

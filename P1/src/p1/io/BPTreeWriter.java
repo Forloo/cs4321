@@ -106,8 +106,6 @@ public class BPTreeWriter {
 		
 		//write keys
 		for(Map.Entry<Integer,ArrayList<Integer>> mp : idexN.getReferences()) {
-//			System.out.println(mp.getKey());
-//			System.out.println("Writing the current key value");
 			bb.putInt(idx, mp.getKey());
 			idx += 4;
 		}
@@ -115,8 +113,6 @@ public class BPTreeWriter {
 		//write child address
 		for(Map.Entry<Integer,ArrayList<Integer>> mp : idexN.getReferences()) {
 			for(int childAddr : mp.getValue()) {
-//				System.out.println(childAddr+1);
-//				System.out.println("Entered inside of this loop some of the addresses are wrong");
 				bb.putInt(idx, childAddr + 1);
 				idx += 4;
 			}
