@@ -17,7 +17,8 @@ public class LogicalFilter extends LogicalOperator {
 	private ArrayList<Expression> exp;
 	// The constraints from the unionfind
 	private ArrayList<UnionFindElement> ufRestraints;
-	// The unionFind contraints relevant for this table
+	
+	// The union find constraints for the logical filter
 	private HashMap<String,ArrayList<Integer>> attrConstraints;
 
 	/**
@@ -63,6 +64,99 @@ public class LogicalFilter extends LogicalOperator {
 		return this.ufRestraints;
 	}
 	
+//	/**
+//	 * Sets the relevant constraints for the table
+//	 * @param constraints Attribute constraints for our table.
+//	 */
+//	public void setRelevantConstraints(HashMap<String,ArrayList<Integer>> constraints) {
+//		this.attrConstraints=constraints;
+//	}
+//	
+//	public HashMap<String,ArrayList<Integer>> getRelevantConstraints(){
+//		return this.attrConstraints;
+//	}
+//	
+//	/**
+//	 * Helper method for toString
+//	 * @return String for the unionfind constraints if any.
+//	 */
+//	private String toStringHelper(String column, Integer min, Integer max) {
+//		String ret=""; // Return string. Null if there are no matches or the hashmap is empty;
+//		
+//		boolean used=false;
+//		if(min==Integer.MIN_VALUE) {
+//			;
+//		}
+//		else {
+//			ret=ret+column+">="+min;
+//			used=true;
+//		}
+//		
+//		if(max==Integer.MAX_VALUE) {
+//			;
+//		}
+//		else {
+//			if(!used) {
+//				ret=ret+column+"<="+max;
+//			}
+//			else {
+//				ret=ret+","+column+"<="+max;
+//			}
+//		}
+//		
+//		return ret;
+//	}
+//
+//	/**
+//	 * Gets the string to print for the logical plan
+//	 * 
+//	 * @param level the level of the operator
+//	 * @return the logical plan in string form
+//	 */
+//	public String toString(int level) {
+//		String wherePortion="";
+//		for(int i=0;i<exp.size();i++) {
+//			if(i==0) {
+//				wherePortion=wherePortion+ exp.get(i).toString();
+//			}
+//			else {
+//				wherePortion=wherePortion+", "+ exp.get(i).toString();
+//			}
+//		}
+//		
+//		System.out.println("Where portion of the logical filter reached");
+//		System.out.println(wherePortion);
+//		System.out.println("++++++++++ something is delimited here");
+//		
+//		String unionFindPortion="";
+//		HashMap<String,ArrayList<Integer>> ufConstraints = this.getRelevantConstraints();
+//		boolean used=false;
+//		for(String key: ufConstraints.keySet()) {
+//			if(this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1)).length()>0) {
+//				if(!used) {
+//					unionFindPortion=unionFindPortion+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+//					used=true;
+//				}
+//				else {
+//					unionFindPortion=unionFindPortion+", "+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+//				}
+//				
+//			}
+//		}
+//		String combinedWhere = "";
+//		if (wherePortion.length() > 0 && unionFindPortion.length() > 0) {
+//			combinedWhere = wherePortion + "," + unionFindPortion;
+//		} else if (wherePortion.length() > 0 && !(unionFindPortion.length() > 0)) {
+//			combinedWhere = wherePortion;
+//		} else if (!(wherePortion.length() > 0) && unionFindPortion.length() > 0) {
+//			combinedWhere = unionFindPortion;
+//		}
+//		
+////		System.out.println("Entered inside of this loop");
+////		System.out.println(combinedWhere);
+//		
+//		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + child.toString(level + 1);
+//	}
 	/**
 	 * Sets the relevant constraints for the table
 	 * @param constraints Attribute constraints for our table.
@@ -157,3 +251,4 @@ public class LogicalFilter extends LogicalOperator {
 		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + child.toString(level + 1);
 	}
 }
+

@@ -338,11 +338,17 @@ public class LogicalPlan {
 			String alias = Aliases.getAlias(allTableNames.get(i));
 			// Need to check that none of the tables values are in the unionfind otherwise we end up not making a select for
 			// that operation and then we end up getting an error for the problem that we are trying to solve.
+//			Boolean hasConditions= this.hasUnionFindConditions(alias, uf.getUnionElement());
+//			if (tableConditions == null && !hasConditions) {
+//				LogicalScan currOp = new LogicalScan(alias);
+//				ret.add(currOp);
+//			}
 			Boolean hasConditions= this.hasUnionFindConditions(alias, uf.getUnionElement());
-			if (tableConditions == null && !hasConditions) {
-				LogicalScan currOp = new LogicalScan(alias);
+			if(tableConditions==null && !hasConditions) {
+				LogicalScan currOp= new LogicalScan(alias);
 				ret.add(currOp);
-			} else {
+			}
+			else {
 				if (tableConditions.containsKey(alias)) {
 					ArrayList<Expression> currConditions= tableConditions.get(alias);
 					
@@ -395,6 +401,17 @@ public class LogicalPlan {
 					ret.add(currOp);
 				} else {
 					// If it has no table conditions for that table then it must have the unionfind conditions
+//					if(hasConditions) {
+//						ArrayList<Expression> conditions= new ArrayList<Expression>();
+//						LogicalScan scanOp = new LogicalScan(alias);
+//						LogicalFilter currOp= new LogicalFilter(scanOp,conditions,uf.getUnionElement());
+//						ret.add(currOp);
+//						
+//					}
+//					else {
+//						LogicalScan scanOp=new LogicalScan(alias);
+//						ret.add(scanOp);
+//					}
 					if(hasConditions) {
 						ArrayList<Expression> conditions= new ArrayList<Expression>();
 						LogicalScan scanOp = new LogicalScan(alias);
@@ -407,7 +424,7 @@ public class LogicalPlan {
 						ret.add(scanOp);
 					}
 //					ArrayList<Expression> conditions= new ArrayList<Expression>();
-					LogicalScan scanOp = new LogicalScan(alias);
+//					LogicalScan scanOp = new LogicalScan(alias);
 //					System.out.println("Entered inside this line of code");
 //					LogicalFilter currOp= new LogicalFilter(scanOp,conditions,uf.getUnionElement());
 //					ret.add(currOp);
@@ -422,6 +439,33 @@ public class LogicalPlan {
 	private LogicalAllJoin makeOperations(List<String> tableNames, List<LogicalOperator> tableOperations) {
 		return null;
 	}
+	
+//	private Boolean hasUnionFindConditions(String tableName,ArrayList<UnionFindElement> allAttributes) {
+////		System.out.println(tableName);
+////		System.out.println("The testing loop");
+////		System.out.println("========================");
+//		for(int i=0;i<allAttributes.size();i++) {
+//			// Curr unionfindElement
+//			UnionFindElement curr= allAttributes.get(i);
+//			for(int j=0;j<curr.getAttributeSet().size();j++) {
+//				if(curr.getAttributeSet().get(j).contains(tableName)) {
+////					System.out.println(curr.getAttributeSet().get(j));
+////					System.out.println(curr.getMaxValue());
+////					System.out.println(curr.getMinValue());
+////					System.out.println("The attribute is in the unionfind element");
+//					// If it does contain this then we need to make sure that it the conditions are relevant meaning
+//					// that the min value and the max value are not the absolute highest possible values.
+//					if (curr.getMaxValue()==Integer.MAX_VALUE && curr.getMinValue()==Integer.MIN_VALUE) {
+//						continue;
+//					}
+////					System.out.println("How did we enter this code section there is some error that is happening");
+//					return true;
+//				}
+//			}
+//		}
+//		
+//		return false;
+//	}
 	
 	private Boolean hasUnionFindConditions(String tableName,ArrayList<UnionFindElement> allAttributes) {
 //		System.out.println(tableName);

@@ -284,6 +284,7 @@ public class BTree {
 				}
 				// Indexing was getting an error in this line of code since before the prev here did not exist
 				// the prev stayed the same and due to that the child address ended up being wrong.
+				
 				prev=references.get(l);
 			}
 

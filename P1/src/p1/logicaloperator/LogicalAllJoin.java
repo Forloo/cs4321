@@ -86,9 +86,11 @@ public class LogicalAllJoin extends LogicalOperator {
 	public HashMap<String[], ArrayList<Expression>> getConditions() {
 		return this.conditions;
 	}
-	// Changes
+	
+	
+	
 	/**
-	 * Sets the new conditions for the all join operator.
+	 * Sets the updated conditions for the logical join for printing.
 	 * @param conditions
 	 */
 	public void setConditions(HashMap<String[],ArrayList<Expression>> conditions) {
