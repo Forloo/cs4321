@@ -172,6 +172,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				String idxCol = childTable.substring(childTable.indexOf(".") + 1);
 //				String[] exps = cpy.getExpression().toString().split(" AND ");
 //				System.out.println(cpy.getExpression());
+				System.out.println("Printing in Physical Plan Builder");
+				System.out.println(cpy.getExpression());
 				if (cpy.getExpression().size() > 0) {
 					int lowkey = Integer.MIN_VALUE;
 					int highkey = Integer.MAX_VALUE;
@@ -289,7 +291,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 			}
 			
-			cpy.setRelevantConstraints(ufRestraints);
+//			cpy.setRelevantConstraints(ufRestraints);
 			return new SelectOperator(child, cpy.getExpression(),ufRestraints);
 		}
 
@@ -580,10 +582,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	private void addExpressions(Operator op, ArrayList<Expression> used) {
 		if (op instanceof SelectOperator) {
 			SelectOperator converted= (SelectOperator) op;
-			ArrayList<Expression> expr = converted.getWhere();
-			for(int i=0;i<expr.size();i++) {
-				used.add(expr.get(i));
-			}
+//			ArrayList<Expression> expr = converted.getWhere();
+//			for(int i=0;i<expr.size();i++) {
+//				used.add(expr.get(i));
+//			}
 		}
 	}
 	

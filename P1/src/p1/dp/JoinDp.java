@@ -42,34 +42,34 @@ public class JoinDp {
 		HashMap<String, Integer> vValues = new HashMap<String, Integer>();
 		
 		//initializing every possible pair cost
-		for(int i = 0; i < numChildren;i++) {
-			LogicalOperator left = lop.get(i); 
-			LogicalOperator right = lop.get((i+1) % numChildren); //this gets every single possible pair
-			int leftV; String leftTableName="";int rightV; String rightTableName=""; //initialize left right V and table name
-			
-			
-			HashMap<String, Integer> leftInfo = vValue(left);
-			for(String key:leftInfo.keySet()) {
-				leftV = leftInfo.get(key);
-				vValues.put(key, leftV); //put in vValue hashmap
-			}
-			
-
-			HashMap<String, Integer> rightInfo = vValue(right);
-			for(String key:rightInfo.keySet()) {
-				rightV = rightInfo.get(key);
-				vValues.put(key, rightV); //put in vValue hashmap
-			}
-			
-			leftTableName = tableName(left);
-			rightTableName = tableName(right);
-			int totalV = (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]); 
-			ArrayList<String> finalName=new ArrayList<String>();
-			finalName.add(leftTableName);
-			finalName.add(rightTableName);
-			
-			memoization.put(finalName, totalV);
-		}
+//		for(int i = 0; i < numChildren;i++) {
+//			LogicalOperator left = lop.get(i); 
+//			LogicalOperator right = lop.get((i+1) % numChildren); //this gets every single possible pair
+//			int leftV; String leftTableName="";int rightV; String rightTableName=""; //initialize left right V and table name
+//			
+//			
+//			HashMap<String, Integer> leftInfo = vValue(left);
+//			for(String key:leftInfo.keySet()) {
+//				leftV = leftInfo.get(key);
+//				vValues.put(key, leftV); //put in vValue hashmap
+//			}
+//			
+//
+//			HashMap<String, Integer> rightInfo = vValue(right);
+//			for(String key:rightInfo.keySet()) {
+//				rightV = rightInfo.get(key);
+//				vValues.put(key, rightV); //put in vValue hashmap
+//			}
+//			
+//			leftTableName = tableName(left);
+//			rightTableName = tableName(right);
+//			int totalV = (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]); 
+//			ArrayList<String> finalName=new ArrayList<String>();
+//			finalName.add(leftTableName);
+//			finalName.add(rightTableName);
+//			
+//			memoization.put(finalName, totalV);
+//		}
 	}
 	
 	
@@ -99,7 +99,7 @@ public class JoinDp {
 					tableCName = getTableColumnName(keys, cpy,tableCName);
 					name = tableCName;
 				}
-			}
+			
 			for(int i=0;i<2;i++) {
 				if(i==0) {
 					value -= dbStatsInfo.get(tableCName)[i];
@@ -108,12 +108,17 @@ public class JoinDp {
 				}
 			}
 			value += 1;
-		} else {
+		}
+			} else {
 			//this is case 2
 			LogicalFilter cpy = (LogicalFilter) op;
 //			cpy.getExpression();
 			System.out.println("weird");
-			System.out.println(cpy.getExpression()); 
+			System.out.println(cpy.getExpression()); //just get the expression and parse the string
+			String[] parsed = cpy.getExpression().toString().split(" ");
+			
+			
+			
 		}
 		nameValue.put(name, value);
 		return nameValue;
