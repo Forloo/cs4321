@@ -63,6 +63,48 @@ public class LogicalFilter extends LogicalOperator {
 	 * @return the logical plan in string form
 	 */
 	public String toString(int level) {
-		return "-".repeat(level) + "Select[" + exp.toString() + "]\n" + child.toString(level + 1);
+		String wherePortion="";
+		for(int i=0;i<exp.size();i++) {
+			if(i==0) {
+				wherePortion=wherePortion+ exp.get(i).toString();
+			}
+			else {
+				wherePortion=wherePortion+", "+ exp.get(i).toString();
+			}
+		}
+		
+		System.out.println("Where portion of the logical filter reached");
+		System.out.println(wherePortion);
+		System.out.println("++++++++++ something is delimited here");
+		
+		String unionFindPortion="";
+		HashMap<String,ArrayList<Integer>> ufConstraints = this.getRelevantConstraints();
+		boolean used=false;
+		for(String key: ufConstraints.keySet()) {
+			if(this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1)).length()>0) {
+				if(!used) {
+					unionFindPortion=unionFindPortion+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+					used=true;
+				}
+				else {
+					unionFindPortion=unionFindPortion+", "+this.toStringHelper(key, ufConstraints.get(key).get(0), ufConstraints.get(key).get(1));
+				}
+				
+			}
+		}
+		String combinedWhere = "";
+		if (wherePortion.length() > 0 && unionFindPortion.length() > 0) {
+			combinedWhere = wherePortion + "," + unionFindPortion;
+		} else if (wherePortion.length() > 0 && !(unionFindPortion.length() > 0)) {
+			combinedWhere = wherePortion;
+		} else if (!(wherePortion.length() > 0) && unionFindPortion.length() > 0) {
+			combinedWhere = unionFindPortion;
+		}
+		
+//		System.out.println("Entered inside of this loop");
+//		System.out.println(combinedWhere);
+		
+		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + child.toString(level + 1);
+
 	}
 }

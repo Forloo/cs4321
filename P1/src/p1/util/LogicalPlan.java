@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.Distinct;
@@ -346,7 +347,23 @@ public class LogicalPlan {
 					
 					for(int k=0;k<currConditions.size();k++) {
 						Expression currExpression= currConditions.get(k);
-						if(notUsed.contains(currExpression)) {
+						boolean notApplied=false;
+						if(currExpression instanceof EqualsTo) {
+							EqualsTo changed= (EqualsTo) currExpression;
+							Expression left = changed.getLeftExpression();
+							String leftAttr= left.toString();
+							ArrayList<UnionFindElement> allElements= uf.getUnionElement();
+							for(int b=0;b<allElements.size();b++) {
+								ArrayList<String> attributes= allElements.get(b).getAttributeSet();
+								if (attributes.contains(leftAttr)) {
+									if(allElements.get(b).getMinValue()==Integer.MIN_VALUE && allElements.get(b).getMaxValue()==Integer.MAX_VALUE) {
+										notApplied=true;
+									}
+								}
+							}
+							
+						}
+						if(notUsed.contains(currExpression) || notApplied) {
 							notIncluded.add(currExpression);
 						}
 					}
