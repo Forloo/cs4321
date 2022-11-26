@@ -101,6 +101,7 @@ public class UnionFindElement {
 	 * Returns string for testing
 	 */
 	public String toString() {
+//		System.out.println("++++++++++++++++++++ This method is called and something happened");
 		String ret = "";
 		ret = ret + "Attributes:";
 		for (int i = 0; i < this.getAttributeSet().size(); i++) {
@@ -111,11 +112,44 @@ public class UnionFindElement {
 				ret = ret + ", " + curr;
 			}
 		}
-
+		
 		ret = ret + " " + "Min-value" + this.getMinValue();
 		ret = ret + " " + "Max-Value" + this.getMaxValue();
 		ret = ret + " " + "IsEquality" + equality;
 		return ret;
+	}
+	
+	private String toStringHelper(int input, boolean isMin) {
+//		System.out.println("The string helper method was called by our function");
+		if (isMin && input==Integer.MIN_VALUE) {
+			return "null";
+		}
+		else if(isMin && input!=Integer.MIN_VALUE){
+			return Integer.toString(input);
+		}
+		else if (!isMin && input==Integer.MAX_VALUE) {
+			return "null";
+		}
+		
+		return Integer.toString(input);
+	}
+	
+	private String toStringEqualityHelper(int input,Boolean equality) {
+		if (equality==null) {
+			return "null";
+		}
+		else if (equality==false) {
+			return "null";
+		}
+		
+		// If the value of the max value is the max value then it cannot be an 
+		// inequality operation since that is not in the range of the valid values
+		
+		if (input==Integer.MAX_VALUE) {
+			return "null";
+		}
+		
+		return Integer.toString(input);
 	}
 
 	/**
@@ -125,9 +159,9 @@ public class UnionFindElement {
 		String ret = "[[";
 		ret += String.join(", ", this.getAttributeSet()) + "], ";
 
-		ret += "equals " + equality + ", ";
-		ret += "min " + this.getMinValue() + ", ";
-		ret += "max " + this.getMaxValue();
+		ret += "equals " + this.toStringEqualityHelper(this.getMaxValue(), equality) + ", ";
+		ret += "min " + this.toStringHelper(this.getMinValue(), true) + ", ";
+		ret += "max " + this.toStringHelper(this.getMaxValue(),false);
 		return ret + "]\n";
 	}
 }
