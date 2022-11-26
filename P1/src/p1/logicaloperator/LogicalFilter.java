@@ -123,6 +123,10 @@ public class LogicalFilter extends LogicalOperator {
 			}
 		}
 		
+		System.out.println("Where portion of the logical filter reached");
+		System.out.println(wherePortion);
+		System.out.println("++++++++++ something is delimited here");
+		
 		String unionFindPortion="";
 		HashMap<String,ArrayList<Integer>> ufConstraints = this.getRelevantConstraints();
 		boolean used=false;

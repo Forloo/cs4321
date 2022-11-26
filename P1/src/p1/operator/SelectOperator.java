@@ -209,6 +209,11 @@ public class SelectOperator extends Operator {
 				wherePortion=wherePortion+","+where.get(i).toString();
 			}
 		}
+		
+		System.out.println("Physical where portion");
+		System.out.println(wherePortion);
+		System.out.println("Other delimiter ++++++++++++++++++");
+		
 		String unionFindPortion="";
 //		System.out.println("++++++++++++++++++++++++");
 //		System.out.println(this.ufRestraints);
