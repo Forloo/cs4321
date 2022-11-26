@@ -372,13 +372,11 @@ public class LogicalPlan {
 					if(hasConditions) {
 						ArrayList<Expression> conditions= new ArrayList<Expression>();
 						LogicalScan scanOp = new LogicalScan(alias);
-						System.out.println("Entered inside this line of code");
 						LogicalFilter currOp= new LogicalFilter(scanOp,conditions,uf.getUnionElement());
 						ret.add(currOp);
 						
 					}
 					else {
-						System.out.println("For the first couple of queries this is where we should be entering in the loop");
 						LogicalScan scanOp=new LogicalScan(alias);
 						ret.add(scanOp);
 					}
@@ -400,24 +398,24 @@ public class LogicalPlan {
 	}
 	
 	private Boolean hasUnionFindConditions(String tableName,ArrayList<UnionFindElement> allAttributes) {
-		System.out.println(tableName);
-		System.out.println("The testing loop");
-		System.out.println("========================");
+//		System.out.println(tableName);
+//		System.out.println("The testing loop");
+//		System.out.println("========================");
 		for(int i=0;i<allAttributes.size();i++) {
 			// Curr unionfindElement
 			UnionFindElement curr= allAttributes.get(i);
 			for(int j=0;j<curr.getAttributeSet().size();j++) {
 				if(curr.getAttributeSet().get(j).contains(tableName)) {
-					System.out.println(curr.getAttributeSet().get(j));
-					System.out.println(curr.getMaxValue());
-					System.out.println(curr.getMinValue());
-					System.out.println("The attribute is in the unionfind element");
+//					System.out.println(curr.getAttributeSet().get(j));
+//					System.out.println(curr.getMaxValue());
+//					System.out.println(curr.getMinValue());
+//					System.out.println("The attribute is in the unionfind element");
 					// If it does contain this then we need to make sure that it the conditions are relevant meaning
 					// that the min value and the max value are not the absolute highest possible values.
 					if (curr.getMaxValue()==Integer.MAX_VALUE && curr.getMinValue()==Integer.MIN_VALUE) {
 						continue;
 					}
-					System.out.println("How did we enter this code section there is some error that is happening");
+//					System.out.println("How did we enter this code section there is some error that is happening");
 					return true;
 				}
 			}

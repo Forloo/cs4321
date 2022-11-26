@@ -115,8 +115,8 @@ public class LogicalFilter extends LogicalOperator {
 	public String toString(int level) {
 		String wherePortion="";
 		for(int i=0;i<exp.size();i++) {
-			if(i==exp.size()-1) {
-				wherePortion=wherePortion+", "+ exp.get(i).toString();
+			if(i==0) {
+				wherePortion=wherePortion+ exp.get(i).toString();
 			}
 			else {
 				wherePortion=wherePortion+", "+ exp.get(i).toString();

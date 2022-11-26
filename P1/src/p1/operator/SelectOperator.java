@@ -119,6 +119,14 @@ public class SelectOperator extends Operator {
 	public String getTable() {
 		return scanObj.getTable();
 	}
+	
+	/**
+	 * Retrieves the expressions for this table.
+	 * @return ArrayList<Expression> a list of the conditions for the table.
+	 */
+	public ArrayList<Expression> getWhere(){
+		return this.where;
+	}
 
 	/**
 	 * This method repeatedly calls getNextTuple() until the next tuple is null (no
