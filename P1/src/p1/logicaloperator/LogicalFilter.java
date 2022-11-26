@@ -35,6 +35,8 @@ public class LogicalFilter extends LogicalOperator {
 	 * @return The child operator used to get tuples.
 	 */
 	public LogicalOperator getChild() {
+//		System.out.println("yes");
+//		System.out.println(child instanceof LogicalScan);
 		return child;
 	}
 

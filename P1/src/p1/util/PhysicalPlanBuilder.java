@@ -371,7 +371,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,
 							uf);
 					String joinName = left.getTable() + "," + right.getTable();
-//					System.out.println(joinName);
+					System.out.println("Join name: " + joinName);
 //					System.out.println("++++++++++++++++++++++++++++++++++++");
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 //					System.out.println(joinName);
@@ -382,7 +382,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					Operator right = generatePhysicalTree(operators.get(i));
 					String joinName = left.getTable() + "," + right.getTable();
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf);
-//					System.out.println("join name:" + joinName);
+					
+					System.out.println("join name:" + joinName);
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 					prevJoin = joinElement;
 //					System.out.println(joinName);
