@@ -6,7 +6,11 @@ import java.util.List;
 
 import net.sf.jsqlparser.expression.Expression;
 import p1.logicaloperator.LogicalAllJoin;
+import p1.logicaloperator.LogicalOperator;
+import p1.operator.Operator;
 import p1.util.Aliases;
+import p1.util.LogicalPlan;
+import p1.util.QueryPlan;
 
 /**
  * A class that computes the order with minimum cost to join using dynamic programming.
@@ -67,13 +71,13 @@ public class JoinDp {
 		//case 3: relation of two joins
 //		System.out.println("insideee");
 		this.allTables = logicalJoin.getTableNames();
-		System.out.println(logicalJoin.getTableNames());
+//		System.out.println(logicalJoin.getTableNames());
 		this.allConditions = logicalJoin.getConditions();
-		
+//		System.out.println(allConditions);
 		
 		//I GOT EVERYTHING, JUST NEED TO CALCULATE THE COST AND DO DP AND COMPARE DP'd ANSWER
 		this.dbStatsInfo = dbStatsInfo;
-		
+		System.out.println("This is the info: " + dbStatsInfo);
 		
 		for(String[] keys : allConditions.keySet()) {
 			System.out.println("========================");
@@ -177,3 +181,15 @@ public class JoinDp {
 	
 	
 }
+
+
+
+
+
+
+
+
+
+
+
+	
