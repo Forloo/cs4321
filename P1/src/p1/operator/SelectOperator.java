@@ -210,9 +210,10 @@ public class SelectOperator extends Operator {
 			}
 		}
 		
-		System.out.println("Physical where portion");
-		System.out.println(wherePortion);
-		System.out.println("Other delimiter ++++++++++++++++++");
+//		System.out.println("Physical where portion");
+//		System.out.println(wherePortion);
+//		System.out.println("Other delimiter ++++++++++++++++++");
+		// Changes
 		
 		String unionFindPortion="";
 //		System.out.println("++++++++++++++++++++++++");

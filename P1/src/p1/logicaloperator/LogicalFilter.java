@@ -31,7 +31,7 @@ public class LogicalFilter extends LogicalOperator {
 		this.exp = expr;
 		this.ufRestraints=ufRestraints;
 	}
-
+	// Changes
 	/**
 	 * Retrieves the child operator.
 	 *

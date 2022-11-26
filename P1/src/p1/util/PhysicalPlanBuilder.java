@@ -285,7 +285,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					}
 				}
 			}
-			
+			// Changes
 			cpy.setRelevantConstraints(ufRestraints);
 			return new SelectOperator(child, cpy.getExpression(),ufRestraints);
 		}

@@ -351,10 +351,11 @@ public class LogicalPlan {
 					for(int k=0;k<currConditions.size();k++) {
 						Expression currExpression= currConditions.get(k);
 						boolean notApplied=false;
-						System.out.println("=================================");
-						System.out.println(currExpression);
-						System.out.println(currExpression instanceof EqualsTo);
-						System.out.println("====================================");
+//						System.out.println("=================================");
+//						System.out.println(currExpression);
+//						System.out.println(currExpression instanceof EqualsTo);
+//						System.out.println("====================================");
+						// Changes
 						if(currExpression instanceof EqualsTo) {
 							EqualsTo changed= (EqualsTo) currExpression;
 							Expression left = changed.getLeftExpression();
