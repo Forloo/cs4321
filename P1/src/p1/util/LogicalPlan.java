@@ -337,7 +337,8 @@ public class LogicalPlan {
 		// a filter operation.
 		for (int i = 0; i < allTableNames.size(); i++) {
 			String alias = Aliases.getAlias(allTableNames.get(i));
-			if (tableConditions == null) {
+			Boolean hasConditions= this.hasUnionFindConditions(alias, uf.getUnionElement());
+			if (tableConditions == null && !hasConditions) {
 				LogicalScan currOp = new LogicalScan(alias);
 				ret.add(currOp);
 			} else {
@@ -349,10 +350,10 @@ public class LogicalPlan {
 					for(int k=0;k<currConditions.size();k++) {
 						Expression currExpression= currConditions.get(k);
 						boolean notApplied=false;
-						System.out.println("=================================");
-						System.out.println(currExpression);
-						System.out.println(currExpression instanceof EqualsTo);
-						System.out.println("====================================");
+//						System.out.println("=================================");
+//						System.out.println(currExpression);
+//						System.out.println(currExpression instanceof EqualsTo);
+//						System.out.println("====================================");
 						if(currExpression instanceof EqualsTo) {
 							EqualsTo changed= (EqualsTo) currExpression;
 							Expression left = changed.getLeftExpression();
@@ -362,10 +363,10 @@ public class LogicalPlan {
 								ArrayList<String> attributes= allElements.get(b).getAttributeSet();
 								if (attributes.contains(leftAttr)) {
 									if(allElements.get(b).getMinValue()!=allElements.get(b).getMaxValue()) {
-										System.out.println("before the changed value");
-										System.out.println("Does the condition end up being printed out?");
-										System.out.println(changed);
-										System.out.println("This equation was not applied and should be applied to the select operator");
+//										System.out.println("before the changed value");
+//										System.out.println("Does the condition end up being printed out?");
+//										System.out.println(changed);
+//										System.out.println("This equation was not applied and should be applied to the select operator");
 										notApplied=true;
 									}
 								}
@@ -391,16 +392,55 @@ public class LogicalPlan {
 					LogicalFilter currOp = new LogicalFilter(scanOp, notIncluded,uf.getUnionElement());
 					ret.add(currOp);
 				} else {
-					LogicalScan currOp = new LogicalScan(alias);
-					ret.add(currOp);
+					if(hasConditions) {
+						ArrayList<Expression> conditions= new ArrayList<Expression>();
+						LogicalScan scanOp = new LogicalScan(alias);
+						LogicalFilter currOp= new LogicalFilter(scanOp,conditions,uf.getUnionElement());
+						ret.add(currOp);
+
+					}
+					else {
+						LogicalScan scanOp=new LogicalScan(alias);
+						ret.add(scanOp);
+					}
 				}
+				
+				
+				
+				
 			}
 		}
 
 		return ret;
 	}
 	
+	private Boolean hasUnionFindConditions(String tableName,ArrayList<UnionFindElement> allAttributes) {
+//		System.out.println(tableName);
+//		System.out.println("The testing loop");
+//		System.out.println("========================");
+		for(int i=0;i<allAttributes.size();i++) {
+			// Curr unionfindElement
+			UnionFindElement curr= allAttributes.get(i);
+			for(int j=0;j<curr.getAttributeSet().size();j++) {
+				if(curr.getAttributeSet().get(j).contains(tableName)) {
+//					System.out.println(curr.getAttributeSet().get(j));
+//					System.out.println(curr.getMaxValue());
+//					System.out.println(curr.getMinValue());
+//					System.out.println("The attribute is in the unionfind element");
+					// If it does contain this then we need to make sure that it the conditions are relevant meaning
+					// that the min value and the max value are not the absolute highest possible values.
+					if (curr.getMaxValue()==Integer.MAX_VALUE && curr.getMinValue()==Integer.MIN_VALUE) {
+						continue;
+					}
+//					System.out.println("How did we enter this code section there is some error that is happening");
+					return true;
+				}
+			}
+		}
 
+		return false;
+	}
+	
 	private LogicalAllJoin makeOperations(List<String> tableNames, List<LogicalOperator> tableOperations) {
 		return null;
 	}

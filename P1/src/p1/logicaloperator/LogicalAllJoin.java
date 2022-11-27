@@ -138,4 +138,12 @@ public class LogicalAllJoin extends LogicalOperator {
 	public ArrayList<Expression> getUnusedOperators(){
 		return this.allExpr;
 	}
+	
+	/**
+	 * Sets the new conditions for the all join operator.
+	 * @param conditions
+	 */
+	public void setConditions(HashMap<String[],ArrayList<Expression>> conditions) {
+		this.conditions=conditions;
+	}
 }

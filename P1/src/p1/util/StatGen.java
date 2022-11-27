@@ -76,7 +76,7 @@ public class StatGen {
 			}
 		}
 		
-		System.out.println("this is the stats thingy: " + lines);
+//		System.out.println("this is the stats thingy: " + lines);
 		try {
 			Files.write(file, lines, StandardCharsets.UTF_8);
 		} catch (IOException e) {

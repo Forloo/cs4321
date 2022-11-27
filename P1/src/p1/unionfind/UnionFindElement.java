@@ -74,7 +74,23 @@ public class UnionFindElement {
 	public void setEquality(Boolean equalityValue) {
 		this.equality = equalityValue;
 	}
+	private String toStringEqualityHelper(int input,Boolean equality) {
+		if (equality==null) {
+			return "null";
+		}
+		else if (equality==false) {
+			return "null";
+		}
 
+		// If the value of the max value is the max value then it cannot be an 
+		// inequality operation since that is not in the range of the valid values
+
+		if (input==Integer.MAX_VALUE) {
+			return "null";
+		}
+
+		return Integer.toString(input);
+	}
 	/**
 	 * Retrieves the attribute set for the union find element.
 	 * 
@@ -83,7 +99,22 @@ public class UnionFindElement {
 	public ArrayList<String> getAttributeSet() {
 		return this.attributeSet;
 	}
+	
+	private String toStringHelper(int input, boolean isMin) {
+//		System.out.println("The string helper method was called by our function");
+		if (isMin && input==Integer.MIN_VALUE) {
+			return "null";
+		}
+		else if(isMin && input!=Integer.MIN_VALUE){
+			return Integer.toString(input);
+		}
+		else if (!isMin && input==Integer.MAX_VALUE) {
+			return "null";
+		}
 
+		return Integer.toString(input);
+	}
+	
 	public static boolean overlap(UnionFindElement first, UnionFindElement second) {
 		ArrayList<String> firstAttr = first.getAttributeSet();
 		ArrayList<String> secondAtr = second.getAttributeSet();
@@ -125,9 +156,12 @@ public class UnionFindElement {
 		String ret = "[[";
 		ret += String.join(", ", this.getAttributeSet()) + "], ";
 
-		ret += "equals " + equality + ", ";
-		ret += "min " + this.getMinValue() + ", ";
-		ret += "max " + this.getMaxValue();
+//		ret += "equals " + equality + ", ";
+//		ret += "min " + this.getMinValue() + ", ";
+//		ret += "max " + this.getMaxValue();
+		ret += "equals " + this.toStringEqualityHelper(this.getMaxValue(), equality) + ", ";
+		ret += "min " + this.toStringHelper(this.getMinValue(), true) + ", ";
+		ret += "max " + this.toStringHelper(this.getMaxValue(),false);
 		return ret + "]\n";
 	}
 }

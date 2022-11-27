@@ -85,6 +85,15 @@ public class SelectOperator extends Operator {
 //			}
 		}
 	}
+	
+	/**
+	 * Retrieves the expressions for this table.
+	 * @return ArrayList<Expression> a list of the conditions for the table.
+	 */
+	public ArrayList<Expression> getWhere(){
+		return this.where;
+	}
+	
 
 	/**
 	 * Tells the operator to reset its state and start returning its output again
@@ -191,11 +200,12 @@ public class SelectOperator extends Operator {
 //		System.out.println("callled for select operator");
 		// where expression
 		String wherePortion = "";
-		for (int i = 0; i < where.size(); i++) {
-			if (i == where.size() - 1) {
-				wherePortion = wherePortion + where.get(i).toString();
-			} else {
-				wherePortion = wherePortion + ", " + wherePortion;
+		for(int i=0;i<where.size();i++) {
+			if(i==where.size()-1) {
+				wherePortion=wherePortion+ where.get(i).toString();
+			}
+			else {
+				wherePortion=wherePortion+", "+where.get(i).toString();
 			}
 		}
 
@@ -227,7 +237,7 @@ public class SelectOperator extends Operator {
 		} else if (!(wherePortion.length() > 0) && unionFindPortion.length() > 0) {
 			combinedWhere = unionFindPortion;
 		}
-		System.out.println("what is this: " + combinedWhere);
+//		System.out.println("what is this: " + combinedWhere);
 
 		return "-".repeat(level) + "Select[" + combinedWhere + "]\n" + scanObj.toString(level + 1);
 	}
