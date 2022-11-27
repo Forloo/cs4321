@@ -95,15 +95,23 @@ public class JoinDp {
 //		System.out.println(vValues);
 //		System.out.println("memoization is here: ");
 //		System.out.println(memoization);
-		System.out.println("my dude this is the min cost order");
+//		System.out.println("my dude this is the min cost order");
 		HashMap<String[],Float> dd = dp();
 		for(String[] k : dd.keySet()) {
 			for(String s : k) {
-				System.out.println(s);
+//				System.out.println(s);
 				
 			}
-			System.out.println(dd.get(k));
+//			System.out.println(dd.get(k));
 		}
+		for(String[] k : memoization.keySet()) {
+			System.out.println("printing one here");
+			for(String s : k) {
+				System.out.println(s);
+			}
+//			
+		}
+//		System.out.println(memoization);
 	}
 	
 	/**
@@ -337,6 +345,7 @@ public class JoinDp {
 		String[] minKeys = new String[numChil]; //keys with min cost
 //		System.out.println("minkeys size: " + minKeys.length);
 		float minVal=0; //min cost
+		System.out.println("numChil is: " + numChil);
 		for(int window=3; window <= numChil; window++) {
 			if(window == numChil) { //now choose window-1 key with smallest cost (this is the min cost join order)
 				for(String[] key : memoization.keySet()) {
@@ -350,7 +359,7 @@ public class JoinDp {
 							minKeys[window-1] = findUnusedTable(key,tempIn);
 //							minKeys.add();
 //							System.out.println(key);
-							System.out.println(memoization.get(key));
+//							System.out.println(memoization.get(key));
 							minVal = memoization.get(key);
 						} else if(minVal > (memoization.get(key))){
 							minKeys = key;
@@ -360,18 +369,46 @@ public class JoinDp {
 //					System.out.println("is original mutative?: " + tableNames.size());
 				}
 			} else {
+				System.out.println("come here ");
 				//intermediate join, must calculate join v values of left child here
+				//get unused table list, try adding one by one, calculate intermediate join cost
+				HashMap<String[],Float> newMemoized = new HashMap<String[],Float>();
 				for(String[] key : memoization.keySet()) {
-					ArrayList<String> temp = (ArrayList<String>) tableNames.clone();
-					for(String table : key) {
-						temp.remove(table);
-					} //this way temp is left with just one more table to join
-					//now within one key, try to add the last one
+					if(key.length == window -1) { //only look at window-1 sized keys, rest are irrelevant
+						ArrayList<String> temp = (ArrayList<String>) tableNames.clone();
+						
+						for(String table : key) {
+							temp.remove(table);
+						}
+						//now temp is left with just unused tables
+						//traverse temp and add one table by one to current key, calculate intermediate join cost
+						for(String table : temp) {
+							float newVval=0;
+							//for each table, calculate new intermediate join cost
+							
+							//this is my iffy part but follow the ed discussion post for now
+							System.out.println("this is the talbe nmaae: " + Aliases.getTable(table) );
+							newVval = memoization.get(key) * dbStatsInfo.get(Aliases.getTable(table))[0];
+							//append table to key
+							
+							String[] newKey = new String[window];
+							for(int i=0;i<=window-2;i++) {
+								newKey[i]=key[i];
+							}
+							newKey[window-1] = table;
+							//add the appeneded key and calculated intermediate join cost value to memoized
+//							HashMap<String[],Float> newMemoized = new HashMap<String[],Float>();
+							newMemoized.put(newKey, newVval);
+						}
+					}
+				}
+				//put to memoization here to avoid ConcurrentModificationException
+				for( String[] key : newMemoized.keySet()) {
+					memoization.put(key, newMemoized.get(key));
 				}
 			}
 		}
-		
-		System.out.println("final min val: "+minVal);
+//		System.out.println("final min val: "+minVal);
 		minSet.put(minKeys, minVal);
 		return minSet;
 	}

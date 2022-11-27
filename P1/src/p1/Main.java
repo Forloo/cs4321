@@ -68,8 +68,8 @@ public class Main {
 			
 			
 //			generating Reserves File (added by Jason for testing)
-//			String fileName3 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Reserves";
-//			ArrayList<Tuple> rdg3 = new RandomDataGenerator(2,10000).generate();
+//			String fileName3 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Pictures";
+//			ArrayList<Tuple> rdg3 = new RandomDataGenerator(4,5000).generate();
 //			BinaryTupleWriter writer3 = new BinaryTupleWriter(fileName3); 
 //			for(Tuple t : rdg3) {
 //			    writer3.writeTuple(t);
