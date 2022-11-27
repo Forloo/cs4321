@@ -85,20 +85,24 @@ public class JoinDp {
 				totalV = (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]);
 			}
 			
-			ArrayList<String> finalName = new ArrayList<String>();
-			finalName.add(leftTableName);
-			finalName.add(rightTableName);
-			String[] casted = (String[]) finalName.toArray();
+			String[] finalName = new String[2];
+			finalName[0] = leftTableName;
+			finalName[1] = rightTableName;
 			
-			memoization.put(casted, totalV);
+			memoization.put(finalName, totalV);
 			
 		}
 //		System.out.println(vValues);
 //		System.out.println("memoization is here: ");
 //		System.out.println(memoization);
-		System.out.println("my dude");
-		for(String[] k : dp().keySet()) {
-			System.out.println(k);
+		System.out.println("my dude this is the min cost order");
+		HashMap<String[],Float> dd = dp();
+		for(String[] k : dd.keySet()) {
+			for(String s : k) {
+				System.out.println(s);
+				
+			}
+			System.out.println(dd.get(k));
 		}
 	}
 	
@@ -311,11 +315,16 @@ public class JoinDp {
 	}
 	
 	
-	private String findUnusedTable(ArrayList<String> keys, ArrayList<String> original){
+	private String findUnusedTable(String[] keys, ArrayList<String> original){
 		ArrayList<String> unused = new ArrayList<String>();
+//		System.out.println("size is orignal: " + original.size());
+//		System.out.println("size of [] is: " + keys.length);
 		for(String k : keys) {
 			original.remove(k);
 		}
+//		System.out.println("will it remove correclty?");
+//		System.out.println("again, size is: " + original.size());
+//		System.out.println(original.get(0));
 		return original.get(0);
 	}
 	/**
@@ -325,17 +334,22 @@ public class JoinDp {
 	 */
 	private HashMap<String[],Float> dp() {
 		HashMap<String[],Float> minSet = new HashMap<String[],Float>(); //return variable
-		ArrayList<String> minKeys = new ArrayList<String>(); //keys with min cost
+		String[] minKeys = new String[numChil]; //keys with min cost
+//		System.out.println("minkeys size: " + minKeys.length);
 		float minVal=0; //min cost
 		for(int window=3; window <= numChil; window++) {
-			ArrayList<String> temp = tableNames;
 			if(window == numChil) { //now choose window-1 key with smallest cost (this is the min cost join order)
 				for(String[] key : memoization.keySet()) {
-					if(key.size() == window - 1) {
+					ArrayList<String> tempIn = (ArrayList<String>) tableNames.clone();
+					if(key.length == window - 1) {
 						if(minSet.isEmpty()) {
-							minKeys = key;
-							minKeys.add(findUnusedTable(key,temp));
-							System.out.println(key);
+//							minKeys = key;
+							for (int i =0; i<=window-2;i++) {
+								minKeys[i]=key[i];
+							}
+							minKeys[window-1] = findUnusedTable(key,tempIn);
+//							minKeys.add();
+//							System.out.println(key);
 							System.out.println(memoization.get(key));
 							minVal = memoization.get(key);
 						} else if(minVal > (memoization.get(key))){
@@ -343,9 +357,12 @@ public class JoinDp {
 							minVal = memoization.get(key);
 						}
 					}
+//					System.out.println("is original mutative?: " + tableNames.size());
 				}
 			} else {
-				for(ArrayList<String> key : memoization.keySet()) {
+				//intermediate join, must calculate join v values of left child here
+				for(String[] key : memoization.keySet()) {
+					ArrayList<String> temp = (ArrayList<String>) tableNames.clone();
 					for(String table : key) {
 						temp.remove(table);
 					} //this way temp is left with just one more table to join
@@ -354,7 +371,7 @@ public class JoinDp {
 			}
 		}
 		
-
+		System.out.println("final min val: "+minVal);
 		minSet.put(minKeys, minVal);
 		return minSet;
 	}
