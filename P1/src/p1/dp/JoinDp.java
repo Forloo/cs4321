@@ -79,7 +79,9 @@ public class JoinDp {
 			float totalV=0;
 			if (checkEqualityContained(leftTableName, rightTableName)) {
 				//loop through and find all the expressions involving the two table names
-				float denominator = findDenominator(leftTableName,rightTableName);
+				String[] ltn = new String[1];
+				ltn[0] = leftTableName;
+				float denominator = findDenominator(ltn,rightTableName);
 				totalV = (float) (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]) / denominator; 
 			} else {
 				totalV = (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]);
@@ -138,6 +140,7 @@ public class JoinDp {
 		}
 		return res;
 	}
+	
 	//when we have equality use the formula to calculate intermediate size
 	/**
 	 * Function that calculates the denominator of the intermediate join cost equation.
@@ -146,11 +149,11 @@ public class JoinDp {
 	 * @param rtn right child's table name
 	 * @return the denominator of the intermediate join cost equation
 	 */
-	private float findDenominator(String ltn, String rtn) {
+	private float findDenominator(String[] ltn, String rtn) {
 		float finalV = 1;
 		//get the relevant join conditions for current two tables
 		for(String[] key : allConditions.keySet()) {
-			if(containTable(key, ltn) && containTable(key,rtn)) {
+			if(containTable(key, ltn[0]) && containTable(key,rtn)) {
 				for (Expression exp : allConditions.get(key)) {
 					//We only consider equality condition, if join condition does not contain equality then cross product
 					if(exp instanceof EqualsTo) { //we are only considering equality
@@ -158,25 +161,33 @@ public class JoinDp {
 //						System.out.println("What will this print?");
 						
 						//get left V value
-						String leftExp = expCpy.getLeftExpression().toString();
-						String[] parsedl = leftExp.split("\\.");
-						float leftV=1;
-						
-						if(vValues.get(Aliases.getTable(parsedl[0]+"."+parsedl[parsedl.length-1])) != null) {
-							leftV = vValues.get(Aliases.getTable(parsedl[0]+"."+parsedl[parsedl.length-1]));
-						} else {
-							leftV = vValues.get(Aliases.getTable(parsedl[0]));
+						float leftV = -1;
+						for(String leftT : ltn) {
+							String leftExp = expCpy.getLeftExpression().toString();
+							String[] parsedl = leftExp.split("\\.");
+							if(leftV == -1) {
+								leftV = vValues.get(Aliases.getTable(parsedl[0]));
+							} else if(leftV > vValues.get(Aliases.getTable(parsedl[0]))) {
+								leftV =  vValues.get(Aliases.getTable(parsedl[0]));
+							}
 						}
+						
+						
+//						if(vValues.get(Aliases.getTable(parsedl[0]+"."+parsedl[parsedl.length-1])) != null) {
+//							leftV = vValues.get(Aliases.getTable(parsedl[0]+"."+parsedl[parsedl.length-1]));
+//						} else {
+//							leftV = vValues.get(Aliases.getTable(parsedl[0]));
+//						}
 						
 						//get right V value 
 						String rightExp = expCpy.getRightExpression().toString();
 						String[] parsedr = rightExp.split("\\.");
-						float rightV =1;
-						if(vValues.get(Aliases.getTable(parsedr[0]+"."+parsedr[parsedl.length-1])) != null) {
-							leftV = vValues.get(Aliases.getTable(parsedr[0]+"."+parsedr[parsedl.length-1]));
-						} else {
-							leftV = vValues.get(Aliases.getTable(parsedr[0]));
-						}
+						float rightV =vValues.get(Aliases.getTable(parsedr[0]));
+//						if(vValues.get(Aliases.getTable(parsedr[0]+"."+parsedr[parsedl.length-1])) != null) {
+//							leftV = vValues.get(Aliases.getTable(parsedr[0]+"."+parsedr[parsedl.length-1]));
+//						} else {
+//							leftV = vValues.get(Aliases.getTable(parsedr[0]));
+//						}
 						//find the max and update finalV
 						finalV  = finalV * Math.max(leftV, rightV);
 					}
@@ -280,6 +291,7 @@ public class JoinDp {
 				value = 1;
 			}
 		}
+		
 //		System.out.println("nameeeEe: " +name);
 		nameValue.put(name, value);
 		return nameValue;
@@ -384,11 +396,16 @@ public class JoinDp {
 						//traverse temp and add one table by one to current key, calculate intermediate join cost
 						for(String table : temp) {
 							float newVval=0;
+							
 							//for each table, calculate new intermediate join cost
 							
 							//this is my iffy part but follow the ed discussion post for now
 							System.out.println("this is the talbe nmaae: " + Aliases.getTable(table) );
-							newVval = memoization.get(key) * dbStatsInfo.get(Aliases.getTable(table))[0];
+							newVval = memoization.get(key) * dbStatsInfo.get(Aliases.getTable(table))[0] / findDenominator(key,table);
+							//change findDenominator to take in String[] and String
+							
+							
+							
 							//append table to key
 							
 							String[] newKey = new String[window];
