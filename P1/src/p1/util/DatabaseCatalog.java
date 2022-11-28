@@ -9,9 +9,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Set;
+
+import p1.io.BPTreeReader;
 
 /**
  * A singleton class that stores the file location of tables and their column
@@ -35,6 +39,7 @@ public class DatabaseCatalog {
 	// = low, arr[1] = high. example: {Sailors: [10000], Sailors.A: [0, 10000],
 	// Sailors.B: [0, 100], Boats: [1000], Boats.D: ...}
 	public HashMap<String, int[]> statsInfo;
+	ArrayList<Integer> leaves = new ArrayList<Integer>();		
 
 	//
 	/*
@@ -67,7 +72,19 @@ public class DatabaseCatalog {
 		} catch (NoSuchElementException e2) { // thrown by calling nexLine
 
 		}
+		
+		// get number of leaves in each index for section 3.3 
+		HashMap<String, String[]> info = getIndexInfo();
+		Set<String> keys = info.keySet();
+		Iterator<String> itr = keys.iterator();					
 
+		for (int i = 0; i < keys.size(); i++) {
+			while(itr.hasNext()) {
+				BPTreeReader reader = new BPTreeReader(indexDir + itr.next());
+				leaves.add(reader.getHeaderInfo().get(1)); //num leaves in each index 
+			} 
+		} 
+		
 		// Get all tables and paths
 		for (int i = 0; i < fileList.length; i++) {
 			File currFile = fileList[i];
@@ -114,6 +131,15 @@ public class DatabaseCatalog {
 	public static DatabaseCatalog getInstance() {
 		// returns the singleton object
 		return catalogObject;
+	}
+	
+	/**
+	 * Return info about number of leaves in each index 
+	 * 
+	 * @return list of integers representing the number of leaves in each index 
+	 */
+	public ArrayList<Integer> getNumLeaves() {
+		return this.leaves;
 	}
 
 	/**
