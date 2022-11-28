@@ -160,7 +160,7 @@ public class JoinDp {
 						EqualsTo expCpy = (EqualsTo) exp;
 //						System.out.println("What will this print?");
 						
-						//get left V value
+						//get left V value (THIS IS THE THIRD CASE OF INTERMEDIATE JOIN SIZE)
 						float leftV = -1;
 						for(String leftT : ltn) {
 							String leftExp = expCpy.getLeftExpression().toString();
