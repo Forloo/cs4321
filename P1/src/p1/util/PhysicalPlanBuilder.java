@@ -144,12 +144,12 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	public Operator generatePhysicalTree(LogicalOperator rootOperator) {
 
 //		// Logical scan base case check
-//		if (rootOperator instanceof LogicalScan) {
-//			// Cast the rootOperator to the logical scan and then get the field that we want
-//			LogicalScan cpy = (LogicalScan) rootOperator;
-//			// Make this into the physicalOperator
-//			return new ScanOperator(cpy.getFromTable());
-//		}
+		if (rootOperator instanceof LogicalScan) {
+			// Cast the rootOperator to the logical scan and then get the field that we want
+			LogicalScan cpy = (LogicalScan) rootOperator;
+			// Make this into the physicalOperator
+			return new ScanOperator(cpy.getFromTable());
+		}
 
 		if (rootOperator instanceof LogicalFilter) {
 			// Cast the rootoperator to the logical filter
@@ -166,6 +166,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //			String[] exps = cpy.getExpression().toString().split(" AND ");
 //			System.out.println(cpy.getExpression());
 			if (cpy.getExpression().size() > 0) {
+//				System.out.println("entered in here");
 				int lowkey = Integer.MIN_VALUE;
 				int highkey = Integer.MAX_VALUE;
 				for (int k = 0; k < cpy.getExpression().size(); k++) {
@@ -222,124 +223,127 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				double minCost = scanCost; // default					
 				double reductionFactor = 1.0; // r					
 				int numPages = (int) scanCost; // p 
-					
-			    String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable); 
-				boolean clustered = indexInfo[0].equals("1") ? true : false;	
-					
-				String finalIndex = null;
-				int counter = 0; // to keep track of colIdx
-				int colIdx = 0;
-					
-				ArrayList<Integer> leaves = DatabaseCatalog.getInstance().getNumLeaves();
-					
-				// calculate index scan cost for each index 
-				for (String columnName : indexInfo) {
-					int[] range = DatabaseCatalog.getInstance().statsInfo.get(columnName);
-												
-					double total = range[1] - range[0]; // total range of values for this attribute 			    		
-					double min = range[0]; 
-			    	double max = range[1]; 
-			    		
-			    	if (high != null) max = high; 	    		
-			    	if (low != null) min = low; 
-			    					    		
-			   		if (low == null && high != null) {
-			   			reductionFactor =  (high - min) / total;
-			   		} else if (low == null && high == null) {
-			   			reductionFactor = 1.0;
-			   		} else if (low != null && high == null) {
-			   			reductionFactor = (max - low) / total;
-			   		} else if (reductionFactor <= 0) {
-			   			reductionFactor = 1.0;
-			   		} else {
-				   		reductionFactor = (max - min) / total; // need to test indexing for these cases (might need +1)
-			    	}			    						   // depends on open or closed interval for highkey and lowkey
-			    					    				    							
-					int numLeaves = leaves.get(counter); // l
+				
+				// If this is zero then there is no index to use.
+				if(db.getIndexInfo().size()!=0 && DatabaseCatalog.getInstance().getIndexInfo().get(childTable)!=null) {
+					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable); 
+					boolean clustered = indexInfo[0].equals("1") ? true : false;	
 						
-					double indexCost;
+					String finalIndex = null;
+					int counter = 0; // to keep track of colIdx
+					int colIdx = 0;
+						
+					ArrayList<Integer> leaves = DatabaseCatalog.getInstance().getNumLeaves();
+						
+					// calculate index scan cost for each index 
+					for (String columnName : indexInfo) {
+						int[] range = DatabaseCatalog.getInstance().statsInfo.get(columnName);
+													
+						double total = range[1] - range[0]; // total range of values for this attribute 			    		
+						double min = range[0]; 
+				    	double max = range[1]; 
+				    		
+				    	if (high != null) max = high; 	    		
+				    	if (low != null) min = low; 
+				    					    		
+				   		if (low == null && high != null) {
+				   			reductionFactor =  (high - min) / total;
+				   		} else if (low == null && high == null) {
+				   			reductionFactor = 1.0;
+				   		} else if (low != null && high == null) {
+				   			reductionFactor = (max - low) / total;
+				   		} else if (reductionFactor <= 0) {
+				   			reductionFactor = 1.0;
+				   		} else {
+					   		reductionFactor = (max - min) / total; // need to test indexing for these cases (might need +1)
+				    	}			    						   // depends on open or closed interval for highkey and lowkey
+				    					    				    							
+						int numLeaves = leaves.get(counter); // l
+							
+						double indexCost;
 
-					if (clustered) {
-						indexCost = 3 + numPages * reductionFactor;
-					} else {
-						indexCost = 3 + numLeaves * reductionFactor + numTuples * reductionFactor;
-					}
-												
-					if (indexCost < minCost) {
-						minCost = indexCost; 
-						finalIndex = columnName; // index to use, return null if no index should be used (scan instead)
-						colIdx = counter; // the column index that the table is indexed on
+						if (clustered) {
+							indexCost = 3 + numPages * reductionFactor;
+						} else {
+							indexCost = 3 + numLeaves * reductionFactor + numTuples * reductionFactor;
+						}
+													
+						if (indexCost < minCost) {
+							minCost = indexCost; 
+							finalIndex = columnName; // index to use, return null if no index should be used (scan instead)
+							colIdx = counter; // the column index that the table is indexed on
+						} 
+						counter++; 
+
 					} 
-					counter++; 
-
-				} 
-				
-				LogicalScan copy = (LogicalScan) rootOperator;
 					
-				if (finalIndex == null) {
-					// use regular scan operator, since scan has the minimum cost 
-					return new ScanOperator(copy.getFromTable());		
+					LogicalScan copy = (LogicalScan) rootOperator;
 						
-				} else {
-					// make index scan operator on finalIndex 
-					if (high != null || low != null) {
-						int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable()))
-									.indexOf(childTable);
+					if (finalIndex == null) {
+						;	
+							
+					} else {
+						// make index scan operator on finalIndex 
+//						if (high != null || low != null) {
+//						System.out.println("entered the second index loop");
+						int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable())).indexOf(childTable);
 						String idxFile = DatabaseCatalog.getInstance().getIndexDir() + finalIndex;
+//						System.out.println("Using the indexscan operator in this part");
 						child = new IndexScanOperator(child.getTable(), low, high, clustered, colIdx, idxFile);
+//						}
+//						else return new ScanOperator(copy.getFromTable()); // if lowkey and highkey are null then we scan whole table
 					}
-					else return new ScanOperator(copy.getFromTable()); // if lowkey and highkey are null then we scan whole table
 				}
-				
 					
+			    
+				
 // END SECTION 3.3 
 					
-				// TODO: P4 DECIDE WHICH INDEX TO USE IF MULTIPLE INDEXES FOR ONE TABLE
-				for (String col : DatabaseCatalog.getInstance().getIndexInfo().keySet()) { // THIS FOR LOOP IS A
-																								// PLACEHOLDER; DELETE WHEN
-																								// DONE WITH SECTION 3.3
-					if (col.contains(childTable)) {
-						childTable = col; // childTable is now tableName + "." + colName
-					}
-				}
-				
-			
-			
-			
-			HashMap<String, ArrayList<Integer>> ufRestraints = new HashMap<String, ArrayList<Integer>>();
-			// The child table is always a scan child so we can just convert that child into
-			// a scanOperator
-			// Use the schema to assign the right conditions
-			ScanOperator childOp = (ScanOperator) child;
-			ArrayList<String> schema = childOp.getSchema();
-			ArrayList<UnionFindElement> ufInfo = cpy.getUfRestraints();
+//				// TODO: P4 DECIDE WHICH INDEX TO USE IF MULTIPLE INDEXES FOR ONE TABLE
+//				for (String col : DatabaseCatalog.getInstance().getIndexInfo().keySet()) { // THIS FOR LOOP IS A
+//																								// PLACEHOLDER; DELETE WHEN
+//																								// DONE WITH SECTION 3.3
+//					if (col.contains(childTable)) {
+//						childTable = col; // childTable is now tableName + "." + colName
+//					}
+//				}
+		}
+		}
+		HashMap<String, ArrayList<Integer>> ufRestraints = new HashMap<String, ArrayList<Integer>>();
+		// The child table is always a scan child so we can just convert that child into
+		// a scanOperator
+		// Use the schema to assign the right conditions
+		ScanOperator childOp = (ScanOperator) child;
+		ArrayList<String> schema = childOp.getSchema();
+		ArrayList<UnionFindElement> ufInfo = cpy.getUfRestraints();
 
-			for (int k = 0; k < ufInfo.size(); k++) {
-				// Check attribute constraint. Match with table then add
-				UnionFindElement curr = ufInfo.get(k);
-				ArrayList<String> attributes = curr.getAttributeSet();
-				for (int l = 0; l < attributes.size(); l++) {
-					if (schema.contains(attributes.get(l))) {
-						ArrayList<Integer> bounds = new ArrayList<Integer>();
-						bounds.add(curr.getMinValue());
-						bounds.add(curr.getMaxValue());
-						ufRestraints.put(attributes.get(l), bounds);
-					}
+		for (int k = 0; k < ufInfo.size(); k++) {
+			// Check attribute constraint. Match with table then add
+			UnionFindElement curr = ufInfo.get(k);
+			ArrayList<String> attributes = curr.getAttributeSet();
+			for (int l = 0; l < attributes.size(); l++) {
+				if (schema.contains(attributes.get(l))) {
+					ArrayList<Integer> bounds = new ArrayList<Integer>();
+					bounds.add(curr.getMinValue());
+					bounds.add(curr.getMaxValue());
+					ufRestraints.put(attributes.get(l), bounds);
 				}
 			}
-			
-			cpy.setRelevantConstraints(ufRestraints);
-			return new SelectOperator(child, cpy.getExpression(),ufRestraints);
+		}
+		
+		cpy.setRelevantConstraints(ufRestraints);
+//		System.out.println("Something ended up being returned from this function");
+		return new SelectOperator(child, cpy.getExpression(),ufRestraints);
 		}
 
 		if (rootOperator instanceof LogicalProject) {
 			// Cast the element to the logical project
-			LogicalProject copy = (LogicalProject) rootOperator;
+			LogicalProject cpy = (LogicalProject) rootOperator;
 
 			// Get the child element for this
 			Operator child2 = generatePhysicalTree(cpy.getChild());
 
-			ProjectOperator project = new ProjectOperator(child, copy.getSelects());
+			ProjectOperator project = new ProjectOperator(child2, cpy.getSelects());
 
 			return project;
 		}
@@ -353,19 +357,19 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //			System.out.println("LOGICAL ALL JOIN!"); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 			Operator prevJoin = null;
 
-			LogicalAllJoin cpy = (LogicalAllJoin) rootOperator;
+			LogicalAllJoin cpy1 = (LogicalAllJoin) rootOperator;
 			
 //			System.out.println(cpy.getConditions()); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 		
-			JoinDp test = new JoinDp(cpy,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+			//JoinDp test = new JoinDp(cpy1,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
 			
 			
 			
-			ArrayList<Expression> notUsed= cpy.getUnusedOperators();
-			UnionFind uf= cpy.getUnionFind();
-			List<String> allTables = cpy.getTableNames();
-			List<LogicalOperator> operators = cpy.getTableOperators();
-			HashMap<String[], ArrayList<Expression>> allConditions = cpy.getConditions();
+			ArrayList<Expression> notUsed= cpy1.getUnusedOperators();
+			UnionFind uf= cpy1.getUnionFind();
+			List<String> allTables = cpy1.getTableNames();
+			List<LogicalOperator> operators = cpy1.getTableOperators();
+			HashMap<String[], ArrayList<Expression>> allConditions = cpy1.getConditions();
 			
 			ArrayList<Expression> usedExpression = new ArrayList<Expression>();
 			HashSet<Expression> usedJoinExpression= new HashSet<Expression>();
@@ -377,6 +381,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 					// Convert to the correct physical operators
 					Operator left = generatePhysicalTree(operators.get(i - 1));
+//					System.out.println(operators.get(i-1));
+//					System.out.println(operators.get(i));
+//					System.out.println("Before getting the left operator");
+//					System.out.println(left);
+//					System.out.println("After getting the right operator");
 					this.addExpressions(left, usedExpression);
 					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 					Operator right = generatePhysicalTree(operators.get(i));
@@ -409,7 +418,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			}
 			
 			HashMap<String[], ArrayList<Expression>> updatedConditions= this.updateConditions(allConditions, notUsed, uf.getUnionElement(), usedExpression);
-			cpy.setConditions(updatedConditions);
+			cpy1.setConditions(updatedConditions);
 			
 			return prevJoin;
 		}
@@ -462,9 +471,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			return dup;
 		}
-		}
 
-		}		// Reaching this is not possible
+		// Reaching this is not possible
 		return null;
 		
 
