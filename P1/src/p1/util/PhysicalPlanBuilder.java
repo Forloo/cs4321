@@ -47,6 +47,7 @@ import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import p1.dp.JoinDp;
 import p1.logicaloperator.LogicalAllJoin;
 import p1.logicaloperator.LogicalFilter;
 import p1.logicaloperator.LogicalJoin;
@@ -78,6 +79,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	// The plainselect containing the query information
 	private Statement query;
 
+	//this is needed to pass in dpJoin to calculate min cost join order
+	private HashMap<String, int[]> dbStatsInfo;
 	/**
 	 * The constructor for the PhysicalPlanBuilder
 	 *
@@ -168,6 +171,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 				String idxCol = childTable.substring(childTable.indexOf(".") + 1);
 //				String[] exps = cpy.getExpression().toString().split(" AND ");
+//				System.out.println(cpy.getExpression());
+//				System.out.println("Printing in Physical Plan Builder");
 //				System.out.println(cpy.getExpression());
 				if (cpy.getExpression().size() > 0) {
 					int lowkey = Integer.MIN_VALUE;
@@ -305,8 +310,19 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		// TODO After using dynamic programming we will choose the order in which query 
 		// objects will be joined together
 		if (rootOperator instanceof LogicalAllJoin) {
+			
+			//call JoinDP here, get the order of tables to join
+			
+//			System.out.println("LOGICAL ALL JOIN!"); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 			Operator prevJoin = null;
 			LogicalAllJoin cpy = (LogicalAllJoin) rootOperator;
+			
+//			System.out.println(cpy.getConditions()); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
+		
+			JoinDp test = new JoinDp(cpy,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+			
+			
+			
 			ArrayList<Expression> notUsed= cpy.getUnusedOperators();
 			UnionFind uf= cpy.getUnionFind();
 			List<String> allTables = cpy.getTableNames();
@@ -330,7 +346,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,uf,usedJoinExpression);
 					String joinName = left.getTable() + "," + right.getTable();
-//					System.out.println(joinName);
+//					System.out.println("Join name: " + joinName);
 //					System.out.println("++++++++++++++++++++++++++++++++++++");
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
 //					System.out.println(joinName);
@@ -343,6 +359,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 
 					String joinName = left.getTable() + "," + right.getTable();
+
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions,notUsed,uf,usedJoinExpression);
 
 					Operator joinElement = this.chooseJoin(joinName, left, right, joinConditions);
@@ -352,7 +369,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}
 //				System.out.println("+++++++++++++++++++");
 			}
-
+			
+			HashMap<String[], ArrayList<Expression>> updatedConditions= this.updateConditions(allConditions, notUsed, uf.getUnionElement(), usedExpression);
+			cpy.setConditions(updatedConditions);
+			
 			return prevJoin;
 		}
 
@@ -410,7 +430,20 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 	}
 
-	public void visit(LogicalPlan lp) {
+	
+	
+	private void addExpressions(Operator op, ArrayList<Expression> used) {
+		if (op instanceof SelectOperator) {
+			SelectOperator converted= (SelectOperator) op;
+			ArrayList<Expression> expr = converted.getWhere();
+			for(int i=0;i<expr.size();i++) {
+				used.add(expr.get(i));
+			}
+		}
+	}
+	
+	public void visit(LogicalPlan lp, HashMap<String, int[]> dbStatsInfo) {
+		this.dbStatsInfo = dbStatsInfo;
 		// Get the rootOperator for the tree
 		LogicalOperator root = lp.getOperator();
 		Operator physicalroot = this.generatePhysicalTree(root);
@@ -504,22 +537,21 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 	
 	private HashMap<String[],ArrayList<Expression>> updateConditions(HashMap<String[],ArrayList<Expression>> prevConditions, ArrayList<Expression> notUsed, ArrayList<UnionFindElement> ufConstraints, ArrayList<Expression> used){
 		HashMap<String[],ArrayList<Expression>> updatedConditions= new HashMap<String[],ArrayList<Expression>>();
-		
-		System.out.println("Before the used");
-		System.out.println(used);
-		System.out.println("After the used");
+
+//		System.out.println("Before the used");
+//		System.out.println(used);
+//		System.out.println("After the used");
 		for(String[] element: prevConditions.keySet()) {
 			// Get the expressions associated with the current element
 			ArrayList<Expression> curr = prevConditions.get(element);
 			for(Expression cond: curr) {
 				if (used.contains(cond)) {
-					System.out.println("Inside of this loop overlapping conditions");
+//					System.out.println("Inside of this loop overlapping conditions");
 					continue;
 				}
 				if (notUsed.contains(cond)) {
 					// Check if the the element key exists in the new HashMap
-					if (updatedConditions.containsKey(element)) {
-						// If it does contain this element then add it to the list of arraylist expression for this table
+					if (updatedConditions.containsKey(element)) {// If it does contain this element then add it to the list of arraylist expression for this table
 						updatedConditions.get(element).add(cond);
 					}
 					else {
@@ -534,13 +566,14 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						EqualsTo converted= (EqualsTo)cond;
 						// Get the left attribute value
 						Expression left= converted.getLeftExpression();
-						String leftAttr= left.toString();
-						
-						// Loop over the unionfindconstraints
+						String leftAttr= left.toString();// Loop over the unionfindconstraints
 						for(int i=0;i<ufConstraints.size();i++) {
 							UnionFindElement ufElement= ufConstraints.get(i);
 							if (ufElement.getAttributeSet().contains(leftAttr)) {
 								// Get the min element and get the max element.
+								// If they are equal then this conditon is fine since that means some
+								// conditions made them equal and the conditon will be handled by select operators
+								// underneath the join operators.
 								if(!(ufElement.getMaxValue()==ufElement.getMinValue())) {
 									if(updatedConditions.containsKey(element)) {
 										updatedConditions.get(element).add(cond);
@@ -554,21 +587,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						}
 					}
 				}
-				
+
 			}
 		}
-		
+
 		return updatedConditions;
-	}
-	
-	private void addExpressions(Operator op, ArrayList<Expression> used) {
-		if (op instanceof SelectOperator) {
-			SelectOperator converted= (SelectOperator) op;
-			ArrayList<Expression> expr = converted.getWhere();
-			for(int i=0;i<expr.size();i++) {
-				used.add(expr.get(i));
-			}
-		}
 	}
 	
 	private void updateUsedJoinExpressions(ArrayList<Expression> used,HashSet<Expression> usedJoinExpression) {

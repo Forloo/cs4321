@@ -267,8 +267,8 @@ public class BTree {
 					} else {
 						pointersTwo.get(keyValue).add(prev.getAddress());
 					}
-
 				}
+				prev = references.get(l);
 			}
 
 			ArrayList<Map.Entry<Integer, ArrayList<Integer>>> pointerInfoTwo = new ArrayList<Map.Entry<Integer, ArrayList<Integer>>>(

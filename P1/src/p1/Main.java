@@ -17,12 +17,15 @@ import net.sf.jsqlparser.statement.select.Select;
 import p1.index.BTree;
 import p1.index.BTreeNode;
 import p1.io.BPTreeWriter;
+import p1.io.BinaryTupleWriter;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
+import p1.util.RandomDataGenerator;
 import p1.util.StatGen;
+import p1.util.Tuple;
 
 public class Main {
 
@@ -57,10 +60,35 @@ public class Main {
 
 			File indexInfo = new File(dataDir + "index_info.txt");
 			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema, tempDir, indexInfo, indexDir);
-
+			
+			
+			
+			
+			
+			
+			
+//			generating Reserves File (added by Jason for testing)
+//			String fileName3 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Pictures";
+//			ArrayList<Tuple> rdg3 = new RandomDataGenerator(4,5000).generate();
+//			BinaryTupleWriter writer3 = new BinaryTupleWriter(fileName3); 
+//			for(Tuple t : rdg3) {
+//			    writer3.writeTuple(t);
+//			} writer3.close();
+//			//for debugging
+//			FileConverter.convertBinToHuman(fileName3, fileName3 + "_humanreadable");
+			
+			
+			
 			File statsFile = StatGen.generateStats(dataDir); // generates stats.txt
+//			System.out.println(db.getStatsInfo());
+//			for(String k : db.getStatsInfo().keySet()) {
+//				System.out.println(k);
+//				for(int i : db.getStatsInfo().get(k)) {
+//					System.out.println(i);
+//				}
+//			}
 			// this is how you use the new data generator
-//			RandomDataGenerator rdg = new RandomDataGenerator(statsFile); // use generated file to generate random data
+//			RandomDataGenerator rdg = new RandomDataGenerator(new File(dataDir+"Reserves")); // use generated file to generate random data
 //			RandomDataGenerator rdg = new RandomDataGenerator(new File(dataDir + "stats.txt")); // use custom file to generate random data
 //			rdg.generateAll(dataDir + "data" + File.separator);
 
@@ -101,7 +129,6 @@ public class Main {
 						// Parse statement
 						Select select = (Select) statement;
 						PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-						System.out.println(plainSelect);
 
 						// Create results file in output file directory
 						String queriesOutputFile = queriesOutput + File.separator + "query" + queryCount;
@@ -110,8 +137,9 @@ public class Main {
 
 						// Evaluate query
 						LogicalPlan lp = new LogicalPlan(statement);
+						System.out.println(statement);
 						PhysicalPlanBuilder builder = new PhysicalPlanBuilder(statement);
-						lp.accept(builder);
+						lp.accept(builder,db.statsInfo);
 						QueryPlan qp = builder.getPlan();
 						long startMillis = System.currentTimeMillis();
 						qp.getOperator().dump(queriesOutputFile);
@@ -123,11 +151,15 @@ public class Main {
 						String physicalOutputFile = queriesOutputFile + "_physicalplan";
 						try {
 							// Logical plan
+//							System.out.println("generating logical plan"); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 							File logFile = new File(logicalOutputFile);
 							Path logFilePath = Paths.get(logicalOutputFile);
 							ArrayList<String> logPlan = new ArrayList<String>();
 							logPlan.add(lp.getOperator().toString(0));
+//							System.out.println("is this the logical plan?"+lp.getOperator().toString(0)); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
+							
 							Files.write(logFilePath, logPlan, StandardCharsets.UTF_8);
+//							System.out.println("finished making logical plan"); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 							// Physical plan
 							File physFile = new File(physicalOutputFile);
 							Path physFilePath = Paths.get(physicalOutputFile);
