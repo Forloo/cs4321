@@ -113,7 +113,6 @@ public class DatabaseCatalog {
 			}
 		}
 	}
-
 	/**
 	 * Return the index info: table name and attribute for naming index files
 	 * 

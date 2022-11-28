@@ -100,6 +100,7 @@ public class LogicalAllJoin extends LogicalOperator {
 	 * @return the logical plan in string form
 	 */
 	public String toString(int level) {
+//		System.out.println("called!!");
 		ArrayList<Expression> wheres = new ArrayList<Expression>();
 		for (Map.Entry<String[], ArrayList<Expression>> w : conditions.entrySet()) {
 			wheres.addAll(w.getValue());
@@ -109,7 +110,8 @@ public class LogicalAllJoin extends LogicalOperator {
 
 		// Print union find
 		lines += uf.toStringFile();
-
+		
+//		System.out.println("union find: " + lines);
 		for (LogicalOperator op : tableOperators) {
 			lines += op.toString(level + 1);
 		}
@@ -135,5 +137,13 @@ public class LogicalAllJoin extends LogicalOperator {
 	
 	public ArrayList<Expression> getUnusedOperators(){
 		return this.allExpr;
+	}
+	
+	/**
+	 * Sets the new conditions for the all join operator.
+	 * @param conditions
+	 */
+	public void setConditions(HashMap<String[],ArrayList<Expression>> conditions) {
+		this.conditions=conditions;
 	}
 }
