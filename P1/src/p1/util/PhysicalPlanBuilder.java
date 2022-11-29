@@ -1,9 +1,12 @@
 package p1.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import net.sf.jsqlparser.expression.AllComparisonExpression;
 import net.sf.jsqlparser.expression.AnyComparisonExpression;
@@ -152,6 +155,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		}
 
 		if (rootOperator instanceof LogicalFilter) {
+
 			// Cast the rootoperator to the logical filter
 			LogicalFilter cpy = (LogicalFilter) rootOperator;
 
@@ -168,6 +172,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			if (cpy.getExpression().size() > 0) {
 //				System.out.println("entered in here");
 				int lowkey = Integer.MIN_VALUE;
+				
 				int highkey = Integer.MAX_VALUE;
 				for (int k = 0; k < cpy.getExpression().size(); k++) {
 					String[] exps = cpy.getExpression().get(k).toString().split(" AND ");
@@ -210,38 +215,59 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					}
 				}
 				String[] exps = cpy.getExpression().get(0).toString().split("AND");
+
 				Integer high = highkey < Integer.MAX_VALUE ? highkey : null;
-				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;				
-					
+				Integer low = lowkey > Integer.MIN_VALUE ? lowkey : null;	
+				
 				DatabaseCatalog db = DatabaseCatalog.getInstance();
 				HashMap<String, int[]> stats = db.statsInfo;
 				int numTuples = stats.get(childTable)[0]; // t
+				
+
 				ArrayList<String> attr = child.getSchema();
 					
 				double scanCost = Math.ceil(numTuples * (4 * attr.size())) / 4096; 
-					
+
+			
 				double minCost = scanCost; // default					
 				double reductionFactor = 1.0; // r					
 				int numPages = (int) scanCost; // p 
 				
-				// If this is zero then there is no index to use.
-				if(db.getIndexInfo().size()!=0 && DatabaseCatalog.getInstance().getIndexInfo().get(childTable)!=null) {
-					String[] indexInfo = DatabaseCatalog.getInstance().getIndexInfo().get(childTable); 
-					boolean clustered = indexInfo[0].equals("1") ? true : false;	
-						
+				Set<String> keySet = DatabaseCatalog.getInstance().getIndexInfo().keySet(); 
+
+				Iterator<String> itr = keySet.iterator();
+				ArrayList<String> indexNames = new ArrayList<String>();
+				
+				// need names of each index, not just name of table 
+				while (itr.hasNext()) {
+				    String key = itr.next();
+				    indexNames.add(key);
+				}				
+								
+				// check that there is an index to use 
+				if(db.getIndexInfo().size()!=0 && indexNames !=null) {
+					System.out.println("indexes exist");
+																		
 					String finalIndex = null;
 					int counter = 0; // to keep track of colIdx
 					int colIdx = 0;
 						
 					ArrayList<Integer> leaves = DatabaseCatalog.getInstance().getNumLeaves();
-						
+					
+					boolean clustered = true;
+																		
 					// calculate index scan cost for each index 
-					for (String columnName : indexInfo) {
+					for (String columnName : indexNames) {												
+						clustered = indexNames.get(0).equals("1") ? true : false;							
+						
 						int[] range = DatabaseCatalog.getInstance().statsInfo.get(columnName);
-													
+																			
 						double total = range[1] - range[0]; // total range of values for this attribute 			    		
 						double min = range[0]; 
-				    	double max = range[1]; 
+						System.out.println("min: " + min);
+
+				    	double max = range[1]; 				    	
+						System.out.println("max: " + max);
 				    		
 				    	if (high != null) max = high; 	    		
 				    	if (low != null) min = low; 
@@ -255,10 +281,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				   		} else if (reductionFactor <= 0) {
 				   			reductionFactor = 1.0;
 				   		} else {
-					   		reductionFactor = (max - min) / total; // need to test indexing for these cases (might need +1)
-				    	}			    						   // depends on open or closed interval for highkey and lowkey
-				    					    				    							
+					   		reductionFactor = (max - min) / total; 
+				    	}			    						   
+				    		
+						System.out.println("reduction factor: " + reductionFactor);
+
 						int numLeaves = leaves.get(counter); // l
+						System.out.println("num leaves: " + numLeaves);
 							
 						double indexCost;
 
@@ -267,6 +296,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						} else {
 							indexCost = 3 + numLeaves * reductionFactor + numTuples * reductionFactor;
 						}
+						
+						System.out.println("index cost: " + indexCost);
+						System.out.println("min cost: " + minCost);
+
 													
 						if (indexCost < minCost) {
 							minCost = indexCost; 
@@ -277,7 +310,6 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 					} 
 					
-					LogicalScan copy = (LogicalScan) rootOperator;
 						
 					if (finalIndex == null) {
 						;	
@@ -286,9 +318,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						// make index scan operator on finalIndex 
 //						if (high != null || low != null) {
 //						System.out.println("entered the second index loop");
-						int indexIdx = DatabaseCatalog.getInstance().getSchema().get(Aliases.getTable(child.getTable())).indexOf(childTable);
 						String idxFile = DatabaseCatalog.getInstance().getIndexDir() + finalIndex;
-//						System.out.println("Using the indexscan operator in this part");
+//						System.out.println("Using the index scan operator in this part");
 						child = new IndexScanOperator(child.getTable(), low, high, clustered, colIdx, idxFile);
 //						}
 //						else return new ScanOperator(copy.getFromTable()); // if lowkey and highkey are null then we scan whole table

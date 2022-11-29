@@ -107,11 +107,11 @@ public class Main {
 				bTree.setRoot(root);
 				BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(), order);
 
-//					String path= "C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Boats.E";
-//					String sailorsPath="/Users/annazhang/db/cs4321/P1/input/db/indexes/Sailors.A";
+					String path= "/Users/annazhang/db/cs4321/P1/input/db/indexes/Boats.E";
+					String sailorsPath="/Users/annazhang/db/cs4321/P1/input/db/indexes/Sailors.A";
 //					System.out.println(tableName);
 //					BPTreeReader tr = new BPTreeReader(sailorsPath);
-//					IndexScanOperator scan= new IndexScanOperator(tableName, null, 1000, clus, colIdx, sailorsPath);
+					IndexScanOperator scan= new IndexScanOperator(tableName, null, 1000, clus, colIdx, sailorsPath);
 //					System.out.println(tableName);
 //					scan.dump();
 //					System.out.println("=====================================");
