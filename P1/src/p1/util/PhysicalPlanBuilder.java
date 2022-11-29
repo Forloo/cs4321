@@ -258,7 +258,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 																		
 					// calculate index scan cost for each index 
 					for (String columnName : indexNames) {												
-						clustered = indexNames.get(0).equals("1") ? true : false;							
+						clustered = indexNames.get(counter).equals("1") ? true : false;							
 						
 						int[] range = DatabaseCatalog.getInstance().statsInfo.get(columnName);
 																			
