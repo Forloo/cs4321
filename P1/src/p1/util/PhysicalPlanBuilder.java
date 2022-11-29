@@ -318,7 +318,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						// make index scan operator on finalIndex 
 //						if (high != null || low != null) {
 //						System.out.println("entered the second index loop");
-						String idxFile = DatabaseCatalog.getInstance().getIndexDir() + finalIndex;
+						String idxFile = indexDir + finalIndex;
 //						System.out.println("Using the index scan operator in this part");
 						child = new IndexScanOperator(child.getTable(), low, high, clustered, colIdx, idxFile);
 //						}
