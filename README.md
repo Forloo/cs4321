@@ -25,3 +25,7 @@ For each of the below algorithms/functionalities, an explanation of where the im
 – the selection pushing
 – the choice of implementation for each logical selection operator – the choice of the join order
 – the choice of implementation for each join operator
+
+Logic for unionfind and propagating the expression:
+
+Using the unionfind element we group all of the attributes that have the same conditions together. Using the visitor class that we used to parse all of the expression depending on the expression type we make a specific unionfind element and if that element exist already then join them into one larger unionfind element. In the logical plan then for a given table we check if it has unionfind conditions and conditions that are not handled by the unionfind and add them appropriatley. Then using the physicalplanbuilder we make the physical plan and the physical operators with all the conditions from the logical plan operators and the restraints from the unionfind.
