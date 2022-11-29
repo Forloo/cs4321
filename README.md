@@ -20,3 +20,8 @@ Logic for the root-to-leaf descent:
 Using the index from the header page we navigate our binary reader to the header page. With the header page information we find the address of the of the root page. Using the index pages then we use our low key value. Then we find the first key value that is lower than the low key value and go that given address. If is not lower than any of the keys then the last key has a pointer going to values higher than that last key value. Continue doing this until we reach a leaf node. Then given the address of that smallest leaf node page we keep going to the next leaf node page until the conditions are violated if we reach an index page meaning that there are no leaf pages left.
 
 In the physical plan builder, the selection was handled by parsing the WHERE condition, splitting up each condition on the string " AND ", and comparing the integers with the current "high" and current "low" values.
+
+For each of the below algorithms/functionalities, an explanation of where the implementation is found (i.e. which classes/methods perform it), as well as an explanation of your logic, especially if your logic diverges in any way from the instructions. If your logic is adequately explained in comments in your code, you may provide a reference to the comment rather than copying the comment:
+– the selection pushing
+– the choice of implementation for each logical selection operator – the choice of the join order
+– the choice of implementation for each join operator
