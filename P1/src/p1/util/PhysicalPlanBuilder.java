@@ -51,6 +51,7 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import p1.dp.JoinDp;
+import p1.io.BPTreeReader;
 import p1.logicaloperator.LogicalAllJoin;
 import p1.logicaloperator.LogicalFilter;
 import p1.logicaloperator.LogicalJoin;
@@ -230,16 +231,31 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				double reductionFactor = 1.0; // r					
 				int numPages = (int) scanCost; // p 
 				
-				Set<String> keySet = DatabaseCatalog.getInstance().getIndexInfo().keySet(); 
+				Set<String> keySet = db.getIndexInfo().keySet(); 
 
 				Iterator<String> itr = keySet.iterator();
 				ArrayList<String> indexNames = new ArrayList<String>();
+				ArrayList<Integer> leaves = new ArrayList<Integer>();
+
 				
 				// need names of each index, not just name of table 
 				while (itr.hasNext()) {
 				    String key = itr.next();
 				    indexNames.add(key);
-				}				
+				}			
+				
+				String indexDir = db.getIndexDir();
+				String fileName;	
+				
+				
+				// get number of leaves in each index 
+				for (int i = 0; i < indexNames.size(); i++) {
+					fileName = indexDir + indexNames.get(i);
+						
+					BPTreeReader reader = new BPTreeReader(fileName);
+						
+					leaves.add(reader.getHeaderInfo().get(1)); //num leaves in each index 														
+				}
 								
 				// check that there is an index to use 
 				if(db.getIndexInfo().size()!= 0 && indexNames != null) {
@@ -247,8 +263,6 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					String finalIndex = null;
 					int counter = 0; // to keep track of colIdx
 					int colIdx = 0;
-						
-					ArrayList<Integer> leaves = DatabaseCatalog.getInstance().getNumLeaves();
 					
 					boolean clustered = true;
 																		
@@ -257,7 +271,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						clustered = indexNames.get(counter).equals("1") ? true : false;							
 						
 						int[] range = DatabaseCatalog.getInstance().statsInfo.get(columnName);
-																			
+																									
 						double total = range[1] - range[0]; // total range of values for this attribute 			    		
 						double min = range[0]; 
 				    	double max = range[1]; 				    	

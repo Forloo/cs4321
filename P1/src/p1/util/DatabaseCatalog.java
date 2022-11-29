@@ -78,12 +78,12 @@ public class DatabaseCatalog {
 		Set<String> keys = info.keySet();
 		Iterator<String> itr = keys.iterator();					
 
-		for (int i = 0; i < keys.size(); i++) {
-			while(itr.hasNext()) {
-				BPTreeReader reader = new BPTreeReader(indexDir + itr.next());
-				leaves.add(reader.getHeaderInfo().get(1)); //num leaves in each index 
-			} 
-		} 
+//		for (int i = 0; i < keys.size(); i++) {
+//			while(itr.hasNext()) {
+//				BPTreeReader reader = new BPTreeReader(indexDir + itr.next());
+//				leaves.add(reader.getHeaderInfo().get(1)); //num leaves in each index 
+//			} 
+//		} 
 		
 		// Get all tables and paths
 		for (int i = 0; i < fileList.length; i++) {
@@ -133,14 +133,6 @@ public class DatabaseCatalog {
 		return catalogObject;
 	}
 	
-	/**
-	 * Return info about number of leaves in each index 
-	 * 
-	 * @return list of integers representing the number of leaves in each index 
-	 */
-	public ArrayList<Integer> getNumLeaves() {
-		return this.leaves;
-	}
 
 	/**
 	 * Initialize a DatabaseCatalog object
