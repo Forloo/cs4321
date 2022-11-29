@@ -167,10 +167,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			String childTable = Aliases.getTable(child.getTable());
 				
 			String idxCol = childTable.substring(childTable.indexOf(".") + 1);
-//			String[] exps = cpy.getExpression().toString().split(" AND ");
-//			System.out.println(cpy.getExpression());
+
 			if (cpy.getExpression().size() > 0) {
-//				System.out.println("entered in here");
 				int lowkey = Integer.MIN_VALUE;
 				
 				int highkey = Integer.MAX_VALUE;
@@ -226,8 +224,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 				ArrayList<String> attr = child.getSchema();
 					
-				double scanCost = Math.ceil(numTuples * (4 * attr.size())) / 4096; 
-
+				double scanCost = Math.ceil(numTuples * (4 * attr.size()) / 4096); 
 			
 				double minCost = scanCost; // default					
 				double reductionFactor = 1.0; // r					
@@ -245,8 +242,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 				}				
 								
 				// check that there is an index to use 
-				if(db.getIndexInfo().size()!=0 && indexNames !=null) {
-					System.out.println("indexes exist");
+				if(db.getIndexInfo().size()!= 0 && indexNames != null) {
 																		
 					String finalIndex = null;
 					int counter = 0; // to keep track of colIdx
@@ -264,10 +260,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 																			
 						double total = range[1] - range[0]; // total range of values for this attribute 			    		
 						double min = range[0]; 
-						System.out.println("min: " + min);
-
 				    	double max = range[1]; 				    	
-						System.out.println("max: " + max);
 				    		
 				    	if (high != null) max = high; 	    		
 				    	if (low != null) min = low; 
@@ -284,10 +277,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					   		reductionFactor = (max - min) / total; 
 				    	}			    						   
 				    		
-						System.out.println("reduction factor: " + reductionFactor);
-
 						int numLeaves = leaves.get(counter); // l
-						System.out.println("num leaves: " + numLeaves);
 							
 						double indexCost;
 
@@ -296,11 +286,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 						} else {
 							indexCost = 3 + numLeaves * reductionFactor + numTuples * reductionFactor;
 						}
-						
-						System.out.println("index cost: " + indexCost);
-						System.out.println("min cost: " + minCost);
-
-													
+																			
 						if (indexCost < minCost) {
 							minCost = indexCost; 
 							finalIndex = columnName; // index to use, return null if no index should be used (scan instead)
