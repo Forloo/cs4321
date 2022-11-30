@@ -388,8 +388,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 //			System.out.println(cpy.getConditions()); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 
-			JoinDp test = new JoinDp(cpy1,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
-			test.getOrder(); //The key of this is the order to join
+			JoinDp test = new JoinDp(cpy1, dbStatsInfo);// TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+			test.getOrder(); // The key of this is the order to join
 			ArrayList<Expression> notUsed = cpy1.getUnusedOperators();
 			UnionFind uf = cpy1.getUnionFind();
 			List<String> allTables = cpy1.getTableNames();
@@ -461,7 +461,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			boolean useSMJ = true;
 			for (Expression e : copy.getExpression()) {
-				if (e.toString().contains("<>") || e.toString().contains("!=")) {
+				if (!(e.toString().contains(" = ") || e.toString().contains(" == "))) {
 					useSMJ = false;
 				}
 			}
@@ -534,7 +534,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		Operator result = null;
 		boolean useSMJ = true;
 		for (Expression e : joinConditions) {
-			if (e.toString().contains("<>") || e.toString().contains("!=")) {
+			if (!(e.toString().contains(" = ") || e.toString().contains(" == "))) {
 				useSMJ = false;
 			}
 		}

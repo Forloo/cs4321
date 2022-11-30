@@ -246,7 +246,7 @@ public class QueryPlan {
 			ArrayList<Expression> joinConditions) {
 		boolean useSMJ = true;
 		for (Expression e : joinConditions) {
-			if (e.toString().contains("<>") || e.toString().contains("!=")) {
+			if (!(e.toString().contains(" = ") || e.toString().contains(" == "))) {
 				useSMJ = false;
 			}
 		}

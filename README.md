@@ -16,14 +16,7 @@ Logic for the root-to-leaf descent: Using the index from the header page we navi
 
 In the physical plan builder, the selection was handled by parsing the WHERE condition, splitting up each condition on the string " AND ", and comparing the integers with the current "high" and current "low" values. For choosing the selection implementation, the cost for each possible index scan is weighed against the cost of the base table scan according to their respective cost estimation formulas, and the best access path is chosen according to the implementation with the minimum cost.  
 
-TODO: For each of the below algorithms/functionalities, an explanation of where the implementation is found (i.e. which classes/methods perform it), as well as an explanation of your logic, especially if your logic diverges in any way from the instructions. If your logic is adequately explained in comments in your code, you may provide a reference to the comment rather than copying the comment:
-
-TODO:
-– the choice of implementation for each logical selection operator
-– the choice of the join order
-
 Explanation for choosing a selection implementation: In the physical plan builder, the cost for each possible index scan is weighed against the cost of the base table scan according to their respective cost estimation formulas, and the best access path is chosen according to the implementation with the minimum cost.  
-
 
 Explanation for selection pushing: Using the unionfind element we group all of the attributes that have the same conditions together. Using the visitor class that we used to parse all of the expression depending on the expression type we make a specific unionfind element and if that element exist already then join them into one larger unionfind element. In the logical plan then for a given table we check if it has unionfind conditions and conditions that are not handled by the unionfind and add them appropriately. Then using the physicalplanbuilder we make the physical plan and the physical operators with all the conditions from the logical plan operators and the restraints from the unionfind.
 
