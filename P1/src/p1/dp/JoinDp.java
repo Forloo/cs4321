@@ -321,7 +321,7 @@ public class JoinDp {
 		String[] minKeys = new String[numChil]; //keys with min cost
 		float minVal=0; //min cost
 		for(int window=3; window <= numChil; window++) {
-//			System.out.println("DP INFINITE LOOP?????");
+//			System.out.println("DP INFINITE LOOP????? WHY SO LONG?");
 			if(window == numChil) { //now choose window-1 key with smallest cost (this is the min cost join order)
 				for(String[] key : memoization.keySet()) {
 					ArrayList<String> tempIn = (ArrayList<String>) tableNames.clone();
