@@ -70,6 +70,7 @@ import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.unionfind.UnionFind;
 import p1.unionfind.UnionFindElement;
+import p1.dp.*;
 
 /**
  * Walks through logical plan and builds a physical plan
