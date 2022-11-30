@@ -17,15 +17,12 @@ import net.sf.jsqlparser.statement.select.Select;
 import p1.index.BTree;
 import p1.index.BTreeNode;
 import p1.io.BPTreeWriter;
-import p1.io.BinaryTupleWriter;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
-import p1.util.RandomDataGenerator;
 import p1.util.StatGen;
-import p1.util.Tuple;
 
 public class Main {
 
@@ -60,13 +57,7 @@ public class Main {
 
 			File indexInfo = new File(dataDir + "index_info.txt");
 			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema, tempDir, indexInfo, indexDir);
-			
-			
-			
-			
-			
-			
-			
+
 //			generating Reserves File (added by Jason for testing)
 //			String fileName3 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Pictures";
 //			ArrayList<Tuple> rdg3 = new RandomDataGenerator(4,5000).generate();
@@ -76,9 +67,7 @@ public class Main {
 //			} writer3.close();
 //			//for debugging
 //			FileConverter.convertBinToHuman(fileName3, fileName3 + "_humanreadable");
-			
-			
-			
+
 			File statsFile = StatGen.generateStats(dataDir); // generates stats.txt
 //			System.out.println(db.getStatsInfo());
 //			for(String k : db.getStatsInfo().keySet()) {
@@ -106,11 +95,11 @@ public class Main {
 				bTree.setRoot(root);
 				BPTreeWriter bptw = new BPTreeWriter(bTree.getAllLevels(), indexFileLocation, bTree.getRoot(), order);
 
-//					String path= "C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Boats.E";
-//					String sailorsPath="C:\\Users\\henry\\git\\cs4321\\P1\\input\\db\\indexes\\Sailors.A";
+//				String path = "/Users/annazhang/db/cs4321/P1/input/db/indexes/Boats.E";
+//				String sailorsPath = "/Users/annazhang/db/cs4321/P1/input/db/indexes/Sailors.A";
 //					System.out.println(tableName);
 //					BPTreeReader tr = new BPTreeReader(sailorsPath);
-//					IndexScanOperator2 scan= new IndexScanOperator2(tableName,null, 1000,clus,colIdx,sailorsPath);
+//				IndexScanOperator scan = new IndexScanOperator(tableName, null, 1000, clus, colIdx, sailorsPath);
 //					System.out.println(tableName);
 //					scan.dump();
 //					System.out.println("=====================================");
@@ -139,7 +128,7 @@ public class Main {
 						LogicalPlan lp = new LogicalPlan(statement);
 						System.out.println(statement);
 						PhysicalPlanBuilder builder = new PhysicalPlanBuilder(statement);
-						lp.accept(builder,db.statsInfo);
+						lp.accept(builder, db.statsInfo);
 						QueryPlan qp = builder.getPlan();
 						long startMillis = System.currentTimeMillis();
 						qp.getOperator().dump(queriesOutputFile);
@@ -157,7 +146,7 @@ public class Main {
 							ArrayList<String> logPlan = new ArrayList<String>();
 							logPlan.add(lp.getOperator().toString(0));
 //							System.out.println("is this the logical plan?"+lp.getOperator().toString(0)); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
-							
+
 							Files.write(logFilePath, logPlan, StandardCharsets.UTF_8);
 //							System.out.println("finished making logical plan"); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 							// Physical plan
