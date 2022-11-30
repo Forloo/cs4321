@@ -17,6 +17,13 @@ import p1.util.ExpressionParser;
 import p1.util.LogicalPlan;
 import p1.util.QueryPlan;
 
+//NOTES FROM OH
+// SELECTION ON TABLE (CHOOSE THE SMALLER MIN VALUE OF ATTRIBUTES, EACH ATTRIBUTE SHOULD HAVE ITS OWN V VALUE (NUM TUP * reduction factor))
+// V VALUE FOR BASE TABLE IS CORRECT
+// REDUCTION FACTOR IS CORRECT
+// V VALUE FOR JOIN IS JUST THE MINIMUM
+// NUMERATOR, SIMPLY MULTIPLY ALL RELATION SIZES TOGETHER, NUM TUPLES FROM STATS RIGHT NEXT TO TABLE NAME!
+
 /**
  * A class that computes the order with minimum cost to join using dynamic programming.
  * Should only call this method for more than two relation joins.
