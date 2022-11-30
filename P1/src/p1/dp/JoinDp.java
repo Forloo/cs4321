@@ -47,6 +47,7 @@ public class JoinDp {
 	private List<LogicalOperator> lop;
 	//stores v values
 	private HashMap<String, Float> vValues;
+	private HashMap<String, Float> vValueN;
 	//store number of logical all join children
 	private int numChil;
 	//table names that are being joined
@@ -66,111 +67,153 @@ public class JoinDp {
 		memoization = new HashMap<String[],Float>();
 		//stores the vValues involved in the relation
 		vValues = new HashMap<String, Float>();
-		System.out.println(dbStatsInfo);
+		vValueN = new HashMap<String, Float>(); //N for new
 		//initializing all v values
 		initV();
 		//initializing every possible pair cost
-		for(int i = 0; i < numChil;i++) {
-			LogicalOperator left = lop.get(i); 
-			LogicalOperator right = lop.get((i+1) % numChil); //this gets every single possible pair
-			float leftV; String leftTableName="";float rightV; String rightTableName=""; //initialize left right V and table name
-			
-			
-			HashMap<String, Float> leftInfo = vValue(left);
-			for(String key:leftInfo.keySet()) {
-				leftV = leftInfo.get(key);
-				vValues.put(key, leftV); //put in vValue hashmap
-			}
-			
-
-			HashMap<String, Float> rightInfo = vValue(right);
-			for(String key:rightInfo.keySet()) {
-				rightV = rightInfo.get(key);
-				vValues.put(key, rightV); //put in vValue hashmap
-			}
-			
-			leftTableName = tableName(left);
-			rightTableName = tableName(right);
-			float totalV=0;
-			if (checkEqualityContained(leftTableName, rightTableName)) {
-				//loop through and find all the expressions involving the two table names
-				String[] ltn = new String[1];
-				ltn[0] = leftTableName;
-				float denominator = findDenominator(ltn,rightTableName);
-				totalV = (float) (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]) / denominator; 
-			} else {
-				totalV = (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]);
-			}
-			
-			String[] finalName = new String[2];
-			finalName[0] = leftTableName;
-			finalName[1] = rightTableName;
-			
-			memoization.put(finalName, totalV);
-			
-		}
-//		System.out.println(vValues);
-//		System.out.println("memoization is here: ");
-//		System.out.println(memoization);
-//		System.out.println("my dude this is the min cost order");
-		HashMap<String[],Float> dd = dp();
-		for(String[] k : dd.keySet()) {
-			for(String s : k) {
-//				System.out.println(s);
-				
-			}
-//			System.out.println(dd.get(k));
-		}
-		for(String[] k : memoization.keySet()) {
-			System.out.println("printing one here");
-			for(String s : k) {
-				System.out.println(s);
-			}
+//		for(int i = 0; i < numChil;i++) {
+//			LogicalOperator left = lop.get(i); 
+//			LogicalOperator right = lop.get((i+1) % numChil); //this gets every single possible pair
+//			float leftV; String leftTableName="";float rightV; String rightTableName=""; //initialize left right V and table name
 //			
-		}
-//		System.out.println(memoization);
+//			
+//			HashMap<String, Float> leftInfo = vValue(left);
+//			for(String key:leftInfo.keySet()) {
+//				leftV = leftInfo.get(key);
+//				vValues.put(key, leftV); //put in vValue hashmap
+//			}
+//			
+//
+//			HashMap<String, Float> rightInfo = vValue(right);
+//			for(String key:rightInfo.keySet()) {
+//				rightV = rightInfo.get(key);
+//				vValues.put(key, rightV); //put in vValue hashmap
+//			}
+//			
+//			leftTableName = tableName(left);
+//			rightTableName = tableName(right);
+//			float totalV=0;
+//			if (checkEqualityContained(leftTableName, rightTableName)) {
+//				//loop through and find all the expressions involving the two table names
+//				String[] ltn = new String[1];
+//				ltn[0] = leftTableName;
+//				float denominator = findDenominator(ltn,rightTableName);
+//				totalV = (float) (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]) / denominator; 
+//			} else {
+//				totalV = (dbStatsInfo.get(leftTableName)[0] * dbStatsInfo.get(rightTableName)[0]);
+//			}
+//			
+//			String[] finalName = new String[2];
+//			finalName[0] = leftTableName;
+//			finalName[1] = rightTableName;
+//			
+//			memoization.put(finalName, totalV);
+//			
+//		}
+		
 	}
 	
-	private HashMap<String, Float> initV() {
-		HashMap<String, Float> Vi = new HashMap<String, Float>();
-		for(int i = 0; i < numChil;i++) {
+	/**
+	 * Initializes the v-values for intermediate join cost calculation.
+	 * First for loop to put (key, value) into vValueN where key is table.columnName,
+	 * and value is max - min + 1, as if everything is case 1. Then second loop
+	 * finds the minimum attribute of same relation mentioned in the select condition 
+	 * and takes into account case 2.
+	 */
+	private void initV() {
+		for(String key : dbStatsInfo.keySet()) {
+			if(key.contains(".")) { //this means it is an attribute
+				int nums = dbStatsInfo.get(key)[1] - dbStatsInfo.get(key)[0] + 1;
+				vValueN.put(key, (float) nums); //store for case 1 of v-values
+			}
+		}
+		
+		for(int i = 0; i < numChil; i++) {//looping through each child of logical all join
 			String keyName = "";
 			float valName = 0;
 			LogicalOperator childOfLop = lop.get(i); //get one of the child of LogicalAllJoin
-			if (childOfLop instanceof LogicalScan) { //v-val case 1
-				LogicalScan cpy = (LogicalScan) childOfLop;
-				//find column used in join condition and calculate v-value following case 1
-				for(String[] keys : allConditions.keySet()) {//looping through conditions to find column of relation involved
-					if (containTable(keys,cpy.getFromTable())) {//get the table column
-						getColumnInExp(allConditions.get(keys));
-						System.out.println("====");
-						System.out.println(allConditions.values());
+			
+			//this is one child
+			if(childOfLop instanceof LogicalFilter) { //then case 2 and must update all attributes of this table
+				LogicalFilter cpy = (LogicalFilter) childOfLop;
+				LogicalScan cpy2 = (LogicalScan) cpy.getChild();
+				float localMinV = -1;
+				for(UnionFindElement constraint : cpy.getUfRestraints()) { //loop through select constraints and find min v of attr in select condition
+					for (String c : constraint.getAttributeSet()) { //attribute set
+						String[] tableN = c.split("\\.");
+						if(Aliases.getTable(tableN[0]) == Aliases.getTable( cpy2.getFromTable())) { //if current relation's attribute involved
+							String tempName = Aliases.getTable(cpy2.getFromTable()) + "."+tableN[tableN.length-1]; //table with column
+							int[] minMax = dbStatsInfo.get(tempName); //get min max of this attribute
+							int range = minMax[1] - minMax[0]; //range of the column
+							float scale = 1;
+							if ((float)(constraint.getMaxValue()-constraint.getMinValue()) == (float) Integer.MAX_VALUE - Integer.MIN_VALUE) {
+								 scale = 1;
+								 //simply don't scale in this case
+							} else if (constraint.getMaxValue() == Integer.MAX_VALUE && constraint.getMinValue() != Integer.MIN_VALUE) {
+								 scale = (range - (range - constraint.getMinValue()))/range;
+								 
+							} else if (constraint.getMaxValue() != Integer.MAX_VALUE && constraint.getMinValue() == Integer.MIN_VALUE) {
+								 scale = (range - (range - constraint.getMaxValue()))/range;
+								
+							} else {
+								 scale = (float)(constraint.getMaxValue()-constraint.getMinValue()) / range;
+							}
+							float nn = dbStatsInfo.get(Aliases.getTable(cpy2.getFromTable()))[0] * scale; //calculate individual attribute v-val and 
+							if (localMinV == -1 || nn < localMinV) { //update local Min V
+								localMinV = nn;
+							}
+						}
 					}
 				}
-			} else { //v-val case 2
+				
+				//now loop through vValueN and update the min values
+				for (String key : dbStatsInfo.keySet()) {
+					if(key.contains(Aliases.getTable(cpy2.getFromTable()))) { //name of current table
+						vValueN.put(key, localMinV); //overwrite to local min v-values
+					}
+				}
 				
 			}
 		}
-		return Vi;
 	}
 			
-	private String getColumnInExp(Expression exp, String rel) {
-		if (exp instanceof EqualsTo) {
-			EqualsTo cpy = (EqualsTo) exp;
-			cpy.getLeftExpression().toString();
-//			if 
-		} else if ( exp instanceof GreaterThan ) {
-			
-		}else if ( exp instanceof GreaterThanEquals) {
-			
-		}else if ( exp instanceof MinorThan) {
-			
-		}else if ( exp instanceof MinorThanEquals) {
-			
-		}else if ( exp instanceof NotEqualsTo) {
-			
+	private String getColumnInExp(ArrayList<Expression> expression, String rel) {
+		String relColName = "";
+		for (Expression exp:expression) {
+			if (exp instanceof EqualsTo) {
+				System.out.println("inside");
+				EqualsTo cpy = (EqualsTo) exp;
+				if (cpy.getLeftExpression().toString() == rel) {
+					relColName = cpy.getLeftExpression().toString();
+				} else {
+					relColName = cpy.getRightExpression().toString();
+				}
+				cpy.getLeftExpression().toString();
+			} else if ( exp instanceof GreaterThan ) {
+				
+			}else if ( exp instanceof GreaterThanEquals) {
+				
+			}else if ( exp instanceof MinorThan) {
+				
+			}else if ( exp instanceof MinorThanEquals) {
+				
+			}else if ( exp instanceof NotEqualsTo) {
+				
+			}
 		}
+		return relColName;
+		
 	}
+	
+//	private Boolean checkNameSame(String one, String two) {
+//		int len = one.length();
+//		Boolean t = false;
+////		while()
+//		for (int i = 0 ; i < len ; i ++) {
+//			if(one[i])
+//			
+//		}
+//	}
 			
 //				String tableCName = "";
 //				for(String[] keys : allConditions.keySet()) { //looping through conditions to find column
