@@ -17,12 +17,15 @@ import net.sf.jsqlparser.statement.select.Select;
 import p1.index.BTree;
 import p1.index.BTreeNode;
 import p1.io.BPTreeWriter;
+import p1.io.BinaryTupleWriter;
 import p1.io.FileConverter;
 import p1.util.DatabaseCatalog;
 import p1.util.LogicalPlan;
 import p1.util.PhysicalPlanBuilder;
 import p1.util.QueryPlan;
+import p1.util.RandomDataGenerator;
 import p1.util.StatGen;
+import p1.util.Tuple;
 
 public class Main {
 
@@ -59,8 +62,8 @@ public class Main {
 			DatabaseCatalog db = DatabaseCatalog.getInstance(fileList, schema, tempDir, indexInfo, indexDir);
 
 //			generating Reserves File (added by Jason for testing)
-//			String fileName3 = "/Users/jinseokoh/git/cs4321/P1/input/db/data/Pictures";
-//			ArrayList<Tuple> rdg3 = new RandomDataGenerator(4,5000).generate();
+//			String fileName3 = "/Users/jinseokoh/cs4321/cs4321/P1/input/db/data/Reserves";
+//			ArrayList<Tuple> rdg3 = new RandomDataGenerator(2,10000).generate();
 //			BinaryTupleWriter writer3 = new BinaryTupleWriter(fileName3); 
 //			for(Tuple t : rdg3) {
 //			    writer3.writeTuple(t);
