@@ -49,6 +49,7 @@ import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import p1.dp.JoinDp;
 import p1.io.BPTreeReader;
 import p1.logicaloperator.LogicalAllJoin;
 import p1.logicaloperator.LogicalFilter;
@@ -387,9 +388,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 //			System.out.println(cpy.getConditions()); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 
-			// JoinDp test = new
-			// JoinDp(cpy1,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
-
+			JoinDp test = new JoinDp(cpy1,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+			test.getOrder(); //The key of this is the order to join
 			ArrayList<Expression> notUsed = cpy1.getUnusedOperators();
 			UnionFind uf = cpy1.getUnionFind();
 			List<String> allTables = cpy1.getTableNames();
