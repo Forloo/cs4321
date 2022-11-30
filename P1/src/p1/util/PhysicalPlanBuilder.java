@@ -69,6 +69,7 @@ import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
 import p1.unionfind.UnionFind;
 import p1.unionfind.UnionFindElement;
+import p1.dp.*;
 
 /**
  * Walks through logical plan and builds a physical plan
@@ -387,8 +388,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 //			System.out.println(cpy.getConditions()); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 
-			// JoinDp test = new
-			// JoinDp(cpy1,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
+			 JoinDp test = new JoinDp(cpy1,dbStatsInfo);
+//			 JoinDp(cpy1,dbStatsInfo);//TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
 
 			ArrayList<Expression> notUsed = cpy1.getUnusedOperators();
 			UnionFind uf = cpy1.getUnionFind();

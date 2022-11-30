@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import net.sf.jsqlparser.expression.AnyComparisonExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
+import net.sf.jsqlparser.expression.operators.relational.GreaterThanEquals;
+import net.sf.jsqlparser.expression.operators.relational.MinorThan;
+import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
+import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import p1.logicaloperator.LogicalAllJoin;
 import p1.logicaloperator.LogicalFilter;
 import p1.logicaloperator.LogicalOperator;
@@ -60,7 +66,9 @@ public class JoinDp {
 		memoization = new HashMap<String[],Float>();
 		//stores the vValues involved in the relation
 		vValues = new HashMap<String, Float>();
-		
+		System.out.println(dbStatsInfo);
+		//initializing all v values
+		initV();
 		//initializing every possible pair cost
 		for(int i = 0; i < numChil;i++) {
 			LogicalOperator left = lop.get(i); 
@@ -122,6 +130,80 @@ public class JoinDp {
 		}
 //		System.out.println(memoization);
 	}
+	
+	private HashMap<String, Float> initV() {
+		HashMap<String, Float> Vi = new HashMap<String, Float>();
+		for(int i = 0; i < numChil;i++) {
+			String keyName = "";
+			float valName = 0;
+			LogicalOperator childOfLop = lop.get(i); //get one of the child of LogicalAllJoin
+			if (childOfLop instanceof LogicalScan) { //v-val case 1
+				LogicalScan cpy = (LogicalScan) childOfLop;
+				//find column used in join condition and calculate v-value following case 1
+				for(String[] keys : allConditions.keySet()) {//looping through conditions to find column of relation involved
+					if (containTable(keys,cpy.getFromTable())) {//get the table column
+						getColumnInExp(allConditions.get(keys));
+						System.out.println("====");
+						System.out.println(allConditions.values());
+					}
+				}
+			} else { //v-val case 2
+				
+			}
+		}
+		return Vi;
+	}
+			
+	private String getColumnInExp(Expression exp, String rel) {
+		if (exp instanceof EqualsTo) {
+			EqualsTo cpy = (EqualsTo) exp;
+			cpy.getLeftExpression().toString();
+//			if 
+		} else if ( exp instanceof GreaterThan ) {
+			
+		}else if ( exp instanceof GreaterThanEquals) {
+			
+		}else if ( exp instanceof MinorThan) {
+			
+		}else if ( exp instanceof MinorThanEquals) {
+			
+		}else if ( exp instanceof NotEqualsTo) {
+			
+		}
+	}
+			
+//				String tableCName = "";
+//				for(String[] keys : allConditions.keySet()) { //looping through conditions to find column
+//					if (containTable(keys,cpy.getFromTable())){ //get the column
+//						tableCName = getTableColumnName(keys, cpy,tableCName);
+//						keyName = tableCName;
+//					}
+			
+				//for each column of table name
+//				for 
+				//max - min + 1
+//				for(int j=0;j<2;j++) { 
+//					if(j==0) {
+//						valName -= dbStatsInfo.get(tableCName)[i];
+//					} else {
+//						valName += dbStatsInfo.get(tableCName)[i];
+//					}
+//				}
+//				valName += 1;
+				//max - min + 1
+//				}
+//		return Vi;
+//			}
+			
+//		return Vi;
+//		}
+		
+		
+		
+		
+	
+	
+	
 	
 	/**
 	 * Function is used to calculate the denominator of the intermediate join cost.
