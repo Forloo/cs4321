@@ -15,8 +15,6 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.Set;
 
-import p1.io.BPTreeReader;
-
 /**
  * A singleton class that stores the file location of tables and their column
  * names.
@@ -39,7 +37,7 @@ public class DatabaseCatalog {
 	// = low, arr[1] = high. example: {Sailors: [10000], Sailors.A: [0, 10000],
 	// Sailors.B: [0, 100], Boats: [1000], Boats.D: ...}
 	public HashMap<String, int[]> statsInfo;
-	ArrayList<Integer> leaves = new ArrayList<Integer>();		
+	ArrayList<Integer> leaves = new ArrayList<Integer>();
 
 	//
 	/*
@@ -72,11 +70,11 @@ public class DatabaseCatalog {
 		} catch (NoSuchElementException e2) { // thrown by calling nexLine
 
 		}
-		
-		// get number of leaves in each index for section 3.3 
+
+		// get number of leaves in each index for section 3.3
 		HashMap<String, String[]> info = getIndexInfo();
 		Set<String> keys = info.keySet();
-		Iterator<String> itr = keys.iterator();					
+		Iterator<String> itr = keys.iterator();
 
 //		for (int i = 0; i < keys.size(); i++) {
 //			while(itr.hasNext()) {
@@ -84,7 +82,7 @@ public class DatabaseCatalog {
 //				leaves.add(reader.getHeaderInfo().get(1)); //num leaves in each index 
 //			} 
 //		} 
-		
+
 		// Get all tables and paths
 		for (int i = 0; i < fileList.length; i++) {
 			File currFile = fileList[i];
@@ -113,6 +111,7 @@ public class DatabaseCatalog {
 			}
 		}
 	}
+
 	/**
 	 * Return the index info: table name and attribute for naming index files
 	 * 
@@ -132,7 +131,6 @@ public class DatabaseCatalog {
 		// returns the singleton object
 		return catalogObject;
 	}
-	
 
 	/**
 	 * Initialize a DatabaseCatalog object
