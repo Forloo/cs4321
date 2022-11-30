@@ -78,6 +78,11 @@ public class JoinDp {
 //		System.out.println(dp()); 
 	}
 	
+	public HashMap<String[], Float> getOrder(){
+		HashMap<String[], Float> ah = dp();
+		System.out.println(ah);
+		return ah;
+	}
 	/**
 	 * Function that calculates the denominator of the intermediate join cost equation.
 	 * This function is used when the join condition has an equality condition
