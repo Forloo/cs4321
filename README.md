@@ -14,7 +14,7 @@ Logic for index scan operator: The lowkey and highkey are set in PhysicalPlanBui
 
 Logic for the root-to-leaf descent: Using the index from the header page we navigate our binary reader to the header page. With the header page information we find the address of the of the root page. Using the index pages then we use our low key value. Then we find the first key value that is lower than the low key value and go that given address. If is not lower than any of the keys then the last key has a pointer going to values higher than that last key value. Continue doing this until we reach a leaf node. Then given the address of that smallest leaf node page we keep going to the next leaf node page until the conditions are violated if we reach an index page meaning that there are no leaf pages left.
 
-In the physical plan builder, the selection was handled by parsing the WHERE condition, splitting up each condition on the string " AND ", and comparing the integers with the current "high" and current "low" values.
+In the physical plan builder, the selection was handled by parsing the WHERE condition, splitting up each condition on the string " AND ", and comparing the integers with the current "high" and current "low" values. For choosing the selection implementation, the cost for each possible index scan is weighed against the cost of the base table scan according to their respective cost estimation formulas, and the best access path is chosen according to the implementation with the minimum cost.  
 
 Logic for unionfind and propagating the expression:
 
