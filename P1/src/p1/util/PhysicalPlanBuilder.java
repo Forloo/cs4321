@@ -390,7 +390,14 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //			System.out.println(cpy.getConditions()); //PRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINTPRINT
 
 			JoinDp test = new JoinDp(cpy1, dbStatsInfo);// TESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTINGTESTING
-			test.getOrder(); // The key of this is the order to join
+			String[] joinOrder = new String[test.getOrder().keySet().size()];
+			for(String[] key : test.getOrder().keySet()) {
+				joinOrder = key;
+			}
+			System.out.println("This is it: " + joinOrder);
+//			HashMap<String[], Float> joinOrder = ; // The key of this is the order to join
+			
+			
 			ArrayList<Expression> notUsed = cpy1.getUnusedOperators();
 			UnionFind uf = cpy1.getUnionFind();
 			List<String> allTables = cpy1.getTableNames();
@@ -399,6 +406,66 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 
 			ArrayList<Expression> usedExpression = new ArrayList<Expression>();
 			HashSet<Expression> usedJoinExpression = new HashSet<Expression>();
+			
+			//Find the indexes of table names in order
+			//Use for loop to loop through the array with index numbers and do the following
+			System.out.println("This is the order of elements");
+			//find the order of operators
+			//array of indexes of those operators 
+			//for loop, get the element of this array as get i
+			
+			//orderIndex contains the index of table's join order
+			ArrayList<Integer> orderIndex = new ArrayList<Integer>();
+			for (LogicalOperator lop : operators) {
+//				System.out.println("inside");
+				//lop for logical all join is either logical scan or logical filter at start
+				if (lop instanceof LogicalScan) {
+					LogicalScan cpy = (LogicalScan) lop;
+					for(int i = 0; i < joinOrder.length;i++) {
+//						System.out.println(joinOrder[i] == Aliases.getTable(cpy.getFromTable()));
+						if (Aliases.getTable(cpy.getFromTable()) == Aliases.getTable(joinOrder[i])) {
+							orderIndex.add(i); //so that this array has the index of operators in order
+						}
+					}
+				}
+				
+				if (lop instanceof LogicalFilter) {
+					LogicalFilter cpy = (LogicalFilter) lop;
+					LogicalScan cpy2 = (LogicalScan) cpy.getChild();
+//					System.out.println(Aliases.getTable(cpy2.getFromTable()));
+					for(int i = 0; i < joinOrder.length;i++) {
+						if (Aliases.getTable(cpy2.getFromTable()) == Aliases.getTable(joinOrder[i])) {
+							orderIndex.add(i); //so that this array has the index of operators in order
+						}
+					}
+				}
+			}
+			
+			//DEBUGGING
+//			System.out.print("this is join order: ");
+//			for(String s : joinOrder) {
+//				System.out.print(s + ", ");
+//			}
+//			System.out.println("");
+//			
+//			System.out.print("this is the child operators: ");
+//			for (LogicalOperator lop : operators) {
+//				//lop for logical all join is either logical scan or logical filter at start
+//				if (lop instanceof LogicalScan) {
+//					LogicalScan cpy = (LogicalScan) lop;
+//					System.out.print(" " + Aliases.getTable(cpy.getFromTable()) + " ");
+//					
+//				}
+//				
+//				if (lop instanceof LogicalFilter) {
+//					LogicalFilter cpy = (LogicalFilter) lop;
+//					LogicalScan cpy2 = (LogicalScan) cpy.getChild();
+//					System.out.print(" " + Aliases.getTable(cpy2.getFromTable()) + " ");
+//				}
+//			}
+//			System.out.println("");
+//			
+//			System.out.println("orderIndex: " + orderIndex);
 			// At least two tables
 			for (int i = 1; i < allTables.size(); i++) {
 				// The first join creation always joins two different tables
@@ -406,7 +473,8 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					// Write a function here to generate the conditions for the join operator
 
 					// Convert to the correct physical operators
-					Operator left = generatePhysicalTree(operators.get(i - 1));
+//					Operator left = generatePhysicalTree(operators.get(i - 1));
+					Operator left = generatePhysicalTree(operators.get(orderIndex.get(i-1))); //using min cost join order
 //					System.out.println(operators.get(i-1));
 //					System.out.println(operators.get(i));
 //					System.out.println("Before getting the left operator");
@@ -414,7 +482,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //					System.out.println("After getting the right operator");
 					this.addExpressions(left, usedExpression);
 					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
-					Operator right = generatePhysicalTree(operators.get(i));
+					Operator right = generatePhysicalTree(operators.get(orderIndex.get(i)));
 					this.addExpressions(right, usedExpression);
 					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 					ArrayList<Expression> joinConditions = this.getJoinConditions(left, right, allConditions, notUsed,
@@ -428,7 +496,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 					prevJoin = joinElement;
 				} else {
 					Operator left = prevJoin;
-					Operator right = generatePhysicalTree(operators.get(i));
+					Operator right = generatePhysicalTree(operators.get(orderIndex.get(i)));
 					this.addExpressions(right, usedExpression);
 					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
 
