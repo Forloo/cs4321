@@ -23,17 +23,11 @@ import p1.util.ExpressionParser;
 import p1.util.LogicalPlan;
 import p1.util.QueryPlan;
 
-//NOTES FROM OH
-// SELECTION ON TABLE (CHOOSE THE SMALLER MIN VALUE OF ATTRIBUTES, EACH ATTRIBUTE SHOULD HAVE ITS OWN V VALUE (NUM TUP * reduction factor))
-// V VALUE FOR BASE TABLE IS CORRECT
-// REDUCTION FACTOR IS CORRECT
-// V VALUE FOR JOIN IS JUST THE MINIMUM
-// NUMERATOR, SIMPLY MULTIPLY ALL RELATION SIZES TOGETHER, NUM TUPLES FROM STATS RIGHT NEXT TO TABLE NAME!
-
-
-//TODO: COUNT FOR THE CASE WHEN THE RELATIONS ARE ONLY TWO AVAIOABLE! JUST RETURN SAME ORDER
 /**
  * A class that computes the order with minimum cost join using dynamic programming.
+ * One variable for memoization, one variable for original v values. v-values get updated
+ * throughout the dp algorithm whenever there is a calculation needed for v values from 
+ * a join of two other relations.
  * @author Jinseok Oh
  *
  */
@@ -74,18 +68,21 @@ public class JoinDp {
 		initV();
 		//initializing every possible pair cost for base case, then we build off
 		initPairs();
-		//based on this initialization, call dp and find the min cost order
-//		System.out.println(dp()); 
 	}
 	
+	/**
+	 * Returns the order of the function. Value is zero when there are less than
+	 * three relations.
+	 * @return key value pair where the key represents the order and value the cost.
+	 */
 	public HashMap<String[], Float> getOrder(){
-		HashMap<String[], Float> ah = dp();
-		System.out.println(ah);
-		return ah;
+		return dp();
 	}
+	
 	/**
 	 * Function that calculates the denominator of the intermediate join cost equation.
-	 * This function is used when the join condition has an equality condition
+	 * This function is used when the join condition has an equality condition, so it 
+	 * disregards the non equality conditions.
 	 * @param ltn left child's table name
 	 * @param rtn right child's table name
 	 * @return the denominator of the intermediate join cost equation
@@ -93,51 +90,32 @@ public class JoinDp {
 	private float findDenominator(String[] ltn, String rtn) {
 		float finalV = 1;
 		//get the relevant join conditions for current two tables
-		for(String[] key : allConditions.keySet()) {
-			if(containTable(key, ltn[0]) && containTable(key,rtn)) {
+		for(String[] key : allConditions.keySet()) { //per one condition, calcalate max and multiply
+			if(containTable(key, ltn[0]) && containTable(key,rtn)) { //while looping through conditions, we found a match
 				for (Expression exp : allConditions.get(key)) {
 					//We only consider equality condition, if join condition does not contain equality then cross product
 					//this handled outside of this function
-					if(exp instanceof EqualsTo) { //we are only considering equality
+					if(exp instanceof EqualsTo) {
 						EqualsTo expCpy = (EqualsTo) exp;
 						//get left V value (THIS IS THE THIRD CASE OF INTERMEDIATE JOIN SIZE)
+						//ED-DISCUSSION EXAMPLE IS SIMPLY MAX VALUES, BUT ACCORDING TO THE INSTRUCTIONS, IT IS MIN VALUE SO 
+						//	WE SIMPLY GET THE MIN VALUE OF THE ORIGINAL AND CALCULATE.
 						float leftV = -1;
-						for(String leftT : ltn) {
+						for(String leftT : ltn) { //simply get the min value of attributes involved from original v-values (like on ed-discussion answer's example)
 							String leftExp = expCpy.getLeftExpression().toString();
-//							System.out.println(leftExp);
 							String[] parsedl = leftExp.split("\\.");
-//							System.out.println(vValues);
-//							System.out.println(Aliases.getTable(parsedl[0])+"."+parsedl[parsedl.length-1]);
 							if(leftV == -1) {
 								leftV = vValueN.get(Aliases.getTable(parsedl[0])+"."+parsedl[parsedl.length-1]);
 							} else if(leftV > vValueN.get(Aliases.getTable(parsedl[0]))) {
 								leftV =  vValueN.get(Aliases.getTable(parsedl[0]));
 							}
 						}
-						
-						
-//						if(vValues.get(Aliases.getTable(parsedl[0]+"."+parsedl[parsedl.length-1])) != null) {
-//							leftV = vValues.get(Aliases.getTable(parsedl[0]+"."+parsedl[parsedl.length-1]));
-//						} else {
-//							leftV = vValues.get(Aliases.getTable(parsedl[0]));
-//						}
-						
-						//get right V value 
+						//get right V value (simply the column it gets equated to)
 						String rightExp = expCpy.getRightExpression().toString();
-//						System.out.println(rightExp);
 						String[] parsedr = rightExp.split("\\.");
-//						System.out.println(Aliases.getTable(parsedr[0])+"."+parsedr[parsedr.length - 1]);
 						float rightV =vValueN.get(Aliases.getTable(parsedr[0])+"."+parsedr[parsedr.length - 1]);
-//						if(vValues.get(Aliases.getTable(parsedr[0]+"."+parsedr[parsedl.length-1])) != null) {
-//							leftV = vValues.get(Aliases.getTable(parsedr[0]+"."+parsedr[parsedl.length-1]));
-//						} else {
-//							leftV = vValues.get(Aliases.getTable(parsedr[0]));
-//						}
-						//find the max and update finalV
 						finalV  = finalV * Math.max(leftV, rightV);
-					} else { //join condition no equality, then cross product
-						
-						
+					} else { //disregard other than equality constraints
 					}
 				}
 			}
@@ -391,7 +369,7 @@ public class JoinDp {
 								newKey[i]=key[i];
 							}
 							newKey[window-1] = table;
-							//add the appeneded key and calculated intermediate join cost value to memoized
+							//add the appended key and calculated intermediate join cost value to memoized
 							newMemoized.put(newKey, newVval);
 						}
 					}
