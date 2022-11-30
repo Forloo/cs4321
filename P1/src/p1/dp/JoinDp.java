@@ -40,6 +40,7 @@ public class JoinDp {
 	private ArrayList<String> tableNames = new ArrayList<String>();
 	//memoized array (key size is always window - 1)
 	private HashMap<String[],Float> memoization;
+	private HashMap<ArrayList<String>,Float> memoization2;
 	//constructor
 	public JoinDp(LogicalAllJoin logicalJoin, HashMap<String, int[]> dbStatsInfo){
 		//initializing variables
@@ -112,10 +113,16 @@ public class JoinDp {
 				System.out.println(s);
 			}
 //			
+			
 		}
+		memoization2.put(tableNames, (float)0);
 //		System.out.println(memoization);
 	}
 	
+	public HashMap<ArrayList<String>,Float> getOrder(){
+		
+		return memoization2;
+	}
 	/**
 	 * Function is used to calculate the denominator of the intermediate join cost.
 	 * Depending on whether there is an equality in the join condition or not
