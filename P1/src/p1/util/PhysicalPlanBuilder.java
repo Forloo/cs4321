@@ -67,7 +67,6 @@ import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
-import p1.operator.TNLJOperator;
 import p1.unionfind.UnionFind;
 import p1.unionfind.UnionFindElement;
 
@@ -460,10 +459,14 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			Operator leftchild = generatePhysicalTree(copy.getLeftChild());
 			Operator rightchild = generatePhysicalTree(copy.getRightChild());
 
-			// TODO: P4
-			if (true) { // Tuple nested loop join
-				return new TNLJOperator(copy.getTables(), leftchild, rightchild, copy.getExpression());
-			} else if (true) { // Block nested loop join
+			boolean useSMJ = true;
+			for (Expression e : copy.getExpression()) {
+				if (e.toString().contains("<>") || e.toString().contains("!=")) {
+					useSMJ = false;
+				}
+			}
+
+			if (!useSMJ) { // Tuple nested loop join
 				return new BNLJOperator(copy.getTables(), leftchild, rightchild, copy.getExpression(), 4);
 			} else { // Sort merge join
 				return new SMJOperator(copy.getTables(), leftchild, rightchild, copy.getExpression());
@@ -529,9 +532,13 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			ArrayList<Expression> joinConditions) {
 
 		Operator result = null;
-		if (true) {
-			result = new TNLJOperator(tableNames, left, right, joinConditions);
-		} else if (true) {
+		boolean useSMJ = true;
+		for (Expression e : joinConditions) {
+			if (e.toString().contains("<>") || e.toString().contains("!=")) {
+				useSMJ = false;
+			}
+		}
+		if (!useSMJ) {
 			result = new BNLJOperator(tableNames, left, right, joinConditions, 10);
 		} else {
 			// Change this back later for some reason there is an error when we change this

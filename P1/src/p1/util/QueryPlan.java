@@ -22,7 +22,6 @@ import p1.operator.ProjectOperator;
 import p1.operator.SMJOperator;
 import p1.operator.ScanOperator;
 import p1.operator.SelectOperator;
-import p1.operator.TNLJOperator;
 
 /**
  * A class that evaluates what operator to use as the root for a query.
@@ -102,7 +101,7 @@ public class QueryPlan {
 						if (expressionInfo.containsKey(fromTable)) {
 							ArrayList<Expression> conditions = expressionInfo.get(fromTable);
 							Operator scanone = new ScanOperator(fromTable);
-							Operator selectone = createSelectOp(scanone, conditions.get(0),conditions);
+							Operator selectone = createSelectOp(scanone, conditions.get(0), conditions);
 							first = selectone;
 						} else {
 							Operator scanone = new ScanOperator(fromTable);
@@ -114,7 +113,7 @@ public class QueryPlan {
 							// Get the arraylist of conditions
 							ArrayList<Expression> conditions2 = expressionInfo.get(alias);
 							Operator scantwo = new ScanOperator(alias);
-							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0),conditions2);
+							Operator selecttwo = createSelectOp(scantwo, conditions2.get(0), conditions2);
 							second = selecttwo;
 						} else {
 							Operator scantwo = new ScanOperator(Aliases.getAlias(joins.get(0).toString()));
@@ -150,7 +149,7 @@ public class QueryPlan {
 					if (expressionInfo.containsKey(alias)) {
 						ArrayList<Expression> conditions = expressionInfo.get(alias);
 						Operator scanone = new ScanOperator(alias);
-						Operator selectone = createSelectOp(scanone, conditions.get(0),conditions);
+						Operator selectone = createSelectOp(scanone, conditions.get(0), conditions);
 						first = selectone;
 					} else {
 						Operator scanone = new ScanOperator(alias);
@@ -193,9 +192,9 @@ public class QueryPlan {
 			// Then check if there is some where condition. If there is then we need to make
 			// the select
 			if (where != null) {
-				ArrayList<Expression> allEx= new ArrayList<Expression>();
+				ArrayList<Expression> allEx = new ArrayList<Expression>();
 				allEx.add(where);
-				Operator selectop = createSelectOp(scan, where,allEx);
+				Operator selectop = createSelectOp(scan, where, allEx);
 				child = selectop;
 			} else {
 				child = scan;
@@ -245,10 +244,14 @@ public class QueryPlan {
 	 */
 	public Operator createJoinOp(String tableNames, Operator leftOp, Operator rightOp,
 			ArrayList<Expression> joinConditions) {
-		// TODO: P4
-		if (true) { // Tuple nested loop join
-			return new TNLJOperator(tableNames, leftOp, rightOp, joinConditions);
-		} else if (true) { // Block nested loop join
+		boolean useSMJ = true;
+		for (Expression e : joinConditions) {
+			if (e.toString().contains("<>") || e.toString().contains("!=")) {
+				useSMJ = false;
+			}
+		}
+
+		if (!useSMJ) { // Tuple nested loop join
 			return new BNLJOperator(tableNames, leftOp, rightOp, joinConditions, 4);
 		} else { // Sort merge join
 			return new SMJOperator(tableNames, leftOp, rightOp, joinConditions);
@@ -328,10 +331,11 @@ public class QueryPlan {
 				child = new IndexScanOperator(child.getTable(), low, high, clustered, indexIdx, idxFile);
 			}
 		}
-		
+
 		// Does not matter that this select operator is null
-		// The code here does not get made since the physicalPlanBuilder makes this obsolete.
-		return new SelectOperator(child, allex,null);
+		// The code here does not get made since the physicalPlanBuilder makes this
+		// obsolete.
+		return new SelectOperator(child, allex, null);
 	}
 
 	/**
