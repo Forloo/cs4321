@@ -84,6 +84,8 @@ public class SMJOperator extends Operator {
 		}
 
 		left = new ExternalSortOperator(leftOp, leftOrder, 4, DatabaseCatalog.getInstance().getTempDir(), 0);
+//		System.out.println(left);
+//		System.out.println("smj operator: "+left.getNextTuple());
 		right = new ExternalSortOperator(rightOp, rightOrder, 4, DatabaseCatalog.getInstance().getTempDir(), 1);
 		this.tables = tables;
 

@@ -13,5 +13,6 @@
 -- SELECT B.F, B.D FROM Boats B ORDER BY B.D;
 -- SELECT * FROM Sailors S, Reserves R, Boats B WHERE S.A = R.G AND R.H = B.D ORDER BY S.C;
 -- SELECT DISTINCT * FROM Sailors S, Reserves R, Boats B WHERE S.A = R.G AND R.H = B.D ORDER BY S.C;
+-- SELECT * FROM Sailors S, Reserves R, Boats B WHERE S.A<100 AND S.A=S.B;
 SELECT * FROM Sailors S, Reserves R, Boats B, Pictures P WHERE S.A<100 AND S.A=S.B AND S.B=B.D AND B.D>50 AND B.E=42 AND B.E=R.G AND S.C=P.I;
-SELECT S.A FROM Sailors S, Boats B WHERE S.B = B.E AND B.E < 100 AND S.A >= 9050;
+-- SELECT S.A FROM Sailors S, Boats B WHERE S.B = B.E AND B.E < 100 AND S.A >= 9050;

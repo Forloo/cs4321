@@ -64,6 +64,7 @@ public class JoinDp {
 		//stores the vValues involved in the relation
 		vValues = new HashMap<String, Float>();
 		vValueN = new HashMap<String, Float>(); //N for new
+		System.out.println("constructor entered");
 		//initializing all v values
 		initV();
 		//initializing every possible pair cost for base case, then we build off
@@ -76,7 +77,6 @@ public class JoinDp {
 	 * @return key value pair where the key represents the order and value the cost.
 	 */
 	public HashMap<String[], Float> getOrder(){
-//		System.out.println(memoization);
 		return dp();
 	}
 	
@@ -187,51 +187,67 @@ public class JoinDp {
 	
 	/**
 	 * Initializes the v-values for intermediate join cost calculation.
-	 * First for loop to put (key, value) into vValueN where key is table.columnName,
-	 * and value is max - min + 1, as if everything is case 1. Then second loop
-	 * finds the minimum attribute of same relation mentioned in the select condition 
-	 * and takes into account case 2.
+	 * 
+	 * At first, the function assumes every relation is a base table R and 
+	 * store (Relation.column, v-value) pair into vValueN. v-value here is calculated 
+	 * using column.max-column.min+1.
+	 * 
+	 * Then the function takes care of selection on a base table relation. For a 
+	 * child that is a selection, the function loops through the selection conditions,
+	 * sets all attributes of same relation's v-values to be the minimum among all. 
+	 * v-value = scale factor * number of tuples in relation assuming uniform distribution.
 	 */
 	private void initV() {
+		System.out.println("-initializing V");
+		
+		//loop through db stats and initialize all relations' attributes as if case 1
 		for(String key : dbStatsInfo.keySet()) {
-//			System.out.println(key);
 			if(key.contains(".")) { //this means it is an attribute
 				int nums = dbStatsInfo.get(key)[1] - dbStatsInfo.get(key)[0] + 1;
 				vValueN.put(key, (float) nums); //store for case 1 of v-values
 			}
 		}
+		System.out.print("--this is the v values calculated using max - min + 1: \n");
+		System.out.println(vValueN);
 		
-		for(int i = 0; i < numChil; i++) {//looping through each child of logical all join
-			String keyName = "";
-			float valName = 0;
+		//looping through each child of logical all join (take care of case 2)
+		for(int i = 0; i < numChil; i++) {
 			LogicalOperator childOfLop = lop.get(i); //get one of the child of LogicalAllJoin
-			
-			//this is one child
-			if(childOfLop instanceof LogicalFilter) { //then case 2 and must update all attributes of this table
+			if(childOfLop instanceof LogicalFilter) { //then case 2 and must update all attribute v-values of this relation
+				System.out.println("--this op is a selection so re-write v-values");
 				LogicalFilter cpy = (LogicalFilter) childOfLop;
 				LogicalScan cpy2 = (LogicalScan) cpy.getChild();
+				
+				//find local min v-value among attributes in same relation by looping through the select constraints
 				float localMinV = -1;
-				for(UnionFindElement constraint : cpy.getUfRestraints()) { //loop through select constraints and find min v of attr in select condition
+				for(UnionFindElement constraint : cpy.getUfRestraints()) {
+					//each iteration, you find the scale factor and compute individual v-value of attribute of same relation
 					for (String c : constraint.getAttributeSet()) { //attribute set
 						String[] tableN = c.split("\\.");
-						if(Aliases.getTable(tableN[0]) == Aliases.getTable( cpy2.getFromTable())) { //if current relation's attribute involved
+						if(Aliases.getTable(tableN[0]) == Aliases.getTable( cpy2.getFromTable())) { //if current relation's attribute involved in select
 							String tempName = Aliases.getTable(cpy2.getFromTable()) + "."+tableN[tableN.length-1]; //table with column
+							System.out.println("---calculating V value for this: " + tempName);
 							int[] minMax = dbStatsInfo.get(tempName); //get min max of this attribute
 							int range = minMax[1] - minMax[0]; //range of the column
 							float scale = 1;
-							if ((float)(constraint.getMaxValue()-constraint.getMinValue()) == (float) Integer.MAX_VALUE - Integer.MIN_VALUE) {
+							System.out.println("Column max: " +  minMax[1] + " Column min: " + minMax[0]);
+							System.out.println("constraints are: " + constraint.getMaxValue() + " " + constraint.getMinValue());
+							if (constraint.getMaxValue() == Integer.MAX_VALUE  && constraint.getMinValue() == Integer.MIN_VALUE) {
+								System.out.println("----no constraints! scale is: 1");
 								 scale = 1;
 								 //simply don't scale in this case
 							} else if (constraint.getMaxValue() == Integer.MAX_VALUE && constraint.getMinValue() != Integer.MIN_VALUE) {
-								 scale = (range - (range - constraint.getMinValue()))/range;
-								 
+								 scale = (minMax[1] - constraint.getMinValue())/range;
+								 System.out.println("----only lower bound! scale is: " + scale); 
 							} else if (constraint.getMaxValue() != Integer.MAX_VALUE && constraint.getMinValue() == Integer.MIN_VALUE) {
-								 scale = (range - (range - constraint.getMaxValue()))/range;
-								
+								scale = (constraint.getMaxValue() - minMax[0])/range;
+								System.out.println("----only upper bound! scale is: " + scale);
 							} else {
 								 scale = (float)(constraint.getMaxValue()-constraint.getMinValue()) / range;
+								 System.out.println("----bounded up and low! scale is:  " + scale);
 							}
-							float nn = dbStatsInfo.get(Aliases.getTable(cpy2.getFromTable()))[0] * scale; //calculate individual attribute v-val and 
+							float nn = dbStatsInfo.get(Aliases.getTable(cpy2.getFromTable()))[0] * scale; //calculate individual attribute v-val and
+							System.out.println("temp v-value: " +nn);
 							if (localMinV == -1 || nn < localMinV) { //update local Min V
 								localMinV = nn;
 							}
@@ -244,14 +260,15 @@ public class JoinDp {
 				}
 				
 				//now loop through vValueN and update the min values
-				for (String key : dbStatsInfo.keySet()) {
+				for (String key : vValueN.keySet()) {
 					if(key.contains(Aliases.getTable(cpy2.getFromTable()))) { //name of current table
+						System.out.println("----overwriting " + key + " with " + localMinV);
 						vValueN.put(key, localMinV); //overwrite to local min v-values
 					}
 				}
-				
 			}
 		}
+		System.out.println("final vValueN dictionary: " + vValueN);
 	}
 			
 	/**
@@ -322,10 +339,7 @@ public class JoinDp {
 		String[] minKeys = new String[numChil]; //keys with min cost
 		float minVal=0; //min cost
 		for(int window=3; window <= numChil; window++) {
-//			System.out.println("incrementing window");
-//			System.out.println("DP INFINITE LOOP????? WHY SO LONG?");
 			if(window == numChil) { //now choose window-1 key with smallest cost (this is the min cost join order)
-//				System.out.println("outputting");
 				for(String[] key : memoization.keySet()) {
 					ArrayList<String> tempIn = (ArrayList<String>) tableNames.clone();
 					if(key.length == window - 1) {
@@ -341,9 +355,7 @@ public class JoinDp {
 						}
 					}
 				}
-//				System.out.println("exit for");
 			} else {
-//				System.out.println("inside?");
 				//intermediate join, must calculate join v values of left child here
 				//get unused table list, try adding one by one, calculate intermediate join cost
 				HashMap<String[],Float> newMemoized = new HashMap<String[],Float>();
@@ -388,7 +400,6 @@ public class JoinDp {
 			}
 			
 		}
-//		System.out.println("exit window for loop");
 		minSet.put(minKeys, minVal);
 		return minSet;
 	}

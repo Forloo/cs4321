@@ -389,10 +389,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			//JOIN ORDER
 			JoinDp test = new JoinDp(cpy1, dbStatsInfo);
 			HashMap<String[],Float> joinOrderHash = test.getOrder();
-			String[] joinOrder = new String[joinOrderHash.keySet().size()];
+			String[] joinOrder = new String[0];
 			for(String[] key : joinOrderHash.keySet()) {
 				joinOrder = key;
 			}
+//			System.out.println(joinOrder.length);
 			//JOIN ORDER
 			
 			ArrayList<Expression> notUsed = cpy1.getUnusedOperators();
@@ -435,7 +436,7 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			//DEBUGGING (DONT DELETE THIS FOR THE FUTURE)
 //			System.out.print("this is join order: ");
 //			for(String s : joinOrder) {
-//				System.out.print(s + ", ");
+//				System.out.print(s + " ");
 //			}
 //			System.out.println("");
 //			
@@ -470,8 +471,11 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //					Operator left = generatePhysicalTree(operators.get(i - 1));
 //					System.out.println("left as this: " + orderIndex.get(i-1));
 					Operator left = generatePhysicalTree(operators.get(orderIndex.get(i-1))); //using min cost join order
-//					System.out.println(operators.get(i-1));
-//					System.out.println(operators.get(i));
+//					System.out.println("this first: " + orderIndex.get(i-1));
+//					System.out.println("this first: " + orderIndex.get(i));
+					
+					
+					
 //					System.out.println("Before getting the left operator");
 //					System.out.println(left);
 //					System.out.println("After getting the right operator");
@@ -491,8 +495,12 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 //					System.out.println(joinConditions);
 					prevJoin = joinElement;
 				} else {
+//					System.out.println("inside");
 					Operator left = prevJoin;
 //					System.out.println("next right as this: " + orderIndex.get(i));
+					
+					
+					
 					Operator right = generatePhysicalTree(operators.get(orderIndex.get(i)));
 					this.addExpressions(right, usedExpression);
 					this.updateUsedJoinExpressions(usedExpression, usedJoinExpression);
@@ -609,6 +617,10 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 		} else {
 			// Change this back later for some reason there is an error when we change this
 			// from the tuple nest loop join to the sort merge join
+//			System.out.println(left.getTable());
+//			System.out.println(right.getTable());
+//			System.out.println(tableNames);
+//			System.out.println(joinConditions);
 			result = new SMJOperator(tableNames, left, right, joinConditions);
 		}
 
