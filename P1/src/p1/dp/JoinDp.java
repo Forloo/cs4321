@@ -76,6 +76,7 @@ public class JoinDp {
 	 * @return key value pair where the key represents the order and value the cost.
 	 */
 	public HashMap<String[], Float> getOrder(){
+//		System.out.println(memoization);
 		return dp();
 	}
 	
@@ -321,8 +322,10 @@ public class JoinDp {
 		String[] minKeys = new String[numChil]; //keys with min cost
 		float minVal=0; //min cost
 		for(int window=3; window <= numChil; window++) {
+//			System.out.println("incrementing window");
 //			System.out.println("DP INFINITE LOOP????? WHY SO LONG?");
 			if(window == numChil) { //now choose window-1 key with smallest cost (this is the min cost join order)
+//				System.out.println("outputting");
 				for(String[] key : memoization.keySet()) {
 					ArrayList<String> tempIn = (ArrayList<String>) tableNames.clone();
 					if(key.length == window - 1) {
@@ -338,7 +341,9 @@ public class JoinDp {
 						}
 					}
 				}
+//				System.out.println("exit for");
 			} else {
+//				System.out.println("inside?");
 				//intermediate join, must calculate join v values of left child here
 				//get unused table list, try adding one by one, calculate intermediate join cost
 				HashMap<String[],Float> newMemoized = new HashMap<String[],Float>();
@@ -375,12 +380,15 @@ public class JoinDp {
 						}
 					}
 				}
+				
 				//put to memoization here to avoid ConcurrentModificationException
 				for( String[] key : newMemoized.keySet()) {
 					memoization.put(key, newMemoized.get(key));
 				}
 			}
+			
 		}
+//		System.out.println("exit window for loop");
 		minSet.put(minKeys, minVal);
 		return minSet;
 	}
