@@ -388,8 +388,9 @@ public class PhysicalPlanBuilder implements ExpressionVisitor {
 			
 			//JOIN ORDER
 			JoinDp test = new JoinDp(cpy1, dbStatsInfo);
-			String[] joinOrder = new String[test.getOrder().keySet().size()];
-			for(String[] key : test.getOrder().keySet()) {
+			HashMap<String[],Float> joinOrderHash = test.getOrder();
+			String[] joinOrder = new String[joinOrderHash.keySet().size()];
+			for(String[] key : joinOrderHash.keySet()) {
 				joinOrder = key;
 			}
 			//JOIN ORDER
