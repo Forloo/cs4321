@@ -1,6 +1,7 @@
 package p1.dp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -154,34 +155,61 @@ public class JoinDp {
 	
 	
 	/**
-	 * initializes the memoization dictionary for dynamic programming 
-	 * with every possible pairs of relations and their join cost
+	 * Initializes the memoization dictionary for dynamic programming 
+	 * with every possible pairs of relations and their join cost.
 	 */
 	private void initPairs() { 
-		for(int i = 0; i < numChil;i++) {
+		System.out.println("-initializing pairs: " + numChil);
+		for(int i = 0; i < numChil;i++) { //match ith operator with the rest
+			
+			//set the left table
 			LogicalOperator left = lop.get(i);
-			LogicalOperator right = lop.get((i+1) % numChil); //this gets every single possible pair
-			String[] leftTableName= new String[1];String rightTableName=""; //initialize left right V and table name
-			
-			leftTableName[0] = tableName(left);
-			
-			rightTableName = tableName(right);
-			float totalV=0;
-			if (checkEqualityContained(leftTableName, rightTableName)) {
-				String[] ltn = new String[1]; //left table is just 1 for base row of dictionary
-				ltn[0] = leftTableName[0];
-				float denominator = findDenominator(ltn,rightTableName);
-				totalV = (float) (dbStatsInfo.get(leftTableName[0])[0] * dbStatsInfo.get(rightTableName)[0]) / denominator; 
-			} else {
-				totalV = (dbStatsInfo.get(leftTableName[0])[0] * dbStatsInfo.get(rightTableName)[0]);
+			String[] leftTableName= new String[1]; leftTableName[0] = tableName(left);
+			int j = (i+1) % numChil;
+			while(j != i) {
+				
+				//set the right table
+				LogicalOperator right = lop.get(j);
+				String rightTableName=""; //initialize left right V and table name
+				rightTableName = tableName(right);
+				String[] finalName = new String[2];
+				finalName[0] = leftTableName[0];
+				finalName[1] = rightTableName;
+				Arrays.sort(finalName); //sort to avoid counting A,B and B,A separately (fine six max array size is 2)
+				
+				Boolean exist = false; //false when key doesn't exist in it
+				for(String[] keyInMem : memoization.keySet()) {
+					if (keyInMem[0] == finalName[0] && keyInMem[1] == finalName[1]) {
+						exist = true;
+						break;
+					}
+				}
+				
+				if (!exist) { //only when not in memoization, calculate and store
+					float totalV=0;
+					if (checkEqualityContained(leftTableName, rightTableName)) {
+						System.out.println("--"+leftTableName[0] + " and " + rightTableName + " have equality");
+						String[] ltn = new String[1]; //left table is just 1 for base row of dictionary
+						ltn[0] = leftTableName[0];
+						float denominator = findDenominator(ltn,rightTableName);
+						System.out.println("--denominator calculated for this is " + denominator);
+						totalV = (float) (dbStatsInfo.get(leftTableName[0])[0] * dbStatsInfo.get(rightTableName)[0]) / denominator; 
+					} else {
+						System.out.println("--no equality so cross product: " + (dbStatsInfo.get(leftTableName[0])[0] + " multiply " + dbStatsInfo.get(rightTableName)[0]));
+						totalV = (dbStatsInfo.get(leftTableName[0])[0] * dbStatsInfo.get(rightTableName)[0]);
+					}
+					
+					System.out.println("\n---adding this pair: " + finalName[0] + " and " + finalName[1] + " to memoized hashmap\n");
+					memoization.put(finalName, totalV);
+				}
+				
+				j = (j+1) % numChil; //change j to count for every possible pair
 			}
 			
-			String[] finalName = new String[2];
-			finalName[0] = leftTableName[0];
-			finalName[1] = rightTableName;
 			
-			memoization.put(finalName, totalV);
 		}
+		System.out.println("=============================================");
+		System.out.println("final memoized hashmap is this: " + memoization.size());
 	}
 	
 	
@@ -209,7 +237,6 @@ public class JoinDp {
 		}
 		System.out.print("--this is the v values calculated using max - min + 1: \n");
 		System.out.println(vValueN);
-		
 		//looping through each child of logical all join (take care of case 2)
 		for(int i = 0; i < numChil; i++) {
 			LogicalOperator childOfLop = lop.get(i); //get one of the child of LogicalAllJoin
@@ -224,7 +251,7 @@ public class JoinDp {
 					//each iteration, you find the scale factor and compute individual v-value of attribute of same relation
 					for (String c : constraint.getAttributeSet()) { //attribute set
 						String[] tableN = c.split("\\.");
-						if(Aliases.getTable(tableN[0]) == Aliases.getTable( cpy2.getFromTable())) { //if current relation's attribute involved in select
+						if(Aliases.getTable(tableN[0]) == Aliases.getTable(cpy2.getFromTable())) { //if current relation's attribute involved in select
 							String tempName = Aliases.getTable(cpy2.getFromTable()) + "."+tableN[tableN.length-1]; //table with column
 							System.out.println("---calculating V value for this: " + tempName);
 							int[] minMax = dbStatsInfo.get(tempName); //get min max of this attribute
@@ -272,9 +299,13 @@ public class JoinDp {
 	}
 			
 	/**
-	 * Makes the table name from the alias if it is aliased
-	 * @param op is the logical operator
-	 * @return the real table name specified in data
+	 * Returns the full table name regardless of aliased or not and 
+	 * regardless of logical operator type. Logical operator is either
+	 * logical scan or logical filter, since children of logical 
+	 * all join is either one of those two.
+	 *  
+	 * @param op is the logical operator (child of logical all join)
+	 * @return the real table name of op
 	 */
 	private String tableName(LogicalOperator op) {
 		if (op instanceof LogicalScan) {
